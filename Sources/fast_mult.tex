@@ -1,25 +1,38 @@
-\chapter{Evaluation and interpolation}
-\label{chapter1}
+% Explains the Evaluation-Interpolation technique, and gives some algorithms
+% as examples, such as FFT and Schonage Strassen
+\chapter{Evaluation and interpolation}\label{chapter1}
 
-Take polynomials $a$ and $b$ and consider $c = ab$ as a function, with $n + m$ coefficients.
-Then we from linear algebra we know that from $n + m$ points we can interpolate $c$.
+Take polynomials $a$ and $b$ and consider $c = ab$ as a function, with $n + m$ coefficients. Then we from linear algebra we know that from $n + m$ points we can interpolate $c$.
 
-Observe that if we have a collection of points $x_1, \ldots, x_{n+m}$, then $a(x_i)b(x_i) = c(x_i)$.
-Therefore we can interpolate the polynomial $c$ by interpolating it from the points
-$c(x_1), \ldots, c(x_{n+m})$. To obtain those points we first evaluate $a$ and $b$ at these points
-to obtain $a(x_1), \ldots, a(x_{n+m})$ and $b(x_1), \ldots, b(x_{n+m}$, then calculate $c(x_i) = a(x_i)b(x_i)$ for all
-$0 \leq i \leq n + m$.
+Observe that if we have a collection of points $x_1, \ldots, x_{n+m}$, then $a(x_i)b(x_i) = c(x_i)$. Therefore we can interpolate the polynomial $c$ by interpolating it from the points $c(x_1), \ldots, c(x_{n+m})$. To obtain those points we first evaluate $a$ and $b$ at these points to obtain $a(x_1), \ldots, a(x_{n+m})$ and $b(x_1), \ldots, b(x_{n+m}$, then calculate $c(x_i) = a(x_i)b(x_i)$ for all $0 \leq i \leq n + m$.
 
-Normally, evaluation at a single point is $O(n)$ where $n$ is the number of nonzero coefficients in the polynomial.
-Therefore we have the interpolation in $O(n^2)$ to obtain the evaluations for $a$ and $b$ and then $O(n)$ to combine,
-then $O(n^2)$ to interpolate (can be done by solving a matrix via Gauss Jordan elimination). So the total cost is $O(n^2)$.
+Normally, evaluation at a single point is $O(n)$ where $n$ is the number of nonzero coefficients in the polynomial. Therefore we have the interpolation in $O(n^2)$ to obtain the evaluations for $a$ and $b$ and then $O(n)$ to combine, then $O(n^2)$ to interpolate (can be done by solving a matrix via Gauss Jordan elimination). So the total cost is $O(n^2)$.
 
-However, if we choose to evaluate at the $n + mth$ roots of unity, then the evaluation is equivalent to performing the
-FFT which is $O(n^2)$ and the interpolation is the inverse FFT, which are both $O(nlog n)$ this make the multiplication
-time $O(n log n)$ complexity.
+However, if we choose to evaluate at the $n + mth$ roots of unity, then the evaluation is equivalent to performing the FFT which is $O(n^2)$ and the interpolation is the inverse FFT, which are both $O(nlog n)$ this make the multiplication time $O(n log n)$ complexity.
 
-Observe that in order to perform the FFT we need to pad the polynomials with zeros until they have the length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. 
+Observe that in order to perform the FFT we need to pad the polynomials with zeros until they have the length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. And that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials are sparse.
 
 For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have need to round it up to the next power of two $512$. Hence despite being something that s trivial to do maually, ends up taking the algorithm really long.
 
 There are ways to mitigate this a bit. For one we don't have to round up to the nearest power of two if we do some trickery. But the moral of the story is that the FFT algorithm is not well suited for sparse polynomials.
+
+The trick I did
+\begin{figure}
+    \centering
+    \begin{tikzcd}
+        x_0 \arrow[rdd] & x_1 \arrow[rrrdd] & \cdots & x_{\frac{n}{2}} \arrow[llldd] & x_{\frac{n}{2} +1} \arrow[ldd] \\
+                        &                   &        &                               &                                \\
+        c_0             & c_{\frac{n}{2}}   & \cdots & c_1                           & c_{\frac{n}{2} + 1}           
+    \end{tikzcd}
+    \caption{One such instance}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tikzcd}
+        x_i \arrow[rdd] & x_{i+1} \arrow[rrrdd] & \cdots & x_{\frac{n}{2} + i} \arrow[llldd] & x_{\frac{n}{2} + i + 1} \arrow[ldd] \\
+            &                   &       &                   &                               \\
+        c_i & c_{\frac{n}{2} + i}  & \cdots & c_{i + 1} & c_{\frac{n}{2} + i + 1}           
+    \end{tikzcd}
+    \caption{General case for $i \in \{0, 2, \ldots, \frac{n}{2}\}$}
+\end{figure}
