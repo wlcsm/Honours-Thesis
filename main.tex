@@ -1,7 +1,14 @@
 \documentclass{mimosis}
 
+\usepackage[utf8]{inputenc}
+
 \usepackage{metalogo}
 \usepackage{tikz-cd}
+\usepackage[noend]{algpseudocode}
+\usepackage{enumerate}
+
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{mathmaps}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some of my favourite personal adjustments
@@ -13,19 +20,19 @@
 
 % This ensures that I am able to typeset bold font in table while still aligning the numbers
 % correctly.
-\usepackage{etoolbox}
+% \usepackage{etoolbox}
 
-\usepackage[binary-units=true]{siunitx}
-\DeclareSIUnit\px{px}
+% \usepackage[binary-units=true]{siunitx}
+% \DeclareSIUnit\px{px}
 
-\sisetup{%
-  detect-all           = true,
-  detect-family        = true,
-  detect-mode          = true,
-  detect-shape         = true,
-  detect-weight        = true,
-  detect-inline-weight = math,
-}
+% \sisetup{%
+%   detect-all           = true,
+%   detect-family        = true,
+%   detect-mode          = true,
+%   detect-shape         = true,
+%   detect-weight        = true,
+%   detect-inline-weight = math,
+% }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hyperlinks & bookmarks
@@ -79,58 +86,60 @@
 
 \renewcommand{\th}{\textsuperscript{\textup{th}}\xspace}
 
-\newacronym[description={Principal component analysis}]{PCA}{PCA}{principal component analysis}
-\newacronym                                            {SNF}{SNF}{Smith normal form}
-\newacronym[description={Topological data analysis}]   {TDA}{TDA}{topological data analysis}
+% \newacronym[description={Principal component analysis}]{PCA}{PCA}{principal component analysis}
+% \newacronym                                            {SNF}{SNF}{Smith normal form}
+% \newacronym[description={Topological data analysis}]   {TDA}{TDA}{topological data analysis}
 
-\newglossaryentry{LaTeX}{%
-  name        = {\LaTeX},
-  description = {A document preparation system},
-  sort        = {LaTeX},
-}
+% \newglossaryentry{LaTeX}{%
+%   name        = {\LaTeX},
+%   description = {A document preparation system},
+%   sort        = {LaTeX},
+% }
 
-\newglossaryentry{Real numbers}{%
-  name        = {$\real$},
-  description = {The set of real numbers},
-  sort        = {Real numbers},
-}
+% \newglossaryentry{Real numbers}{%
+%   name        = {$\real$},
+%   description = {The set of real numbers},
+%   sort        = {Real numbers},
+% }
 
-\makeindex
+% \makeindex
 \makeglossaries
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Incipit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{\texttt{latex-mimosis}}
-\subtitle{A minimal, modern \LaTeX{} package for typesetting your thesis}
-\author{Bastian Rieck}
+\title{Efficient Polynomial Multiplication}
+\subtitle{}
+\author{William Cashman}
 
 \begin{document}
 
 \frontmatter
   \include{Sources/Title}
-  \include{Sources/Abstract}
-
+  % \include{Sources/Abstract}
   \tableofcontents
 
 \mainmatter
 
   \include{Sources/Introduction}
+  \include{Sources/preliminaries}
   \include{Sources/fast_mult}
+  \include{Sources/finite_fields}
+  \include{Sources/implementation}
 
 % This ensures that the subsequent sections are being included as root
 % items in the bookmark structure of your PDF reader.
 \bookmarksetup{startatroot}
 \backmatter
 
-  \begingroup
-    \let\clearpage\relax
-    \glsaddall
-    \printglossary[type=\acronymtype]
-    \newpage
-    \printglossary
-  \endgroup
+  % \begingroup
+  %   \let\clearpage\relax
+  %   \glsaddall
+  %   \printglossary[type=\acronymtype]
+  %   \newpage
+  %   \printglossary
+  % \endgroup
 
   \printindex
   \printbibliography

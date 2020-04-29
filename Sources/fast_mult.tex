@@ -1,38 +1,189 @@
 % Explains the Evaluation-Interpolation technique, and gives some algorithms
 % as examples, such as FFT and Schonage Strassen
-\chapter{Evaluation and interpolation}\label{chapter1}
 
-Take polynomials $a$ and $b$ and consider $c = ab$ as a function, with $n + m$ coefficients. Then we from linear algebra we know that from $n + m$ points we can interpolate $c$.
+\chapter{Evaluation and interpolation}\label{chapter2}
 
-Observe that if we have a collection of points $x_1, \ldots, x_{n+m}$, then $a(x_i)b(x_i) = c(x_i)$. Therefore we can interpolate the polynomial $c$ by interpolating it from the points $c(x_1), \ldots, c(x_{n+m})$. To obtain those points we first evaluate $a$ and $b$ at these points to obtain $a(x_1), \ldots, a(x_{n+m})$ and $b(x_1), \ldots, b(x_{n+m}$, then calculate $c(x_i) = a(x_i)b(x_i)$ for all $0 \leq i \leq n + m$.
+\textbf{Note the equivalence of integer multiplication and polynomial multiplication}
 
-Normally, evaluation at a single point is $O(n)$ where $n$ is the number of nonzero coefficients in the polynomial. Therefore we have the interpolation in $O(n^2)$ to obtain the evaluations for $a$ and $b$ and then $O(n)$ to combine, then $O(n^2)$ to interpolate (can be done by solving a matrix via Gauss Jordan elimination). So the total cost is $O(n^2)$.
+Take polynomials $a$ and $b$ and consider $c = ab$ as a function, with $n + m$ coefficients. Then we from linear algebra we know that from $n + m$ points we can interpolate $c$.\\
+Though this method appears that it would take longer than a direct calculation, we will show that there are asymptotically fast methods of evaluating and interpolating polynomials at specifically chosen points.\\
 
-However, if we choose to evaluate at the $n + mth$ roots of unity, then the evaluation is equivalent to performing the FFT which is $O(n^2)$ and the interpolation is the inverse FFT, which are both $O(nlog n)$ this make the multiplication time $O(n log n)$ complexity.
+To obtain sample of $c$ we take the samples at $a$ and $b$, then multiply the vectors elementwise,
+\[
+  c(x_i) = a(x_i)b(x_i) \qquad i = 1, \ldots, n + m
+\]
 
-Observe that in order to perform the FFT we need to pad the polynomials with zeros until they have the length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. And that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials are sparse.
+Evaluation at a single point can be performed in O(n) time via Horner's Rule hence the calculation of each of these point if performed normally would be $O((n + m)^2)$. Interpolation in a standard way can also be performed in $O((n+m)^2)$ time.
 
-For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have need to round it up to the next power of two $512$. Hence despite being something that s trivial to do maually, ends up taking the algorithm really long.
+However, since this will work for all distinct points, we have fast methods of evaluation and interpolation. The most common being the Fast Fourier Transform algorithm.
 
-There are ways to mitigate this a bit. For one we don't have to round up to the nearest power of two if we do some trickery. But the moral of the story is that the FFT algorithm is not well suited for sparse polynomials.
+\begin{theorem}[School-book Method]
+The DFT with $N$ samples can be computed in $O(N^2)$ time\footnote{Here we mean if $f(N)$ can be computed in $O(g(x))$ time, then there exists some constant $A > 0$ such that $f(N) < Ag(N)$ for all $N$.}. 
+\end{theorem}
 
-The trick I did
-\begin{figure}
-    \centering
-    \begin{tikzcd}
-        x_0 \arrow[rdd] & x_1 \arrow[rrrdd] & \cdots & x_{\frac{n}{2}} \arrow[llldd] & x_{\frac{n}{2} +1} \arrow[ldd] \\
-                        &                   &        &                               &                                \\
-        c_0             & c_{\frac{n}{2}}   & \cdots & c_1                           & c_{\frac{n}{2} + 1}           
-    \end{tikzcd}
-    \caption{One such instance}
-\end{figure}
+\section{The Fast Fourier Transform}
 
-\begin{figure}
-    \centering
-    \begin{tikzcd}
-        x_i \arrow[rdd] & x_{i+1} \arrow[rrrdd] & \cdots & x_{\frac{n}{2} + i} \arrow[llldd] & x_{\frac{n}{2} + i + 1} \arrow[ldd] \\
-            &                   &       &                   &                               \\
-        c_i & c_{\frac{n}{2} + i}  & \cdots & c_{i + 1} & c_{\frac{n}{2} + i + 1}           
-    \end{tikzcd}
-    \caption{General case for $i \in \{0, 2, \ldots, \frac{n}{2}\}$}
-\end{figure}
+The Discrete Fourier Transform of a function is defined by evaluating the function at the roots of unity. The Fast Fourier Transform is an algorithm for evaluating the DFT (and its inverse) in $O(n \log n)$ time.
+
+
+\subsection{The Discrete Fourier Transform}
+
+The Discrete Fourier Transform is defined by evaluating a function at roots of unity.
+\begin{definition}[Roots of Unity]
+  An element $\alpha \in R$ where $R$ is a ring? Is an \emph{root of unity of order $N$} if
+  \begin{enumerate}
+    \item $\alpha^N = 1$
+    \item $\alpha^p - 1$ is not a zero divisor for all $1 \leq p < N$.
+  \end{enumerate}
+\end{definition}
+
+
+\begin{definition}[Discrete Fourier Transform]
+The $k^{\th}$ Fourier coefficient of the Discrete Fourier Transform of samples $x_0, \ldots, x_{N-1}$ with roots of unity $(\omega_N^i)_{i=0}^{N-1}$ is 
+\[
+    X_k = \sum^{N-1}_{i=0}x_i\omega_{N}^{ik}
+\]
+for $0 \leq k \leq N-1$.\\
+\end{definition}
+
+At the moment this is not an immediate, improvement since a direct approach would still calculate the sequence in $O(n^2)$ steps.
+
+
+% <><><><><><><><><> FFT <><><><><><><><><>%
+\section{The Fast Fourier Transform}
+
+The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $O(N \log N)$ time. First developed by Gauss in 1805 \cite{guass}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
+There are many different variations of the Fast Fourier Transform but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper\footnote{The paper can be found at https://bbs.pku.edu.cn/attach/1d/b4/1db43bb2ee41927c/CooleyJ\_AlgMCC.pdf}\\
+
+\begin{theorem}[Fast Fourier Transform]
+    If $N$ is a power of two, then the DFT with $N$ samples can be calculated in $O(N\log N)$ time.
+\end{theorem}
+
+\noindent\textit{Heuristic Intuition:}\lvm
+This follows a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements and be recombined quickly. Since we already established that the DFT can be computed in $O(N^2)$, it is quicker to compute $O((N/2)^2)$ twice rather than $O(N^2)$ once. Since $(N/2)^2 + (N/2)^2 = N^2/2 < N$. We then split up the two smaller DFT's in the same way again to obtain four DFT's each with $N/4$ elements. This procedure repeats recursively until only one element remains in each.
+
+First we will prove a lemma. The lemma serves to outline the general algorithm for computing the DFT efficiently, and the remainder of the proof verifies the time complexity of the algorithm.
+
+\begin{lemma}
+    Let $C(N)$ be the number of calculations required to compute the DFT with $N = 2^n$ elements.\\
+    Then we have
+    \begin{equation}
+        C(N) = 2 C(N/2) + pN \label{eq:fftlem}
+    \end{equation}
+    for some constant $p$
+\end{lemma}
+
+\begin{proof}
+From the definition of the DFT we have
+\[
+    X_k = \sum^{N-1}_{n=0}x_n\omega^{nk}
+\]
+
+Rearranging we get
+\begin{align}
+    X_k
+    &= \sum^{N-1}_{n=0}x_n\omega^{nk} \nonumber\\
+    &= \sum^{N-1}_{n=0}x_{2n}\omega^{2nk} \;+\; \sum^{N-1}_{n=0}x_{2n+1} \omega^{(2n+1)k} \nonumber\\
+    &= \sum^{N/2-1}_{n=0}x_{2n}\omega^{2nk} \;+\; \omega^k \sum^{N/2-1}_{n=0}x_{2n+1}\omega^{2nk} \label{eq:keystep}
+\end{align}
+Now note that $\omega^2$ is a root of unity of order $N/2$. Hence the two terms in the last line are DFTs of length $N/2$.
+
+A very important observation to make is that the DFT is obtained by summing over all $0\leq k \leq N$.\\
+
+So in the term $\sum^{N/2-1}_{n=0}x_{2n}\omega^{nk}_{N/2}$, k should range from 0 to $N$, but it is only necessary to calculate it for $0 \leq k < N/2$. This means that we need to evaluate the two sums on the RHS only for $0 \leq k \leq N/2$.\\
+
+Therefore we have transformed a DFT with $N$ elements, Into two DFT's of $N/2$ elements, one containing all the samples with odd index, and one containing all the samples at an even index.\\
+Computing each of the two smaller DFT takes $2C(N/2)$. Then multiplying by $\omega^k_N$ and adding the two DFT's together for all $0 \leq k < N$ will take $O(N)$ time. \\
+So we have
+\[
+    C(N) = 2 C(N/2) + pN \label{eq:recurse}
+\]
+for some constant $p$.\\
+This concludes the proof of the lemma.
+\end{proof}
+
+% \begin{proof}[Fast Fourier Transform]
+
+% Using equation.\eqref{eq:fftlem} obtained from the lemma we show by induction that this satisfies $O(N \log N)$.
+% \[
+%     C(N) = 2C(N/2)+ pN
+% \]
+
+% The base case is $C(1)$ which we can assume to be solved in constant time and so it is trivially in $O(N \log N)$ time.\\
+
+% Assume that $C(K) < pK\log(K)$ for all $K < N$ and $p$ defined as above, then
+% \begin{align*}
+%     C(N) &= 2C(N/2)+ pN\\
+%          &< 2p\times N/2\times\log (N/2) + pN\\
+%          &= pN(\log N - 1)) + pN\\
+%          &= pN\log N 
+% \end{align*}
+% Thus $C(N) < pN\log N$. Therefore we can conclude that $C(N) < pN\log N$ for all $N\in \N$.\\ 
+% Thus $C(N) = O(N \log N)$, which completes the proof of the time complexity of the Fast Fourier Transform\\
+
+% \end{proof}
+
+\noindent\textit{Implementation Note: }
+Note we can also compute the FFT's time complexity constructively by simply expanding the recursive formula.\\
+
+Recall $N = 2^n$ and so the maximum recursion depth (how many time the function can call itself until it reaches the base case) is $n$.
+\begin{align*}
+C(N) &= 2\,(\;\cdots\; (2C(1) + p(N/2^{n-1})) + pN/2^{n-2}) + \cdots ) + pN\\
+     &= 2^{n}C(1) + \sum^n_{k=1} 2^{n-k} \times pN/2^{(n-k)}\\
+     &= 2^{\log_2(N)}C(1) + pN\log_2(N)\\
+     &= NC(1) + pN\log_2(N)
+\end{align*}
+Thus $C(N) = O(N \log N)$
+
+\begin{remark}
+    In order to perform the FFT we need to pad the polynomials with zeros until they have the length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. And that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials are sparse.
+
+    For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have need to round it up to the next power of two $512$. Hence despite being something that s trivial to do manually, ends up taking the algorithm really long.
+
+    There are ways to mitigate this a bit. For one we don't have to round up to the nearest power of two if we do some trickery. But the moral of the story is that the FFT algorithm is not well suited for sparse polynomials.
+
+    Another good technique is if your polynomial's degree is nearly a power of two, i.e. it has another small prime factor, then just leave that small prime factor as the last FFT base in the method outlined below, because at the base case the FFT should be hard coded anyway or just a direct algorithm to evaluate the DFT so its fine.
+\end{remark}
+
+\subsection{Non-power-of-two FFT}
+
+To get around the fact that you need to round up to a power of two, one could perform the DFT with an arbitrary base:
+
+Say we want to do the base-$m$ DFT:
+Do the same step to get
+\[
+    F_n(k) = \sum^{n-1}_{i=0} a_0\omega_n^{ik} 
+\]
+
+Then instead of breaking it into $2$ pieces, break it into $m$ pieces
+\begin{align*}
+    F_n(k) &= \sum^{\frac{n}{m}-1}_{i=0} x_{mi}\omega_n^{mik} + \sum^{\frac{n}{m}-1}_{i=0} x_{mi+1}\omega_n^{(mi+1)k} + \ldots + \sum^{\frac{n}{m}-1}_{i=0} x_{mi+2}\omega_n^{(mi+2)k}\\
+    F_n(k) &= \sum^{\frac{n}{m}-1}_{i=0} x_{mi}\omega_n^{mik} + \omega_n^k\sum^{\frac{n}{m}-1}_{i=0} a_{mi+1}\omega_n^{mik} + \ldots +  \omega_n^{2k}\sum^{\frac{n}{m}-1}_{i=0} x_{mi+2}\omega_n^{mik}\\
+    &= F^0(k) + \omega_{\frac{n}{m}}^k F^1(k) + \ldots + \omega_{\frac{n}{m}}^{(m-1)k} F^{m-1}(k)
+\end{align*}
+
+But also notice that each of the smaller DFT's $F^i(k)$ have $\frac{n}{m}jk$ elements, in other words if $k = p\frac{n}{m} + q$ we have that $F^i(k) = F^i(q)$ so we further deconstruct it also
+\begin{align*}
+    F_n\bb{\frac{n}{m}p + q} &= \sum^{m-1}_{i=0} F^i\bb{\frac{n}{m} + q}\omega^{i(\frac{n}{m}p + q)}_n\\
+    &= \sum^{m-1}_{i=0} \omega^{ip\frac{n}{m}}_n \omega_n^{iq} F^i(q)\omega^{ip\frac{n}{m}}_n\\
+    &= \sum^{m-1}_{i=0} (\omega^{iq}_n F^i(k))\omega^{ip}_m\\
+\end{align*}
+Hence if we fix $q$, this is now a DFT of $m$ elements. Thus we can calculate $F(\frac{n}{m}j + k)$ for all $0 \leq j < m$ in $F_m$ time.
+
+To calculate all the sub DFTs, thats $F_{\frac{n}{m}}$ time, in total $mF_{\frac{n}{m}}$, then to combine them together, thats $F_{m}$ time for each $k$, so in total $\frac{n}{m}F_m$ time. It total it is 
+\[
+    mF_{\frac{n}{m}} + \frac{n}{m}F_m    
+\]
+time.
+
+Say we set $m = \sqrt{n}$ then we would get $2\sqrt{n}F_{\sqrt{n}}$. 
+
+\subsection{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
+\label{subsec:schon-strass}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% End:

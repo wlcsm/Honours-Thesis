@@ -34,3 +34,5 @@
 *.pgf-plot.*
 
 Figures/External/
+auto
+Sources/auto
