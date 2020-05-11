@@ -1,11 +1,12 @@
 % My study of Basis mostly came from https://arxiv.org/ftp/arxiv/papers/1304/1304.0420.pdf
 \chapter{Finite Fields}\label{finite-fields}
 
-In this section we will look and performing polynomial multiplication where the coefficients are in a finite field and the polynomial is perhaps in a quotient ring.\\
+In this section we will look at performing polynomial multiplication where the coefficients are in a finite field and the polynomial is perhaps in a quotient ring.\\
 
-Common reasons to use a finite field:
+Some common reasons to use a finite field are:
 \begin{itemize}
-\item You are doing arbitrary work in one. Thus $p^n$ can be anything and we need to be as generic as possible
+\item Your problem is naturally stated for polynomials with coefficents
+in a finite field. Thus $p^n$ can be anything and we need to be as generic as possible.
 \item You are using it to control the error that would arise if you used a complex FFT instead. In this case we perform the calculation over several finite fields and use the Chinese Remainder Theorem to reconstruct the final result. This allows us to have some control over the primes that we choose. (It is actually quite common to use integer rings as well as prime fields).
 \item You just need a finite field, such as the Ring Learning with Errors problems. This gives us the most flexibility over the choice of prime field and so we can choose ones which are very efficient to perform arithmetic in using a computer.
 \end{itemize}
@@ -48,9 +49,9 @@ Suppose that $N$ is prime, then there exists a primitive element for $GF^\times(
   A_k - a_0 = \sum^{n-1}_{i=1} a_i \omega_N^{ik} \qquad &\mapsto \qquad A_{g^k} - a_0 = \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}}\\
   \tx{ via } i \mapsto g^i&, k \mapsto g^k
 \end{align*}
-This can then be realised as the convolution of the two sequences $\{a_{g^i}\}_{i=1}^{n-1}$ and $\omega_N^{g^i}$. Thus from Stockham the sum can be calculated as
+This can then be realised as the convolution of the two sequences $\{a_{g^i}\}_{i=1}^{n-1}$ and $\omega_N^{g^i}$. Thus from Stockham(reference in comment of tex file) the sum can be calculated as
 \[
-  \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}} = \tx{DFT}^{-1}\{\tx{DFT}\{a_{g^{-i}}\}\cdot \tx{DFT}\{\omega_N^{g^i}\}
+  \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}} = \tx{DFT}^{-1}\{\tx{DFT}\{a_{g^{-i}}\}\cdot \tx{DFT}\{\omega_N^{g^i}\}\}
 \]
 % Stockham-DFT-for-Convolutions
 Hence this is good if $N - 1$ is highly composite because then we can apply normal FFT algorithms.
@@ -101,6 +102,21 @@ Definition from the Normal bases thesis.
 A normal basis of $\F_{q^n}$ over $\F_q$ is thus of the form: $\{\alpha,\alpha^q,\ldots ,\alpha^{q^{n−1}}\}$ for some $\alpha ∈ \F_{q^n}$.
 
 \section{Asymptotic Bounds}
+
+In Harvey and van der Hoeven they use multidimensional FFTs to achieve better complexity. That is, they convert multiplication in $\Z[x]$ (or equivalently $\Z$) into multiplication over a ring in the form 
+
+\[
+    R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1), \qquad R := \C[y]/(y^r + 1)
+\]
+% Taken directly from the paper page 5
+
+\section{Multi-dimensional Variant of Rader's trick}%
+\label{sec:multi_dimensional_variant_of_rader_s_trick}
+
+
+
+
+
 
 The fabled $O(n \log n)$ bounds for multiplication.
 

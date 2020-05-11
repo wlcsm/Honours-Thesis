@@ -1,5 +1,6 @@
 \documentclass{mimosis}
 
+% Causing some error
 \usepackage[utf8]{inputenc}
 
 \usepackage{metalogo}
@@ -76,13 +77,9 @@
 % Fonts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\ifxetexorluatex
-  \setmainfont{Minion Pro}
-\else
-  \usepackage[lf]{ebgaramond}
-  \usepackage[oldstyle,scale=0.7]{sourcecodepro}
-  \singlespacing
-\fi
+\usepackage[lf]{ebgaramond}
+\usepackage[oldstyle,scale=0.7]{sourcecodepro}
+\singlespacing
 
 \renewcommand{\th}{\textsuperscript{\textup{th}}\xspace}
 
@@ -112,6 +109,10 @@
 \title{Efficient Polynomial Multiplication}
 \subtitle{}
 \author{William Cashman}
+
+\renewcommand{\C}{\mathbb{C}}
+\newcommand{\F}{\mathbb{F}}
+
 
 \begin{document}
 
