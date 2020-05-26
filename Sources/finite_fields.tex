@@ -16,14 +16,6 @@ It is important to differentiate the use cases as each imposes a different set o
 Remember that one can still use the Karatsuba/Toom-Cook algorithm here as well.
 
 In this section we will cover the Number Theoretic Transform (NTT) which is a generalisation of the Fast Fourier Transform for integer rings. 
-% There are several representations of finite fields which affect their efficacy in programs
-% \begin{itemize}
-% \item Vector spaces: So a representations by a basis
-% \item As a cyclotomic ring: So as $g^i \cup \{0\}$ where $g$ is the generator for the multiplicative group of $GF(p^n)$
-% \item As a quotient ring: $GF(p)[X] / \phi(X)$ where $\phi(X)$ is an irreducible polynomial of degree $n$.
-% \end{itemize}
-% Each has their advantages when it comes to addition, multiplication, and other things like logarithms
-
 
 \section{Number Theoretic Transform}
 \label{sec:ntt}
@@ -101,6 +93,7 @@ They are used to make calcuations faster, there are both hardware and software d
 Definition from the Normal bases thesis.
 A normal basis of $\F_{q^n}$ over $\F_q$ is thus of the form: $\{\alpha,\alpha^q,\ldots ,\alpha^{q^{n−1}}\}$ for some $\alpha ∈ \F_{q^n}$.
 
+
 \section{Asymptotic Bounds}
 
 In Harvey and van der Hoeven they use multidimensional FFTs to achieve better complexity. That is, they convert multiplication in $\Z[x]$ (or equivalently $\Z$) into multiplication over a ring in the form 
@@ -113,13 +106,7 @@ In Harvey and van der Hoeven they use multidimensional FFTs to achieve better co
 \section{Multi-dimensional Variant of Rader's trick}%
 \label{sec:multi_dimensional_variant_of_rader_s_trick}
 
-
-
-
-
-
-The fabled $O(n \log n)$ bounds for multiplication.
-
+View the tensor product 
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "../main"
