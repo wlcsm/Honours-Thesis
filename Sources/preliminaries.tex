@@ -12,8 +12,30 @@ How integer multiplication and polynomial multiplication are linked. Integer mul
 \section{Karatsuba's Algorithm}
 \label{sec:prelim-karatsuba}
 
+\section{Kronecker Substitution}%
+\label{sub:kronecker_substitution}
 
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: "../main"
-%%% End:
+% From ffnlogn
+Let $M_q(n)$ be the bit complexity of polynomial multiplication over a finite field $\F_q$ with $q = p^k$ for some prime $p$. Then by Kronecker substitution we have
+\[
+    M_q(n) \leq M_p(2nk) + O(n M_p(k))
+\]
+which reduces us the problem to the case where $k = 1$. This can be obtained by replacing an element in $p^k$ with an element in $\F_p[x] / (f(x))$ where $f(x)$ is a degree $k$ polynomial. So the $O(n M_p(k))$ term is obtained from the multiplications in $\F_p$. TODO I'm not 100\% sure how this is obtained.
+
+Then the multiplication of polynomials in $\F_p[x]$ of small degree can be reduced to integer multiplication using Kronecker substitution: the input polynomial are first lifted into polynomials with integer coefficients in $0, \ldots, p - 1$ and then evaluated at $x = 2^{\lceil \log_2(n \pi^2) \rceil}$. The desired result can finally be read off from the integer product of these two evaluations. If $\log n = O(\log \pi)$, this yields
+\[
+    M_p(n) = O(I(n \log \pi)).
+\]
+On the other hand, for $\log p = p(\log n)$, adaptation of the algebraic complexity bound $M_R^\tx{alg}(n) = O(n \log n \log \log n)$ to the Turing model yields
+\[
+    M_p(n) = O(n \log n \log \log n \log p + n \log n I(\log p))
+\]
+where the first term corresponds to additive operations in $\F_p$ and the second to multiplications. Note the first term dominates for large $n$, this is good normally. These two together imply 
+\[
+    M_p(n) = O(n \log p (\log (n \log o))^{1 + o(1)}).
+\]
+It currently standard due to this paper (insert Finite-Fields mult here) that the bound is *(according to ffnlogn  this was the first algorithm to improve on the original bond)
+\[
+    M(n) = O(n \log p \log (n \log o) 8^{\log^\ast(n \log p)}
+\]
+It is shown in a paper mentioned here that this can be generalised to the ring $\Z / m\Z$ rather than a prime field.

@@ -1,7 +1,7 @@
 \documentclass{mimosis}
 
 % Causing some error
-\usepackage[utf8]{inputenc}
+% \usepackage[utf8]{inputenc}
 
 \usepackage{metalogo}
 \usepackage{tikz-cd}
@@ -71,6 +71,7 @@
   ]{biblatex}
 
 \input{bibliography-mimosis}
+
 \addbibresource{Thesis.bib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,23 +84,6 @@
 
 \renewcommand{\th}{\textsuperscript{\textup{th}}\xspace}
 
-% \newacronym[description={Principal component analysis}]{PCA}{PCA}{principal component analysis}
-% \newacronym                                            {SNF}{SNF}{Smith normal form}
-% \newacronym[description={Topological data analysis}]   {TDA}{TDA}{topological data analysis}
-
-% \newglossaryentry{LaTeX}{%
-%   name        = {\LaTeX},
-%   description = {A document preparation system},
-%   sort        = {LaTeX},
-% }
-
-% \newglossaryentry{Real numbers}{%
-%   name        = {$\real$},
-%   description = {The set of real numbers},
-%   sort        = {Real numbers},
-% }
-
-% \makeindex
 \makeglossaries
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,7 +107,6 @@
 
 \mainmatter
 
-  \include{Sources/Introduction}
   \include{Sources/preliminaries}
   \include{Sources/fast_mult}
   \include{Sources/finite_fields}

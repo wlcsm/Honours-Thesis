@@ -1,154 +1,53 @@
-% Encoding: UTF-8
-
-<<<<<<< HEAD
-@Book{Bringhurst12,
-  title     = {The Elements of Typographic Style},
-  publisher = {Hartley \& Marks Publishers},
-  year      = {2012},
-  author    = {Robert Bringhurst},
-  address   = {Vancouver, British Columbia, Canada},
-  edition   = {4},
+@inproceedings{stockham,
+    author = {Stockham, Thomas G.},
+    title = {High-Speed Convolution and Correlation},
+    year = {1966},
+    isbn = {9781450378925},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1464182.1464209},
+    doi = {10.1145/1464182.1464209},
+    booktitle = {Proceedings of the April 26-28, 1966, Spring Joint Computer Conference},
+    pages = {229–233},
+    numpages = {5},
+    location = {Boston, Massachusetts},
+    series = {AFIPS ’66 (Spring)}
 }
 
-@Book{Tufte01,
-  title     = {The visual display of quantitative information},
-  publisher = {Graphics Press},
-  year      = {2001},
-  author    = {Edward R. Tufte},
-  address   = {Chesh\-ire, CT, USA},
-  edition   = {2},
+    A. Fog. Instruction tables: lists of instruction latencies, throughputs and micro- operation breakdowns for intel, AMD and VIA CPUs, 2017. http://www.agner. org/optimize/
+
+@ARTICLE{intro-to-fmt,
+  author={R. {Agarwal} and C. {Burrus}},
+  journal={IEEE Transactions on Acoustics, Speech, and Signal Processing}, 
+  title={Fast Convolution using fermat number transforms with applications to digital filtering}, 
+  year={1974},
+  volume={22},
+  number={2},
+  pages={87-97},
 }
 
-@Book{Tufte90,
-  title     = {Envisioning information},
-  publisher = {Graphics Press},
-  year      = {1990},
-  author    = {Tufte, Edward R.},
-  address   = {Chesh\-ire, CT, USA},
+@unpublished{ffnlogn,
+  TITLE = {{Polynomial multiplication over finite fields in time O(n log n)}},
+  AUTHOR = {Harvey, David and Van Der Hoeven, Joris},
+  URL = {https://hal.archives-ouvertes.fr/hal-02070816},
+  NOTE = {working paper or preprint},
+  YEAR = {2019},
+  MONTH = Mar,
+  KEYWORDS = {polynomial multiplication ; integer multiplication ; algorithm ; complexity bound ; FFT ; finite field},
+  PDF = {https://hal.archives-ouvertes.fr/hal-02070816/file/ffnlogn.pdf},
+  HAL_ID = {hal-02070816},
+  HAL_VERSION = {v1},
 }
 
-@Comment{jabref-meta: databaseType:bibtex;}
-=======
-@inproceedings{Fast-Poly-Mult,
-  author    = {Moenck, Robert T.},
-  title     = {Practical Fast Polynomial Multiplication},
-  year      = {1976},
-  isbn      = {9781450377904},
-  publisher = {Association for Computing Machinery},
-  address   = {New York, NY, USA},
-  url       = {https://doi.org/10.1145/800205.806332},
-  doi       = {10.1145/800205.806332},
-  booktitle = {Proceedings of the Third ACM Symposium on Symbolic and Algebraic Computation},
-  pages     = {136–148},
-  numpages  = {13},
-  location  = {Yorktown Heights, New York, USA},
-  series    = {SYMSAC ’76}
+@unpublished{nlogn,
+  TITLE = {{Integer multiplication in time O(n log n)}},
+  AUTHOR = {Harvey, David and Van Der Hoeven, Joris},
+  URL = {https://hal.archives-ouvertes.fr/hal-02070778},
+  NOTE = {working paper or preprint},
+  YEAR = {2019},
+  MONTH = Mar,
+  PDF = {https://hal.archives-ouvertes.fr/hal-02070778/file/nlogn.pdf},
+  HAL_ID = {hal-02070778},
+  HAL_VERSION = {v1},
 }
 
-@iroceedings{10.1145/1576702.1576739,
-  author    = {Monagan, Michael and Pearce, Roman},
-  title     = {Parallel Sparse Polynomial Multiplication Using Heaps},
-  year      = {2009},
-  isbn      = {9781605586090},
-  publisher = {Association for Computing Machinery},
-  address   = {New York, NY, USA},
-  url       = {https://doi.org/10.1145/1576702.1576739},
-  doi       = {10.1145/1576702.1576739},
-  booktitle = {Proceedings of the 2009 International Symposium on Symbolic and Algebraic Computation},
-  pages     = {263–270},
-  numpages  = {8},
-  keywords  = {sparse, parallel, polynomial, multiplication},
-  location  = {Seoul, Republic of Korea},
-  series    = {ISSAC ’09}
-}
-
-@article{10.1145/3005344,
-  author     = {Harvey, David and Hoeven, Joris Van Der and Lecerf, Gr\'{e}goire},
-  title      = {Faster Polynomial Multiplication over Finite Fields},
-  year       = {2017},
-  issue_date = {February 2017},
-  publisher  = {Association for Computing Machinery},
-  address    = {New York, NY, USA},
-  volume     = {63},
-  number     = {6},
-  issn       = {0004-5411},
-  url        = {https://doi.org/10.1145/3005344},
-  doi        = {10.1145/3005344},
-  journal    = {J. ACM},
-  month      = jan,
-  articleno  = {Article 52},
-  numpages   = {23},
-  keywords   = {finite field, Polynomial multiplication, FFT, complexity bound, algorithm}
-}
-
-@article{PAN1994183,
-  title    = {Simple Multivariate Polynomial Multiplication}
-  journal  = {Journal of Symbolic Computation},
-  volume   = {18},
-  number   = {3},
-  pages    = {183 - 186},
-  year     = {1994},
-  issn     = {0747-7171},
-  doi      = {https://doi.org/10.1006/jsco.1994.1042},
-  url      = {http://www.sciencedirect.com/science/article/pii/S074771718471042X},
-  author   = {Victor Y. Pan},
-  abstract = {We observe that polynomial evaluation and interpolation can be performed fast over a multidimensional grid (lattice), and we apply this observation in order to devise a simple algorithm for multivariate polynomial multiplication. Surprisingly, this simple idea enables us to improve the known algorithms for multivariate polynomial multiplication based on the forward and backward application of Kronecker's map; in particular, we decrease, by the factor log log N, the known upper bound on the arithmetic time-complexity of this computation (over any field of constants), provided that the degree d in each of the m variables is fixed, m grows to the infinity, and N = (d + 1)m.}
-}
-
-@article{article,
-  author = {Canny, John and Kaltofen, E. and Yagati, L.},
-  year   = {1989},
-  month  = {01},
-  pages  = {121-128},
-  title  = {Solving systems of nonlinear polynomial equations faster},
-  isbn   = {0-89791-325-6},
-  doi    = {10.1145/74540.74556}
-}
-
-@article{10.1007/BF01178683,
-  author     = {Cantor, David G. and Kaltofen, Erich},
-  title      = {On Fast Multiplication of Polynomials over Arbitrary Algebras},
-  year       = {1991},
-  issue_date = {October 1991},
-  publisher  = {Springer-Verlag},
-  address    = {Berlin, Heidelberg},
-  volume     = {28},
-  number     = {7},
-  issn       = {0001-5903},
-  url        = {https://doi.org/10.1007/BF01178683},
-  doi        = {10.1007/BF01178683},
-  journal    = {Acta Inf.},
-  month      = oct,
-  pages      = {693–701},
-  numpages   = {9}
-}
-
-@article{article,
-  author  = {Popescu, Diana Andreea and Tomas, Rogelio},
-  year    = {2016},
-  month   = {12},
-  pages   = {154-165},
-  title   = {Multivariate Polynomial Multiplication on GPU},
-  volume  = {80},
-  journal = {Procedia Computer Science},
-  doi     = {10.1016/j.procs.2016.05.306}
-}
-
-@InProceedings{10.1007/978-3-319-72453-9_7,
-  author    = {van der Hoeven, Joris},
-  editor    = {Bl{\"o}mer, Johannes
-                and Kotsire as, Ilias S.
-                and Kutsia,  Temur
-                and Simos,  Dimitris E.},
-  title     = {Fast Chinese Remaindering in Practice},
-  booktitle = {Mathematical Aspects of Computer and Information Sciences},
-  year      = {2017},
-  publisher = {Springer International Publishing},
-  address   = {Cham},
-  pages     = {95--106},
-  abstract  = {The Chinese remainder theorem is a key tool for the design of efficient multi-modular algorithms. In this paper, we study the case when the moduli {\$}{\$}m{\_}1, {\backslash}ldots , m{\_}{\{}{\backslash}ell {\}}{\$}{\$}m1,{\ldots},mℓare fixed and can even be chosen by the user. If {\$}{\$}{\backslash}ell {\$}{\$}ℓis small or moderately large, then we show how to choose gentle moduli that allow for speedier Chinese remaindering. The multiplication of integer matrices is one typical application where we expect practical gains for various common matrix dimensions and bitsizes of the coefficients.},
-  isbn      = {978-3-319-72453-9}
-}
-
-/* @Comment{jabref-meta: databaseType:bibtex;} */
->>>>>>> 391a2f76657f563121cb864d112b1856505bd026

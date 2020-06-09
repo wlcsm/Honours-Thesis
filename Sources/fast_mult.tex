@@ -1,7 +1,7 @@
 % Explains the Evaluation-Interpolation technique, and gives some algorithms
 % as examples, such as FFT and Schonage Strassen
 
-\Chapter{Evaluation and interpolation}\label{chapter2}
+\chapter{Evaluation and interpolation}\label{chapter2}
 
 \textbf{Note the equivalence of integer multiplication and polynomial multiplication}
 
@@ -29,7 +29,7 @@ The Discrete Fourier Transform of a function is defined by evaluating the functi
 
 \subsection{The Discrete Fourier Transform}
 
-Let $R$ be a *something* ring.\\
+Let $R$ be a *something* ring.
 
 The Discrete Fourier Transform is defined by evaluating a function at roots of unity.
 
@@ -48,7 +48,7 @@ The $k^{\th}$ Fourier coefficient of the Discrete Fourier Transform of samples $
 \[
     X_k = \sum^{N-1}_{i=0}x_i\omega_{N}^{ik}
 \]
-for $0 \leq k \leq N-1$.\\
+for $0 \leq k \leq N-1$.
 \end{definition}
 
 At the moment this is not an immediate, improvement since a direct approach would still calculate the sequence in $O(n^2)$ steps.
@@ -57,7 +57,7 @@ At the moment this is not an immediate, improvement since a direct approach woul
 % <><><><><><><><><> FFT <><><><><><><><><>%
 \section{The Fast Fourier Transform}
 
-The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $O(N \log N)$ time. First developed by Gauss in 1805 \cite{guass}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
+The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $O(N \log N)$ time. First developed by Gauss in 1805 \cite{gauss}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
 There are many different variations of the Fast Fourier Transform but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper\footnote{The paper can be found at https://bbs.pku.edu.cn/attach/1d/b4/1db43bb2ee41927c/CooleyJ\_AlgMCC.pdf}\\
 
 \begin{theorem}[Fast Fourier Transform]
