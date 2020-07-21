@@ -1,3 +1,4 @@
+
 \chapter{Implementation Details}\label{impl-details}
 
 When I was implementing the program I found that I could combine the reverse-bit-encoding step with the first step of the FFT algorithm to create no loss in performance when putting it into reverse-bit-encoding.
@@ -154,28 +155,7 @@ But still, I think a problem is going to remain until I can figure out how to us
 
 A slighty weird point that I was considering was: Should the ring domain e.g. R[x, y] also have a particular monomial ordering? I thought yes, because it leads to some knots that I need to untie later about adding elements in the same domain with different orderings. And then I also remembered M2 does that so I trust that
 
-\section{Search trees for membership in monomial ideals}
-
-\textbf{Problem:} Given a monomial ideal, want to test to see if a monomial is in it.
-
-The time to beat is $O(nm)$ where $n$ is the number of generators in the ideal and $m$ is the number of indeterminates. This is obtained by a linear search
-
-The next best thing would be to try and do a search based off each of the values in the multi-index. You would try to do a binary search on th first value, then on the second, and so on. The problem is that it is pretty hard to see what kind of data structure this might use.
-
-Another optimisation would be to record the highest index value for each of the indices. Then we might be able to fit multiple indices inside a single machine word.
-
-
-The division relation "|", where $a | b$ for $a$ and $b$ monomials. Is independent of monomial orderings, and is reflexive and transitive. But it is not a total order so we cannot perform a normal binary search. In fact, if we have that one generator of the ideal divides the other, then the other can be eliminated so it is unclear how we would even go about searching for divisibility.
-
-What we can do is:
-\begin{enumerate}
-  \item Order then by total degree, if $\tx{totdeg}(a) < \tx{totdeg}(b)$ then certainly $b \not | a$. This can give us a rough estimate of where to place it
-  \item Order by total degree of the first half of the multi-index. Say if we have a monomial with multi-index $(1, 0, 5, 6, 2, 4)$, then we have its total degree is $1 + 5 + 6 + 2 + 4 = 18$, then the total degree of the first half is $1 + 0 + 5 = 6$.
-  \item Then order by their second half and so forth. This way we can build up a key for the monomial.
-\end{enumerate}
-
-This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker
-
-You could also choose to search based on the sum of every second index or something like that
-
-Maybe only have a small tree depth and do a manual search later.
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% End:

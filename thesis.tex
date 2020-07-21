@@ -1,0 +1,97 @@
+% An MSI thesis template thrown together Oct 2005 - CW
+\documentclass[a4paper,12pt]{book}
+
+  % a file containing your definitions, which packages to load etc
+  \include{definitions}
+
+  % line-spacing factor
+  \renewcommand{\baselinestretch}{1.2}
+
+  % use this if you don't want headers and page numbers on
+  % blank pages at the end of chapters
+  \newcommand{\blanknonumber}{\newpage\thispagestyle{empty}}
+
+  % needed for ANU logo on titlepage (optional)
+  \usepackage{graphics}
+
+  % Colour hyperlinks
+  \usepackage[ pdfborderstyle={/S/U/W 1},bookmarks]{hyperref}
+  \definecolor{MyBlue}{HTML}{210cac}
+  \definecolor{MyCiteColor}{HTML}{0099FF}
+  \definecolor{MyCol2}{HTML}{3E186A}
+  %this says what links will be what color
+  \hypersetup{%
+    pdfborderstyle={/S/U/W 1},
+    colorlinks=true,% hyperlinks will be coloured
+    linkcolor=MyBlue,% hyperlink text will be blue
+    citecolor=MyCiteColor,
+    urlcolor=MyCol2,
+    anchorcolor=MyBlue,
+    linkbordercolor=MyCol2,% hyperlink border will be red
+  }
+
+
+  \usepackage[
+    backend=biber,
+    style=alphabetic,
+    sorting=ynt
+    ]{biblatex}
+
+
+  \addbibresource{Thesis.bib}
+
+  % margins
+  \setlength{\voffset}{-1in}
+  \setlength{\hoffset}{-1in}
+  \setlength{\oddsidemargin}{4cm}
+  \setlength{\evensidemargin}{2.5cm}
+  \setlength{\textwidth}{14.5cm}
+  \setlength{\textheight}{22.5cm}
+  \setlength{\topmargin}{2.5cm}
+
+  \usepackage{tikz-cd}
+  \usepackage[noend]{algpseudocode}
+  \usepackage{enumerate}
+
+  \usepackage[ruled,vlined]{algorithm2e}
+
+  \renewcommand{\C}{\mathbb{C}}
+  \renewcommand{\F}{\mathbb{F}}
+
+
+\begin{document}
+
+
+  % set page numbers to roman and suppress chapter numbers
+  \frontmatter
+
+
+  \include{titlepage}\blanknonumber
+  \include{declaration}\blanknonumber
+  \include{acknowledgements}\blanknonumber
+  \include{abstract}\blanknonumber
+  \tableofcontents\blanknonumber
+  \include{notation}\blanknonumber
+
+
+  % set page numbers to arabic, reset to 1
+  \mainmatter
+
+  \include{Sources/introduction}
+  \include{Sources/preliminaries}
+  \include{Sources/fast_mult}
+  \include{Sources/finite_fields}
+  \include{Sources/implementation}
+  \include{Sources/asymptotic_bounds}
+
+% APPENDIX
+
+  \appendix
+
+  \include{appendix1}
+
+% BIBLIOGRAPHY
+
+  \printbibliography
+
+\end{document}

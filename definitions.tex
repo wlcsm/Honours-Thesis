@@ -1,0 +1,69 @@
+% Declare that this style file requires at least LaTeX version 2e.
+\NeedsTeXFormat{LaTeX2e}
+
+% Provide the name of your page, the date it was last updated, and a comment about what it's used for
+\ProvidesPackage{mathmaps}[2020 Will Cashman Math bindings package]
+%<><> Packages <><>%
+\RequirePackage{amsthm, amsmath, amsfonts, amssymb, latexsym}
+\RequirePackage{tikz}
+\RequirePackage{enumerate}
+
+% Field/Space Specifiers
+\def\R{{\mathbb R}}
+\def\Q{{\mathbb Q}}
+\def\Z{{\mathbb Z}}
+\def\C{{\mathbb C}}
+\def\S{{\mathbb S}}
+\def\N{{\mathbb N}}
+\def\F{{\mathbb F}}
+\def\E{{\mathbb E}}
+\def\P{{\mathbb P}}
+\def\H{{\mathbb H}}
+\def\A{{\mathbb A}}
+% Greek Letters
+\def\p{\partial}
+\def\O{\Omega}
+\def\a{\alpha}
+\def\b{\beta}
+\def\g{\gamma}
+\def\G{\Gamma}
+\def\d{\delta}
+\def\D{\Delta}
+\def\e{\epsilon}
+\def\r{\rho}
+\def\t{\tau}
+\def\l{\lambda}
+
+\def\bs{\backslash}
+\def\tx{\textrm}
+\def\tb{\textbf}
+\def\it{\textit}
+\def\pr{\prime}
+\def\lvm{\leavevmode\par}
+\newcommand{\pthroot}[1]{\sqrt[\leftroot{-1}\uproot{2}\scriptstyle #1]}
+
+\newcommand{\col}{\tx{col}}
+\newcommand{\Ker}{\tx{ker}}
+\newcommand{\rank}{\tx{rank}}
+\newcommand{\Spec}{\tx{Spec}}
+
+
+% Commands
+\newcommand{\sq}[1]{\left [#1\right ]}
+\newcommand{\an}[1]{\left\langle#1\right\rangle}
+\newcommand{\bb}[1]{\left(#1\right)}
+\newcommand{\BB}[1]{\left\{#1\right\}}
+\newcommand{\nm}[1]{\left\|#1\right\|}
+\newcommand{\M}[1]{\mathcal #1}
+\newcommand{\abs}[1]{\left |#1\right |}
+\newcommand{\lcm}{\tx{lcm}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\newtheorem{theorem}{Theorem}
+
+\endinput
