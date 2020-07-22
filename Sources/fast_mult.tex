@@ -3,7 +3,7 @@
 \chapter{Evaluation and interpolation}\label{chapter2}
 
 Let $K[x]$ be the ring of univariate polynomials over a field $K$.\\
-We now looks more closely at a special case in applying the Chinese Remainder Theorem t multiply polynomials as mentioned in the Preliminaries.
+We now look more closely at a special case in applying the Chinese Remainder Theorem to multiply polynomials as mentioned in the Preliminaries.
 
 The case is when the polynomial is reducible into linear factor. That is, we consider multiplication in the ring $K[x] / f(x)$ where $f(x) = (x - \alpha_1)(x - \alpha_2) \ldots (x - \alpha_n)$ for some distinct $\alpha_1, \ldots, \alpha_n \in K$. So by the Chinese Remainder theorem we have
 \[
@@ -12,13 +12,13 @@ The case is when the polynomial is reducible into linear factor. That is, we con
 As we know, if $g(x) \in K[x]$ then $g(x) \mod (x - \alpha_i) = g(\alpha_i)$, this is the evaluation step. The step where we recover the original polynomial in $K[x]/f(x)$ is known as the interpolation step.\\
 
 If $a(x), b(x) \in K[x]$ then the only thing we require is that the product $a(x)b(x)$ is not divisible by $f(x)$. So when we put it into the ring $K[x]/f(x)$ we obtain the true result (i.e. no modular wrapping occurs).\\
-Though this method appears that it would take longer than a direct calculation, we will show that there are asymptotically fast methods of evaluating and interpolating polynomials at specifically chosen points.\\
+Though this method appears that it would take longer than a direct calculation, we will show not only is there an asymptotically fast method of evaluating and interpolating polynomials at specifically chosen points, it is even quite practically efficient and is highly applicable with medium sized inputs
 
 To obtain sample of $c$ we take the samples at $a$ and $b$, then multiply the vectors elementwise,
 \[
   c(x_i) = a(x_i)b(x_i) \qquad i = 1, \ldots, n + m
 \]
-Evaluation at a single point can be performed in $O(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n + m$ distinct points in $O((n + m)^2)$ time. Standard interpolation can also be performed in $O((n+m)^2)$ time. Leading us to calculate this is $O((n + m)^2)$ time which isn't better than th standard method we introduced before
+Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n + m$ distinct points in $\M{O}((n + m)^2)$ time. Standard interpolation can also be performed in $\M{O}((n+m)^2)$ time. Leading us to calculate this is $\M{O}((n + m)^2)$ time which isn't better than th standard method we introduced before
 
 However one can find tricks for faster calculation for certain polynomials $f(x)$.
 
@@ -52,7 +52,7 @@ It is often the goal of many algorithms to find suitable $I, J \subset R$ to red
 
 \section{The Fast Fourier Transform}
 
-The Discrete Fourier Transform of a function is defined by evaluating the function at the roots of unity. The Fast Fourier Transform is an algorithm for evaluating the DFT (and its inverse) in $O(n \log n)$ time.
+The Discrete Fourier Transform of a function is defined by evaluating the function at the roots of unity. The Fast Fourier Transform is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ time.
 
 \subsection{The Discrete Fourier Transform}
 
@@ -78,21 +78,21 @@ The Discrete Fourier Transform is defined by evaluating a function at roots of u
 for $0 \leq k \leq N-1$.
 \end{definition}
 
-At the moment this is not an immediate, improvement since a direct approach would still calculate the sequence in $O(n^2)$ steps.
+At the moment this is not an immediate, improvement since a direct approach would still calculate the sequence in $\M{O}(n^2)$ steps.
 
 
 % <><><><><><><><><> FFT <><><><><><><><><>%
 \section{The Fast Fourier Transform}
 
-The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $O(N \log N)$ time. First developed by Gauss in 1805 \cite{gauss}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
-There are many different variations of the Fast Fourier Transform but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper\footnote{The paper can be found at https://bbs.pku.edu.cn/attach/1d/b4/1db43bb2ee41927c/CooleyJ\_AlgMCC.pdf}\\
+The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $\M{O}(N \log N)$ time. First developed by Gauss in 1805 \cite{gauss}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
+There are many different variations of the Fast Fourier Transform but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper\cite{10.2307/2003354}.
 
 \begin{theorem}[Fast Fourier Transform]
-    If $N$ is a power of two, then the DFT with $N$ samples can be calculated in $O(N\log N)$ time.
+    If $N$ is a power of two, then the DFT with $N$ samples can be calculated in $\M{O}(N\log N)$ time.
 \end{theorem}
 
 \noindent\textit{Heuristic Intuition:}\lvm
-This follows a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements and which can be recombined quickly. Since we already established that the DFT can be computed in $O(N^2)$, it is quicker to compute $O((N/2)^2)$ twice rather than $O(N^2)$ once. Since $(N/2)^2 + (N/2)^2 = N^2/2 < N$. We then split up the two smaller DFT's in the same way again to obtain four DFT's each with $N/4$ elements. This procedure repeats recursively until only one element remains in each.
+This follows a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements and which can be recombined quickly. Since we already established that the DFT can be computed in $\M{O}(N^2)$, it is quicker to compute $\M{O}((N/2)^2)$ twice rather than $\M{O}(N^2)$ once. Since $(N/2)^2 + (N/2)^2 = N^2/2 < N$. We then split up the two smaller DFT's in the same way again to obtain four DFT's each with $N/4$ elements. This procedure repeats recursively until only one element remains in each.
 
 First we will prove a lemma. The lemma serves to outline the general algorithm for computing the DFT efficiently, and the remainder of the proof verifies the time complexity of the algorithm.
 
@@ -125,7 +125,7 @@ A very important observation to make is that the DFT is obtained by summing over
 So in the term $\sum^{N/2-1}_{n=0}x_{2n}\omega^{nk}_{N/2}$, $k$ should range from $0$ to $N$, but it is only necessary to calculate it for $0 \leq k < N/2$. This means that we need to evaluate the two sums on the RHS only for $0 \leq k \leq N/2$.\\
 
 Therefore we have transformed a DFT with $N$ elements, into two DFT's of $N/2$ elements, one containing all the samples with odd index, and one containing all the samples at an even index.\\
-Computing each of the two smaller DFT takes $2C(N/2)$. Then multiplying by $\omega^k_N$ and adding the two DFT's together for all $0 \leq k < N$ will take $O(N)$ time. \\
+Computing each of the two smaller DFT takes $2C(N/2)$. Then multiplying by $\omega^k_N$ and adding the two DFT's together for all $0 \leq k < N$ will take $\M{O}(N)$ time. \\
 So we have
 \[
     C(N) = 2 C(N/2) + pN, \label{eq:recurse}
@@ -141,7 +141,7 @@ This concludes the proof of the lemma.
 %     C(N) = 2C(N/2)+ pN
 % \]
 
-% The base case is $C(1)$ which we can assume to be solved in constant time and so it is trivially in $O(N \log N)$ time.\\
+% The base case is $C(1)$ which we can assume to be solved in constant time and so it is trivially in $\M{O}(N \log N)$ time.\\
 
 % Assume that $C(K) < pK\log(K)$ for all $K < N$ and $p$ defined as above, then
 % \begin{align*}
@@ -151,7 +151,7 @@ This concludes the proof of the lemma.
 %          &= pN\log N
 % \end{align*}
 % Thus $C(N) < pN\log N$. Therefore we can conclude that $C(N) < pN\log N$ for all $N\in \N$.\\
-% Thus $C(N) = O(N \log N)$, which completes the proof of the time complexity of the Fast Fourier Transform\\
+% Thus $C(N) = \M{O}(N \log N)$, which completes the proof of the time complexity of the Fast Fourier Transform\\
 
 % \end{proof}
 
@@ -165,7 +165,7 @@ C(N) &= 2\,(\;\cdots\; (2C(1) + p(N/2^{n-1})) + pN/2^{n-2}) + \cdots ) + pN\\
      &= 2^{\log_2(N)}C(1) + pN\log_2(N)\\
      &= NC(1) + pN\log_2(N)
 \end{align*}
-Thus $C(N) = O(N \log N)$.
+Thus $C(N) = \M{O}(N \log N)$.
 
 % TODO  143 Word all of this formally at some time
 \begin{remark}
@@ -215,100 +215,21 @@ Say we set $m = \sqrt{n}$ then we would get $2\sqrt{n}F_{\sqrt{n}}$.
 \subsection{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
 \label{subsec:schon-strass}
 
-The problem with multiplying polynomials in $\Z$ is that $\Z$ doesn't have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithms. That is perfectly valid and does work in many scenarios however, often when we want to work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If one can guarantee that the maximum difference from the computation in $\C$ and the correct answer will be less that $1/4$ then you can simply round the answer to the nearest integer and regain the full effect. Indeed this is how the most recent paper achieves $O(n\log n)$ complexity. But we will get to that later, also that one isn't feasible computationally, we can also do some finite field stuff but also we will get back to that later.\\
-The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong in a ring that does have roots of unity. This works by making so called "synthetic roots".
+The problem with multiplying polynomials in $\Z$ is that $\Z$ doesn't have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithms. That is perfectly valid and does work in many scenarios however, often when we want to work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If one can guarantee that the maximum difference from the computation in $\C$ and the correct answer will be less that $1/4$ then you can simply round the answer to the nearest integer and regain the full effect. Indeed this is how the most recent paper achieves $\M{O}(n\log n)$ complexity. But we will get to that later, also that one isn't feasible computationally, we can also do some finite field stuff but also we will get back to that later.\\
+The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong in a ring that does have roots of unity, so called "synthetic roots".
 
-Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. So we now want to convert our original polynomial into one with coefficients in a ring of the above form. To do this we can use Kronecker substitution to partition the polynomial into $n^{\frac{1}{2}}$ pieces with the substitution $y = x^{n^{\frac{1}{2}}}$. We can then apply the FFT algorithm: The FFT step takes $O(n^{\frac{1}{2}}\log n^{\frac{1}{2}} \times n^{\frac{1}{2}}) = O(n \log n)$ where the arithmetic on the $n^{\frac{1}{2}}$ blocks is $O(n^{\frac{1}{2}})$ time and then the main algorithm is $O(n^{\frac{1}{2}}\log n^{\frac{1}{2}}$. Then to perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
+Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. So we now want to convert our original polynomial into one with coefficients in a ring of the above form. To do this we can use Kronecker substitution to partition the polynomial into $n^{\frac{1}{2}}$ pieces with the substitution $y = x^{n^{\frac{1}{2}}}$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}} \times n^{\frac{1}{2}}) = \M{O}(n \log n)$ where the arithmetic on the $n^{\frac{1}{2}}$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and then the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}}$. Then to perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 \[
-    C(n) < n^{\frac{1}{2}}C(n^{\frac{1}{2}}) + O(n \log n)
+    C(n) < n^{\frac{1}{2}}C(n^{\frac{1}{2}}) + \M{O}(n \log n)
 \]
-% This was taken from nlogn paper. TODO I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
+Just trust me, its $\M{O}(n \log n \log \log n)$ when you do the math.
+% TODO I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
 
+\section{Rader's Algorithm}%
+\label{sec:Rader's Algorithm}
 
-\section{$O(n\log(n))$ Multiplication}
-\label{subsec:nlogn}
-% Of course this is taken from the nlogn paper
+In this one we find an efficient algorithm if the transform length $n$ is prime and $n - 1$ has small coefficients.
 
-\begin{lemma}
-    For distinct primes $s_1, \ldots, s_d$ we have $\Z[x]/(x^{s_1\ldots s_d} - 1) \cong \Z[x]/(x^{s_1} - 1, \ldots, x^{s_d} - 1)$.
-\end{lemma}
+This algorithm is often cited in many papers but people also say it ends up being slower than the FFT algorithm so idk. Also Winograd generalised it to powers of primes. In http://fftw.org/fftw-paper-ieee.pdf they say that they use Rader's algorithm and it produces a speed-up of approximately 2x, but they also say that they might have modified the algorithm a bit
 
-\begin{proof}
-    (Rough outline, need to polish)\\
-    Observe that both rings have the same number of elements, so if we can construct an injective group homomorphism between them, then we can conclude they are isomorphic.
-
-    Take the map $x_i \mapsto x^{s_1\ldots \hat{s_i} \ldots s_d}$ for all $i = \{1, \ldots, d\}$ it is not difficult to check that this is a group homomorphism.\\
-    To show that it is injective suppose $x^{\alpha_1\ldots \alpha_d} \neq x^{\beta_1\ldots \beta_d}$ but $\phi(x^{\alpha_1\ldots \alpha_d}) \neq \phi(x^{\beta_1\ldots \beta_d})$. Then this implies
-    \[
-        \sum_i \alpha_i s_1 \ldots \hat{s_i} \ldots s_d = \sum_i \beta s_1 \ldots \hat{s_i} \ldots s_d \mod s_1\ldots s_d
-    \]
-    Hence 
-    \begin{align*}
-        (\alpha_1 - \beta_1)s_2 \ldots s_d &= \sum_{i = 1} (\alpha_i - \beta_i) s_1 \ldots \hat{s_i} \ldots s_d \mod s_1 \ldots s_d\\
-                           &= s_1 \sum_{i=1} (\alpha_i - \beta_i) s_2 \ldots \hat{s_i} \ldots s_d \mod s_1 \ldots s_d
-    \end{align*}
-    Since the $s_1, \ldots, s_d$ are prime, this implies $(\alpha_1 - \beta_1)$ is a multiple of $s_1$ which is impossible since $\alpha_1, \beta_1 < s_1$. Thus a contraction, and so $\phi$ is injective.
-\end{proof}
-
-
-% This is taken pretty closely from nlogn
-
-\subsection{Conditional Algorithm}
-
-Use the trick above to reduce it to a multidimensional complex DFT of size $s_1 \times \cdots \times s_d$ and then apply Rader's algorithm to convert it into a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$. If $s_i - 1 = q_i r$ for a common factor $r$ and $q_i$ suitably small, we can reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d]/(x_1^r - 1, \ldots, x_d^r - 1)$.
-
-\subsection{Unconditional Algorithm}
-
-They suggest that their unconditional algorithm is similar to Schonage and Strassen's first integer multiplication algorithm in that it achieves the same recursive relation, except that with the new one they are free to choose their own
-
-% In nlogn they only included up to $d - 1$ rather than $d$
-This then turns the problem into one over $A[x_1, \ldots, x_{d-1}] / (x_1^{q_1}, \ldots, x_d^{q_d})$ where $A = \C[y] / (y^r + 1)$. We can then finish off this in $O(n \log n)$ time.
-
-
-Say we have $a(x) , b(x) \in \Z[[x]$. If we have two integers then we can use the technique from the preliminaries to turn it into polynomial multiplication in $\Z[x]$.
-
-Steps:
-1. Convert into a $d$-dimensional convolution over $\Z$
-Use the substitution
-\[
-  \frac{\Z[x]}{x^S - 1} \cong \frac{\Z[x_1, \ldots, x_d]}{x^{s_1} - 1, \ldots, x_d^{s_d} - 1)}.
-\]
-with $s_1, \ldots, s_d$ pairwise prime.
-
-2. Convert into an appropriate $d$-dimensional convolution over $\mathbb{C}$.
-This is done be regarding our polynomials as members of
-\[
-  \frac{\C[x_1, \ldots, x_d]}{x^{s_1} - 1, \ldots, x^{s_d} - 1} \cong (\otimes_i \C^{s_i}, \ast),
-\]
-The crux of this method is that there exist efficient convolution methods in multivariate polynomial rings with high dimension that have small enough error such that it will always give the correct result. That is, in time $(12T/r)M(3rp) + O(n\log n)$ (I know I haven't defined all those symbols yet) we can compute our convolution such that the error between the correct answer's number and the approximation's in less than $1 / 4$, therefore by rounded to the nearest integer we will always obtain the correct result.
-3. Convert the result back into $\Z[x]$.
-
-Later complexity analysis will show that
-\[
-  M(n) = O(n \log n)
-\]
-when we choose our dimension to be greater than $1728$, though there have been methods that suggest that this number can be reduced as small as $8$.
-
-% These are taken verbatim from nlogn
-\begin{theorem}[Theorem 3.1 in nlogn]
-    Let $d \geq 2$ and $t_1, \ldots, t_d$ be powers of two and $t_d \geq \cdots \geq t_1 \geq 2$ and denote $T = t_1 \ldots t_d$. Choose a precision $p$ such that $T < 2^p$. Then we may construct a numerical approximation
-    \[
-        \tilde {\M{F}}_{t_1, \ldots, t_d} : \otimes_i \tilde{\C}^{t_i}_0 \to \otimes_i \tilde{\C}^{t_i}_0
-    \]
-    for $\M{F}_{t_1, \ldots, t_d}$ such that $\epsilon(\tilde{\M{F}}_{t_1, \ldots, t_d}) < 8 T \log T$ and
-    \[
-        C(\tilde{\M{F}}_{t_1, \ldots, t_d}) < \frac{4T}{t_d} M(3t_d p) + O(Tp\log T + Tp^{1 + \delta})
-    \]
-\end{theorem}
-
-\begin{theorem}[Theorem 4.1 in nlogn]
-    Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Let $\alpha$ be an integer in the interval $2 \leq \alpha < p^{\frac{1}{2}}$. For each $i$ let $\theta_i = t_i / s_i - 1$, and assume that $\theta_i \geq p/\alpha^4$.\\
-    Then there exists linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
-    \[
-        \M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{B} \M{F}_{t_1, \ldots, t_d} \M{A} \qquad \gamma := 2d\alpha^2
-    \]
-    Moreover we may construct numerical numerical approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i}_0 \to \otimes_i \tilde{\C}^{t_i}_0$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{t_i}_0 \to \otimes_i \tilde{\C}^{s_i}_0$  such that $\epsilon(\tilde{\M{A}}), \epsilon(\tilde{\M{B}}) < dp^2$ and
-    \[
-        C(\tilde{\M{A}}), C(\tilde{\M{B}}) = O(dTp^{\frac{3}{2}} + \delta}\alpha + Tp\log T)
-    \]
-\end{theorem}
+I think it might be more beneficial in the finite fields case because its much harder to use a DFT there. (And I have put a little section there about it).

@@ -7,136 +7,49 @@
 \label{sec:Measuring Complexity}
 
 
-When analysing an algorithm, we want to have some well-defined metric to show whether one algorithm is super to the other. There are several ways of measuring complexity but there are to important catagories we need to clarify
-
-(Note: there are other things to consider such as straight-line programs, computation trees, circuits etc but we don't need to go into that here)
+When analysing an algorithm, we want to have some well-defined metric to indicate whether one algorithm is super to the other. There are many ways of measuring complexity but the two main questions we will ask ourselves are
 
 \begin{itemize}
-    \item How you measure the complexity of individual operations (Computation model)
-    \item How you present and compare algorithms once you have measured them (notation, theoretical vs practical)
+    \item How do we measure the complexity of certain operations (Computation model)
+    \item How do compare complexities once we have measured them (notation, theoretical vs practical)
 \end{itemize}
+
+There are many other sources of variation in this kind of analysis (most notably linear vs non-linear operations) but we won't go into that here.
 
 \subsection{Complexity models}%
 \label{sub:Complexity models}
 
-The two most commonly talked about computation models are the Turing machine, and the Random Access machine. We will not give a formal definition here, however we need to know that the main difference for our purposes is that the Turing machine takes into account the size of the arguments better. (TODO Check this) The RAM considers operations such as reading, writing and basic arithmetic (addition subtraction) constant time operations. This is quite adequate for most complexity analysis but in this thesis, a large portion of the algorithms will involve coefficients becoming very large and growing with the input to the algorithm. Therefore for the asymptotic section we will use the Turing model to reflect this.
+A computation model is a framework which tells us the operations we are allowed to perform on the data as well as their complexity. 
 
-But actually I don't think we use the Turing model all the time so I don't know..
+The two most popular computation models are the Turing machine, and the Random Access machine. We will not give a formal definition here, however we need to know that the main difference for our purposes is that the Turing machine takes into account the size of the data better, that is, as numbers grow bigger, the complexity in the Turing model increases whereas this is not the case in the Random access machine (TODO Check this). The RAM considers operations such as reading, writing and basic arithmetic (addition subtraction) constant time operations as well as in-direct addressing (the use of pointers in modern programming languages). This is quite adequate for most complexity analysis but in this thesis, a large portion of the algorithms will involve coefficients becoming very large and growing with the input to the algorithm. Therefore for the asymptotic section we will use the Turing model to reflect this.
+
+But actually I don't think we use the Turing model all the time so I don't know...
 
 \subsection{Big O-notation}%
 \label{sub:Big O-notation}
 
-In this thesis we present a study of algorithms from both a practical and theoretical viewpoint. By \textbf{practical} we mean algorithms that are the fastest for a certain range of parameters. By \textbf{theoretical complexity} we mean algorithms that are fastest asyptotically, that is, for large enough inputs. A good example is: Karatsuba, Schonage-Strassen, Harvey-van der Hoeven algorithms. Asyptotically, Harvey-van der Hoeven is the fastest, followed by SS, followed by Karatsuba. However, SS only becomes faster than Karatsuba when the degree of the input polynomials are around $2^{2^{15}}$ (SS wiki page) and H-vdH becomes faster than it at around $2^{1729^{12}}$ bits. (TODO one measurment is in size, one is in bits, should standardize)
+In this thesis we present a study of algorithms from both a practical and theoretical viewpoint. By \textit{practical complexity} we mean algorithms that are the fastest for a certain range of input parameters. By \textit{theoretical complexity} we mean algorithms that are fastest asymptotically i.e. for large enough inputs. A good example of this distinction are the  Karatsuba, Schonage-Strassen, Harvey-van der Hoeven algorithms. Asymptotically, Harvey-van der Hoeven is the fastest, followed by SS, followed by Karatsuba. However, SS only becomes faster than Karatsuba when the degree of the input polynomials are around $2^{2^{15}}$ (SS wiki page) and H-vdH becomes faster than it at around $2^{1729^{12}}$ bits. (TODO one measurment is in size, one is in bits, should standardize). So even though H-vdH and SS have a much greater theoretical complexity than Karatsuba, it is by far the most practical in normal use cases, and so many computer algebra systems e.g. Maxima only implement Karatsuba'a.
 
-The most common way to talk about the asymptotic complexity of an algorithm is in "big-O notation". Informally, we say that an algorithm has is "$O(f)$ complexity" for some function $f$, if it increases at the same rate as $f$ for suitably large input. 
-More formally, let $C(n)$ be the complexity of the algorithm as measured by some complexity model for inputs $n$ (TODO need to more formally generalise this for multiple inputs). Then the program is "$O(f)$ complexity" if there exists a $K_1, K_2 > 0$ such that 
+The most common way to talk about the asymptotic complexity of an algorithm is in ``big-O notation''. Informally, we say that an algorithm has is ``$\M{O}(f)$ complexity'' for some function $f$, if it increases (technically it can decrease too e.g. $\M{O}(n^{-1})$) at the same rate as $f$ for suitably large input. 
+More formally, let $\M{C}(n)$ be the complexity of the algorithm as measured by some complexity model for inputs $n$ (TODO need to more formally generalise this for multiple inputs). Then the program is "$\M{O}(f)$ complexity" if there exists a $K_1, K_2 > 0$ such that 
 \[
     K_1C(n) \leq f(n) \leq K_2C(n)
 \]
 for all inputs $n$.
 
-For the algorithms we previously stated we have: Karatsuba $O(n^{\log_2(3)})$, SS $O(n\log n \log \log n)$, and H-vdH $O(n \log n)$.
+For the algorithms we previously stated we have: Karatsuba $\M{O}(n^{\log_2(3)})$, SS $\M{O}(n\log n \log \log n)$, and H-vdH $\M{O}(n \log n)$.
 
-Should I say some basic basic facts like $O(n^{1 + \epsilon})$ is greater than $O(n\log n)$ for any $\epsilon > 0$?
+Should I say some basic basic facts like $\M{O}(n^{1 + \epsilon})$ is greater than $\M{O}(n\log n)$ for any $\epsilon > 0$?
 
 \subsection{Recursive formula}%
 \label{sub:Recursive forumla}
 
 It is quite common in the study of algorithms to derive recursive algorithms, and so when we are analysing their complexity we may do so with a recursive expression. For instance in the Karatsuba algorithm we will see soon, we get
 \[
-    C(n) = \frac{3}{2}C\bb{\frac{n}{2}}
+    \M{C}(n) = \frac{3}{2}C\bb{\frac{n}{2}}
 \]
 TODO check this.
-This terminates when we have $C(1)$ so we get
+This terminates when we have $C(1)$ which will happen in $\log_2 n$ steps so we get
 \[
-    C(n) = \frac{3}{2} \times \cdots \times \frac{3}{2}
+    \M{C}(n) = \bb{\frac{3}{2}}^{\log_2 n} = \bb{n}^{\log_2 \frac{3}{2}} = \M{O}(n^{\log_2 3}
 \]
-where we have $\log_2 n$ terms. Then we have $C(n) = O\bb{\bb{\frac{3}{2}}^{\log_2 n}} = O(\bb{n^{\log_2 3}})$
-
-\section{School-book Multiplication}
-\label{sec:prelim-schoolbook}
-
-In the standard method of polynomial multiplication we evaluate
-\[
-    ab = \bb{\sum^n_{i=0} a_i x^i}\bb{\sum^m_{j=0} b_j x^j} = \sum^n_{i=0} a_ix^i\bb{\sum^m_{j=0} b_j x^j}
-\]
-So we see that the inner sum takes $O(m)$ time to compute, and we have to compute $n$ number of these, so this algorithm is $O(nm)$.
-
-If we look at this, we will see that this is actually how we do integer multiplication as well. Suppose we have an integer $a_1a_2 \ldots a_n$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation, then we have
-\[
-    a_1a_2 \ldots a_n = \sum^n_{i=0} a_i 10^i
-\]
-We could view this as a polynomial $f(x)= \sum^n_{i=0} a_i x^i$ evaluated at $f(10)$. Therefore if we want to multiply two integers $a_1a_2\ldots a_n$ and $b_1 b_2 \ldots b_n$ together, we could first put them into their polynomial form, multiply them together, and then evaluate the result at $x = 10$.\\
-
-Therefore we can convert integer multiplication into polynomial multiplication, we might then ask if we can turn polynomial multiplication into integer multiplication. The answer is yes using something called \emph{Kronecker substitution}. 
-
-
-\section{Karatsuba's Algorithm}
-\label{sec:prelim-karatsuba}
-
-Karatsuba's algorithm was the first (citation needed) improvement over the schoolbook method. In fact Karatsuba 23, and Ofman, presented the algorithm a week after attending a meeting conjecturing that $O(n^2)$ is asymptotically optimal. The algorithm works by splitting up the terms in the polynomials, a technique which is now know as divide-and-conquer. Let $a$ and $b$ be polynomials of degree $n$ (it can be adapted to the case where they have different degrees, or one can just pad the shorter polynomial with zeros until it works). Then consider $a = a_1x^{n/2} + a_0$ and $b = b_1x^{n/2} + b_0$. Then naturally we have
-\[
-    ab = a_1b_1x^n + (a_1b_0 + a_0b_1)x^{n/2} + a_0b_0
-\]
-Giving us four multiplications. But Karatsuba noticed that we can actually do this in three multiplications at the cost of an extra addition.
-\[
-    a_1b_0 + a_0b_1 = (a_1 + a_0)(b_1 + b_0) - a_1b_1 - a_0b_0
-\]
-In saving that extra multiplication, it can be shown that the complexity of this algorithm goes from $O(n^{\log_2 4}) = O(n^2)$ to $O(n^{\log_2 3})$.
-
-Karatsuba's algorithms also remains one of the most practically efficient algorithms. A lot of the algorithms we cover in this paper concern improving the theoretical complexity but in practice they require a large degree size before they out-perform Karatsuba's algorithm. For this reason Karatsuba's algorithms remains incredibly popular among many computer algebra software (I think it is the default for Maxima).
-
-
-\section{Kronecker Substitution}%
-\label{sub:kronecker_substitution}
-
-Kronecker substitution is about grouping together or expanding certain part of a problem to turn it into another problem which we can then solve and convert back to our original one. In this we substitution $x^i = b$ for some $b$. In Karatsuba's algorithm, we can think of substituting $x^{\frac{n}{2}} = y$ and then doing the trick (although in the actual code we don't do anything)
-
-We will first consider the case of converting polynomial multiplication in $\Z[x]$ into integer multiplication. The key is that in polynomial multiplication, we don't have any "carry" whereas in integer multiplication you do. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs.\\
-Suppose that $B$ is an absolute bound on the coefficients in the polynomials, and suppose $n$ is the maximum degree. Then the resulting polynomial has maximum coefficient size $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$, Then we evaluate the polynomials at $2^\ell$. So we get
-\[
-    f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}
-\]
-Thus when we multiply we get some expression 
-\[
-    f(2^\ell)g(2^\ell) = \sum^{n+m}_{i=0} \bb{\sum_{j + k = i} a_jb_k}2^{\ell i}  
-\]
-Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$, we can then convert the result back into a polynomial form by setting $2^\ell = x$. 
-
-In fact, since there are many heavily optimised algorithms for integer multiplication and less for polynomial multiplication, many computer algebra systems do large polynomial calculations by first converting them to integers via Kronecker substitution and then calling the integer multiplication library.(TODO insert citation)
-
-Kronecker substitution allows us to obtain quick bounds on a variety of problems. In particular, multiplication of polynomials with coefficients in a finite field and multivariate polynomial multiplication. 
-
-The integer multiplication case takes $I(n) = O(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$ and $n$ is the number of bits in the binary representation of the integer. And polynomial multiplication is $M_\Z(n) = O(I(n\log B))$?? I should really look this up
-
-If we look 
-% From ffnlogn
-Let $M_q(n)$ be the bit complexity of polynomial multiplication over a finite field $\F_q$ with $q = p^k$ for some prime $p$. Then by Kronecker substitution we have
-\[
-    M_q(n) \leq M_p(2nk) + O(n M_p(k))
-\]
-which reduces us the problem to the case where $k = 1$.
-
-I think (not sure) this is obtained by making the identification of an element of $\F_q$ with an element of $F_p[x]/f(x)$ for some polynomial $f(x) \in F_p[x]$ of degree $k$. Then you know that in the result of multiplication in $F_p[x]$ that the terms that were in $F_q$ which at the moment take up $k$ space, when they are multiplied together they can take up  maximum of $2k$ space. This is like how in integer multiplication we have that bound $nB^2$ but in this case the $n$ addition don't take up any extra space, only the multiplication counts. So get $M_p(2nk)$ where the $nk$ is obvious, and the $2$ comes from the need to pad the terms with zeros just as in the integer case. The $O(N M_p(k)$ comes from the multiplications of the terms that used to be in $F_q$.
-
-Then the multiplication of polynomials in $\F_p[x]$ of small degree can be reduced to integer multiplication using Kronecker substitution: the input polynomial are first lifted into polynomials with integer coefficients in $0, \ldots, p - 1$ and then evaluated at $x = 2^{\lceil \log_2(n p^2) \rceil}$ (as was previously said). The desired result can finally be read off from the integer product of these two evaluations. If $\log n = O(\log p)$, this yields
-\[
-    M_p(n) = O(I(n \log \pi)).
-\]
-
-The rest of this I don't really know about.
-
-On the other hand, for $\log p = p(\log n)$, adaptation of the algebraic complexity bound $M_R^\tx{alg}(n) = O(n \log n \log \log n)$ to the Turing model yields
-\[
-    M_p(n) = O(n \log n \log \log n \log p + n \log n I(\log p))
-\]
-where the first term corresponds to additive operations in $\F_p$ and the second to multiplications. Note the first term dominates for large $n$, this is good normally. These two together imply 
-\[
-    M_p(n) = O(n \log p (\log (n \log o))^{1 + o(1)}).
-\]
-It currently standard due to this paper (insert Finite-Fields mult here) that the bound is *(according to ffnlogn  this was the first algorithm to improve on the original bond)
-\[
-    M(n) = O(n \log p \log (n \log o) 8^{\log^\ast(n \log p)}
-\]
-It is shown in a paper mentioned here that this can be generalised to the ring $\Z / m\Z$ rather than a prime field.
-

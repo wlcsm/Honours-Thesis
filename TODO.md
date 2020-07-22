@@ -1,18 +1,19 @@
 # General
 - Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
 - Break up preliminaries into two parts, one which is the basic concept and algorithms (maybe just schoolbook and Karatsuba), and another chapter which gives motivation (shows the equivalence with integer multiplication), and the Chinese remainder theorem's role in Karatsuba, Toom-Cook and alluding the FFT one
-- Clarify the $\Z/(x^{s_1, \ldots, x_n} - 1)\Z$ isomorphism.
 - In the nlogn paper page 32 they mention that their algorithm may be good in practice to replace Rader's algorithm
-- In nlogn paper pae 31 they say that certain contraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
+- In nlogn paper page 31 they say that certain constraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
 - In the code: When applying the division algorithm over a vector of polynomials, it might be more efficient to do the predictive algorithm in $F_4$ and perform all the subtractions at once, this may end up being more computationally efficient
 - If I get a fast algorithm for seeing if a monomial is in an ideal then I should include that into the division algorithm
-- There is a potential optimisation if we can guarentee that our polynomials are not zero, this avoids algorithms having to check all the time
+- There is a potential optimisation if we can guarantee that our polynomials are not zero, this avoids algorithms having to check all the time
 
 # Preliminaries
-- Big O notation
-- Need to find some resource that says all the complexity times when applying Kronecker substitution
 - Check the recursive relation for Karatsuba's algorithm for the "Recursive relation" subsection
-- I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
+
+# Classical Algorithms
+- Chinese Remainder Theorem at the end to unify all the approaches
+- Need to find some resource that says all the complexity times when applying Kronecker substitution
+- In the SS algorithm I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
 
 # Evaluation and Interpolation Strategy
 - My proof of the lemma at the beginning of nlogn need to be polished and check (can we do it simpler?)
@@ -21,7 +22,12 @@
 
 # Implementation Details
 
-# Rationale
+# Overview of nlogn
+* Theorem 4.1 to convert the s_1, \ldots, s_d to the power of twos t_1, \ldots, t_d
+* Theorem 3.1 to perform the calculation on the t_1, \ldots, t_d
+* Proposition 5.2 combines 4.1 and 3.1 to give the total cost an error of a FFT
+* Proposition 5.3 Uses the FFT in Proposition 5.2 to actually make the approximation of multiplication
+* Proposition 5.4 Puts it all together to work for integer multiplication.
 
 ## Preliminaries
 

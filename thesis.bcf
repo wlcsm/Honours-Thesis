@@ -2183,11 +2183,14 @@
   </bcf:bibdata>
   <bcf:section number="0">
     <bcf:citekey order="1">gauss</bcf:citekey>
-    <bcf:citekey order="2">stockham</bcf:citekey>
-    <bcf:citekey order="3">intro-to-fmt</bcf:citekey>
-    <bcf:citekey order="4">nlogn</bcf:citekey>
-    <bcf:citekey order="5">ffnlogn</bcf:citekey>
+    <bcf:citekey order="2">10.2307/2003354</bcf:citekey>
+    <bcf:citekey order="3">stockham</bcf:citekey>
+    <bcf:citekey order="4">intro-to-fmt</bcf:citekey>
+    <bcf:citekey order="5">nlogn</bcf:citekey>
     <bcf:citekey order="6">ffnlogn</bcf:citekey>
+    <bcf:citekey order="7">nlogn</bcf:citekey>
+    <bcf:citekey order="8">ffnlogn</bcf:citekey>
+    <bcf:citekey order="9">ffnlogn</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="ynt">
