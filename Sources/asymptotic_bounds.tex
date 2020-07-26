@@ -25,10 +25,13 @@ We begin by proving a lemma which will allow us to transform our DFT into a mult
     Use the map $x \mapsto x_1\ldots x_d$. This is then a map from $\Z/(s_1\ldots s_d \Z) \to \Z/(s_1 \Z) \times \cdots \times \Z(s_d \Z)$ which is the isomorphism in the Chinese Remainder theorem. Therefore they are isomorphic.
 \end{proof}
 
-The algorithm find suitable primes $s_1, \ldots, s_d$ and then find the powers of two $t_1, \ldots, t_d$ with $t_i > s_i$ and use ``Gaussian Resampling'' to approximate a DFT in $\C^{s_1} \times \cdots \times \C^{s_d}$ to one in $\C^{t_1} \times \cdots \times \C^{t_d}$ in which we can then apply the FFT to do the calculation.
+The algorithm find suitable primes $s_1, \ldots, s_d \approx (n / \log n)^{1/d}$ and then splits the input into chunks of about $\log n$ bits, which then allows them to use $\Z[x]/ (x^{s_1, \ldots, s_d} - 1)$ where we can then just view the $\log n$ bits as integers. We then find the powers of two $t_1, \ldots, t_d$ with $t_i$ only slightly greater than $s_i$ and use ``Gaussian Resampling'' to approximate a DFT in $\C^{s_1} \times \cdots \times \C^{s_d}$ to one in $\C^{t_1} \times \cdots \times \C^{t_d}$ in which we can then apply the FFT to do the calculation. It is this approximation step that makes in unclear how to generalise to finite fields.
 
-% In nlogn they only included up to $d - 1$ rather than $d$
-This then turns the problem into one over $A[x_1, \ldots, x_{d-1}] / (x_1^{q_1}, \ldots, x_d^{q_d})$ where $A = \C[y] / (y^r + 1)$. We can then finish off this in $\M{O}(n \log n)$ time.
+The algorithm gives the recurrence inequality
+\[
+    M(n) < \frac{Kn}{n^\prime}M(n^\prime) + \M{O}(n \log n), \qquad n^\prime = n^{\frac{1}{d} + o(1)}
+\]
+Where the first term comes from the pointwise multiplications which are handled recursively and the second term comes from the DFT as we would expect from the FFT. The total cost of the FFTs actually decreases by the constant factor of $d/K$ at as subsequent recursion level, unlike the SS algorithm where it stays constant. Hence it makes sense to take $d > K$.
 
 Say we have $a(x) , b(x) \in \Z[[x]$. If we have two integers then we can use the technique from the preliminaries to turn it into polynomial multiplication in $\Z[x]$.
 
@@ -54,45 +57,15 @@ Later complexity analysis will show that
 \]
 when we choose our dimension to be greater than $1728$, though there have been methods that suggest that this number can be reduced as small as $8$.
 
+\subsection{Error Model}
 
-First we need to define some terms
+We will not go to much into it here, but we will just say that if $\tilde{w}$ is an approximation of $w$ then $\varepsilon(\tilde{w})$ is the error of $\tilde{w}$ measured as the number bits of error.
 
-Let $b = \lceil \log_2 n\rceil \geq d^{12} geq 4096$ be the ``chunk size'' (TODO what does this mean precisely) and let the working precision be $p = 6b$.\\
-Define $\alpha = \lceil (12d^2 b)^{1/4}\rceil$.\\
-Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
-\begin{equation}
-    \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
-\end{equation}
-TODO Why is this line necessary?
+Actually I'm not sure how much I want to go into this section
 
-Just as in Theorem 4.1, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$. 
-TODO In words, what is gamma?
+\subsection{Transforms for power of twos}
 
-Let $T$ be the unique power of two lying in the interval
-\begin{equation}
-    4n/b \leq T < 8n/b
-\end{equation}
-TODO Explain T in words
-
-let $r$ be the unique power of two in the interval
-\[
-    T^{1/d} \leq r < 2T^{1/d}
-\]
-We certainly have $b \leq 4n^{1/2}$, so
-\[
-    r \geq (4n/b)^{1/d} \geq n^{1/2d} \geq 2^{d^{10}}
-\]
-
-Now we construct a factorisation $T = t_1 \cdots t_d$ satisfying the hypotheses of Theorem 3.1. Let $d^\prime := \log_2(r^d / T)$. As $T \leq r^d < 2^d T$ we have $1 \leq r^d / T < 2^d$ and hence $0 \leq d^\prime < d$. Define
-\[
-    t_1, \ldots, t_{d^\prime} := \frac{r}{2}, \qquad t_{d^\prime + 1} , \ldots, t_d := r
-\]
-Then $t_d \geq \cdots \geq t_1 \geq 2$ and $t_1\cdots t_d = T$.
-(NOTE: This is a spot for potential simplification. If I could reword things so that rather than $t_1, \ldots, t_d$ we have $(r/2)^{d^\prime} r^{d-d^\prime}$ then some things may be easier.
-
-It also follows that $T < 2^p$.
-
-We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly smaller than the corresponding $t_1, \ldots, t_d$. You can trust me that this can be done
+Now we will look at developing an approximation for transforms with power of two dimensions.
 
 % These are taken verbatim from nlogn
 \begin{theorem}[Theorem 3.1 in nlogn]
@@ -106,6 +79,20 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
     \]
 \end{theorem}
 
+
+
+
+* Theorem 3.1 to perform the calculation on the $t_1, \ldots, t_d$
+* Lemma 3.2 Can construct a numerical approximation to a synthetic DFT with inputs $R^t$ with $t$ a power of two
+* Proposition 3.3 Can construct a numerical approximation of multi-dimensional DFT's where each dimension is $R^t$ with $t$ a power of two.
+    + To distinguish $R^t$ and $\otimes_i R^{t_i}$. Think of the elements of $R^t$ being $R[x]/(x^t - 1)$ and elements in the other being in $R[x_1, \ldots, x_n]/(x_1^{t_1} - 1, \ldots, x_d^{t_d} - 1)$.
+* Proposition 3.4 We may use the FFT given in Proposition 3.3 to evaluate the convolution in the normal way
+* Proposition 3.5 Can prove the same thing as 3.4 but with complex DFTs (can reduce part of the problem to Prop 3.4)
+
+
+
+
+
 \begin{theorem}[Theorem 4.1 in nlogn]
     Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Let $\alpha$ be an integer in the interval $2 \leq \alpha < p^{\frac{1}{2}}$. For each $i$ let $\theta_i = t_i / s_i - 1$, and assume that $\theta_i \geq p/\alpha^4$.\\
     Then there exists linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
@@ -118,6 +105,59 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
     \]
 \end{theorem}
 
+This is shown by first observing by defining two ``resampling maps'' $\M{S}: \C^s \to \C^t$ and $\M{T}: \C^s \to \C^t$ as
+\begin{align*}
+    (\M{S}u)_k := \alpha^{-1} \sum_{j \in \Z} e^{-\pi \alpha^{-2}s^2 (\frac{k}{t} - \frac{j}{s})^2}u_j\\
+    (\M{T}u)_k := \alpha^{-1} \sum_{j \in \Z} e^{-\pi \alpha^2 t^2 (\frac{k}{t} - \frac{j}{s})^2}u_j\\
+\end{align*}
+for $0 \leq k < t$.\\
+That is, $\M{S}$ and $\M{T}$ are linear maps, that create the points in $\C^t$ from a linear combination of the points in $\C^s$. Due to the rapid decay of the Gaussians, the sum converges.
+
+Then then resampling identity $\M{T}\M{P}_s\M{F} = \M{P}_t\M{F}_t\M{S}$ is shown. Hence if we can solve the system $\M{T}x = y$ then we can find an expression for $\M{F_t}$ in terms of $\M{F_s}$. Indeed it is shown that if $s_i / t_i$ is not too close to $1$ ($s_i / t_1 - 1 \geq p/\alpha^4$ as above), then there exists a fast algorithm for calculating an approximation to the inverse.
+
+\subsection{Putting it all together}%
+\label{sub:Putting it all together}
+
+First we need to define some terms
+
+Let $b = \lceil \log_2 n\rceil \geq d^{12} geq 4096$ be the ``chunk size'' (TODO what does this mean precisely) and let the working precision be $p = 6b$.
+
+ | updateDefine $\alpha = \lceil (12d^2 b)^{1/4}\rceil$.
+
+ | updateClearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
+\begin{equation}
+    \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
+\end{equation}
+TODO Why is this line necessary?
+
+Just as in Theorem 4.1, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
+TODO In words, what is gamma?
+
+Let $T$ be the unique power of two lying in the interval
+\begin{equation}
+    4n/b \leq T < 8n/b
+\end{equation}
+TODO Explain T in words
+
+Let $r$ be the unique power of two in the interval
+\[
+    T^{1/d} \leq r < 2T^{1/d}
+\]
+We certainly have $b \leq 4n^{1/2}$, so
+\[
+    r \geq (4n/b)^{1/d} \geq n^{1/2d} \geq 2^{d^{10}}
+\]
+Now we construct a factorisation $T = t_1 \cdots t_d$ satisfying the hypotheses of Theorem 3.1. Let $d^\prime := \log_2(r^d / T)$. As $T \leq r^d < 2^d T$ we have $1 \leq r^d / T < 2^d$ and hence $0 \leq d^\prime < d$. Define
+\[
+    t_1, \ldots, t_{d^\prime} := \frac{r}{2}, \qquad t_{d^\prime + 1} , \ldots, t_d := r
+\]
+Then $t_d \geq \cdots \geq t_1 \geq 2$ and $t_1\cdots t_d = T$.\\
+(NOTE: This is a spot for potential simplification. If I could reword things so that rather than $t_1, \ldots, t_d$ we have $(r/2)^{d^\prime} r^{d-d^\prime}$ then some things may be easier.
+
+It also follows that $T < 2^p$.
+
+We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly smaller than the corresponding $t_1, \ldots, t_d$. You can trust me that this can be done
+
 \begin{lemma}[Lemma 5.1 in nlogn]
     Let $\eta \in (, \frac{1}{4})$ and let $x \geq e^{2/\eta}$. Then there are at least $\frac{1}{2}\eta x / \log x$ primes $q$ in the interval $(1 - 2\eta) x < q \leq ( 1 - \eta) x$.
 \end{lemma}
@@ -126,16 +166,21 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
 Essentially we can use this fact to show that we can find such primes $s_1, \ldots, s_d$ in time $o(n)$.
 
 \begin{proposition}[Proposition 5.2 in nlogn]
-    We may construct a numerical approximation $\tilde{\M{F}}_{s_1, \ldots, s_d}: \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{F}_{s_1, \ldots, s_d}$ such that $\epsilon(tilde{F}_{s_1, \ldots, s_d} < 2^{\gamma + 5} T \log_2 T$ and 
+    We may construct a numerical approximation $\tilde{\M{F}}_{s_1, \ldots, s_d}: \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{F}_{s_1, \ldots, s_d}$ such that $\epsilon(tilde{F}_{s_1, \ldots, s_d} < 2^{\gamma + 5} T \log_2 T$ and
     \[
         \M{C}(\tilde{\M{F}}_{s_1, \ldots, s_d} < \frac{4T}{r} M(3rp) + \M{O}(n \log n)
     \]
 \end{proposition}
 
-Given by $\M{M}(u, v) := \frac{1}{S}u \ast v$. 
+Proof: Apply Theorem 3.1 and 4.1
+\begin{proof}
+    Theorem 4.1 gives us maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes \C^{s_i}$ such that $\M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{A}\M{F}_{t_1, \ldots, t_d} \M{B}$ and approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ we then obtain $\tilde{\M{F}}_{t_1, \ldots, t_d}$ for $\M{F_{t_1, \ldots, t_d}}$. 
+\end{proof}
+
+Given by $\M{M}(u, v) := \frac{1}{S}u \ast v$.
 
 \begin{proposition}[Proposition 5.3 in nlogn]
-    We may construct a numerical approximation $\tilde{M}: \otimes_i \tilde{\C}_\circ^{s_i} \times \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{M}$ such that $\epsilon(\tilde{M}) < 2^{\gamma + 8}T^2 \log_2T$ and 
+    We may construct a numerical approximation $\tilde{M}: \otimes_i \tilde{\C}_\circ^{s_i} \times \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{M}$ such that $\epsilon(\tilde{M}) < 2^{\gamma + 8}T^2 \log_2T$ and
     \[
         \M{C}(\tilde{M}) < \frac{12T}{r} M(3rp) + \M{O}(n \log n).
     \]
@@ -174,7 +219,7 @@ TODO The paper gives an overviews of the integer multiplication scheme and then 
 Under the assumption of a suitable prime distribution, we chose primes $s_1, \ldots, s_d$ such that $s_i = 1 \;(\tx{mod } r)$, where $r$ is a power of two, and where the $s_i$ are not much larger than $r$. We then use a multi-dimensional generalisation of Rader's Algorithm to reduce the DFT of size $s_1 \times \cdots \times s_d$ to a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$, where $s_i - 1 = q_i r$ where the $q_i$ are suitably small, we may then reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d] / (x_1^r - 1, \ldots, x_d^r - 1)$. \\
 Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These in turn are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you don't need that if you are just doing polynomia multiplication).
 
-As one may have guessed, the trick is in obtaining the prime $s_1, \ldots, s_d$. To formalise this, take 
+As one may have guessed, the trick is in obtaining the prime $s_1, \ldots, s_d$. To formalise this, take
 \[
     P(a, m) := \min\{q > 0\;:\; q \tx{ is prime and } q = a \;(\tx{mod } m\}
 \]
@@ -213,7 +258,7 @@ However this creates further complications since, multiplications in $\F_{p^k}$ 
 \subsection{The DFT as a Tensor Product}%
 \label{sub:the_dft_as_a_tensor_product}
 
-In the previous section we stated that we can perform a multivariate analogue to the Rader transform in the ring $R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1)$. To see this, we recall that multivariate Fourier transform can be interpreted as a tensor product of univariate Fourier transforms. To then compute the tensor 
+In the previous section we stated that we can perform a multivariate analogue to the Rader transform in the ring $R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1)$. To see this, we recall that multivariate Fourier transform can be interpreted as a tensor product of univariate Fourier transforms. To then compute the tensor
 
 % Brief introduction of tensors takes almost word for word from the source (ffnlogn)
 Let $R$ be a commutative ring and let $A$ and $B$ be two $R$-modules. Then the \emph{tensor product} $A \otimes B$ of $A$ and $B$ is an $R$-module together with a bilinear mapping $\otimes A \times B \to A \otimes B$ which satisfies the universal property where if there is a bilinear mapping $\phi: A \times B \to C$ for some $R$-module $C$, then there exists a unique linear map $\psi: A \otimes B \to C$ with $\phi = \psi \circ \otimes$.
@@ -237,7 +282,7 @@ where $n_i = \max(a_i, b_i)$ for $i = 1, \ldots, d$.
 \subsection{Multivariate Fourier Transforms}%
 \label{sub:multivariate_fourier_transforms}
 
-Continuing with $R$ a commutative ring, let $\mathbf{\omega} = (\omega_1, \ldots, \omega_d) \in R^d$ be such that each $\omega_i$ is a principal $n_i$-th root of unity. As in the univariate case, cyclic polynomials $A \in R[\mathbf{x}]^\circ/(x^n - 1)$ can be evaluated at point of the form ($\omega_1^{i_1}, \ldots, \omega_d^{i_d}$). The DFT of $A$ can then be formulated as 
+Continuing with $R$ a commutative ring, let $\mathbf{\omega} = (\omega_1, \ldots, \omega_d) \in R^d$ be such that each $\omega_i$ is a principal $n_i$-th root of unity. As in the univariate case, cyclic polynomials $A \in R[\mathbf{x}]^\circ/(x^n - 1)$ can be evaluated at point of the form ($\omega_1^{i_1}, \ldots, \omega_d^{i_d}$). The DFT of $A$ can then be formulated as
 \[
     \tx{DFT}_{\mathbf{\omega}}(A)_i := A(\omega_1^{i_1}, \ldots, \omega_d^{i_d}), \qquad i \in \N^n
 \]

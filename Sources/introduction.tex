@@ -2,7 +2,7 @@
 \addcontentsline{toc}{chapter}{Introduction}
 
 
-Polynomial multiplication is really good. Can use it to multiply integers and vice-versa. Is used in solving systems of polynomial equations, making Gr\"{o}bner bases, dividing polynomials etc. I recently found out it can be used in modelling cellular automata. Also can be used to evaluate DFT's through Bluestein's transform
+Polynomial multiplication is a fundamental problem in applied algebra. It can use it to multiply integers and vice-versa. Is used in solving systems of polynomial equations, making Gr\"{o}bner bases, dividing polynomials etc. I recently found out it can be used in modelling cellular automata. Also can be used to evaluate DFT's through Bluestein's transform
 
 % TODO Fill in Karatsuba date here
 This thesis focuses on studying and cataloguing the most popular advancements, starting the first improvement by Karatsuba in (XXXX) all the way to the most recent paper by Harvey and van der Hoeven for multiplying integers in $O(n\log n)$ time. A polynomials package has been developed alongside this project which implements many of the algorithms for the Rust programming language.
@@ -24,7 +24,8 @@ This thesis focuses on studying and cataloguing the most popular advancements, s
 The structure of the document
 
 \begin{itemize}
-    \item Classical algorithms, links to integer multiplication
+    \item Mathematical preliminaries such as the algebras we will be using, computational models and asymptotic notation.
+    \item Classical algorithms like Schoolbook multiplication, and Karatsuba's algorithm. As well as some fundamental techniques such as Kronecker substitution and the equivalence of polynomial multiplication and integer multiplication
     \item Evaluation-Interpolation: Reformulate the classical algorithms in the Evaluation-Interpolation way and then present the DFT-based algorithm
     \item Finite fields: Present algorithms for finite fields
     \item Asymptotically superior algorithms
