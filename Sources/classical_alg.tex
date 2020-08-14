@@ -1,6 +1,6 @@
 \chapter{Classical Algorithms}\label{classical algorithms}
 
-Here we review the classical algorithms which where the leading methods of their time up until 196X when the FFT algorithm was used. Despite their asymptotic complexities being far worse than their newer counterparts, they still have quite good practical complexities for smaller input sizes. They also have the benefit of being independent of the algebra the polynomials are in. For example the FFT algorithm only works over the complex numbers, one can coerce $\Z$ or $\Q$ into $\C$ and then coerce back again by rounding to the nearest integer, but it will suffer a fair amount of error and so the FFT algorithm is not commonly used.
+Here we review the classical algorithms which where the leading methods of their time up until the late 1960's when the FFT algorithm was introduced. Despite their asymptotic complexities being far worse than their newer counterparts, they still have quite good practical complexities for smaller input sizes. They also have the benefit of being independent of the algebra the polynomials are in. For example the FFT algorithm only works over the complex numbers, one can coerce $\Z$ or $\Q$ into $\C$ and then coerce back again by rounding to the nearest integer, but it will suffer a fair amount of error and so the FFT algorithm is not commonly used.
 
 Throughout this chapter let $a(x)$ and $b(x)$ denote two elements of the univariate polynomial ring $K[x]$ where $K$ is a ring.
 Write
@@ -13,7 +13,7 @@ The product is then defined as
 \]
 or it can be seen more generally as a convolution
 \[
-    ab = \sum^{n + m}_{k=0} \sum_{i + j = k}a_ib_j
+    ab = \sum^{n + m}_{k=0} \bb{\sum_{i + j = k}a_ib_j} x^{i + j}
 \]
 hence if we know how to quickly evaluate convolutions, then we can quickly evaluate polynomial multiplication and vice-versa
 
@@ -37,16 +37,16 @@ if we want to multiply integers $a_0a_1\ldots a_n$ and $b_0b_1\ldots b_n$ we cou
 \]
 hence by evaluating the polynomial at $x = 10$ we would obtain our original integers. Then we can multiply the polynomials together to get $c(x) = a(x)b(x)$ and evaluate at $x = 10$ to get $c(10) = a(10)b(10) = a_0a_1\ldots a_n \cdot b_0b_1\ldots b_m$.
 
- | updateHowever, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiply multiplication we need to ``carry'' digits e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$, for this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true, we cannot easily undo a carry. Later in the chapter we will use Kronecker substitution to side step this fact.
+However, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiply multiplication we need to ``carry'' digits e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$, for this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true, we cannot easily undo a carry. Later in the chapter we will use Kronecker substitution to side step this fact.
 
 \section{Karatsuba's Algorithm}
 \label{sec:prelim-karatsuba}
 
-Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound. In fact Karatsuba and Ofman (1962, \cite{karatsuba}), presented the algorithm a week after attending a meeting conjecturing that $\M{O}(n^2)$ is asymptotically optimal. The algorithm works by splitting up the terms in the polynomials, a technique which is now know as divide-and-conquer. Let $a$ and $b$ be polynomials of degree $n$ (it can be adapted to the case where they have different degrees, or one can just pad the shorter polynomial with zeros until it works). Then consider $a = a_1x^{n/2} + a_0$ and $b = b_1x^{n/2} + b_0$. Then naturally we have
+Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound for polynomials of degree $n$. In fact Karatsuba and Ofman (1962, \cite{karatsuba}), presented the algorithm a week after attending a meeting conjecturing that $\M{O}(n^2)$ is asymptotically optimal. The algorithm works by splitting up the terms in the polynomials, a technique which is now know as divide-and-conquer. Let $a$ and $b$ be polynomials of degree $n$ (it can be adapted to the case where they have different degrees, or one can just pad the shorter polynomial with zeros until it works). Consider $a = a_1x^{n/2} + a_0$ and $b = b_1x^{n/2} + b_0$, naturally we have
 \[
     ab = a_1b_1x^n + (a_1b_0 + a_0b_1)x^{n/2} + a_0b_0
 \]
-Giving us four multiplications. But Karatsuba noticed that we can actually do this in three multiplications at the cost of an extra addition.
+This requires four multiplications. But Karatsuba noticed that we can actually do this in three multiplications at the cost of an extra addition.
 \[
     a_1b_0 + a_0b_1 = (a_1 + a_0)(b_1 + b_0) - a_1b_1 - a_0b_0
 \]
@@ -54,11 +54,12 @@ In saving that extra multiplication, it can be shown that the complexity of this
 
 Let $\M{C}(n)$ be the computation cost of performing Karatsuba's algorithm when the input polynomial's have degree at most $n$. Then we see that there are three multiplications and a constant number of additions. The additions can also be handled recursively with Karatsuba's algorithm so we have
 \[
-    \M{C}(n) = 3\M{C}\bb{\frac{n}{2}} + k = 3(k + C\bb{\frac{n}{2}}) + k = k\sum^{\lceil \log_2 n\rceil}_{i=0} 3^i = k(3^{\log_2 n + 1} - 1)/(3 - 1) < \frac{3k}{2}n^{\log_2 3}
+    \M{C}(n) = 3\M{C}\bb{\frac{n}{2}} + kn = 3(kn + C\bb{\frac{n}{2}}) + kn = kn\sum^{\lceil \log_2 n\rceil}_{i=0} 3^i \leq kn(3^{\log_2 n + 1} - 1)/(3 - 1) < \frac{3kn}{2}n^{\log_2 3/2} = \frac{3k}{2}n^{\log_2 3}
 \]
+Where $k$ is some constant and $kn$ is an upper bound on the addition operation we need to do to.\\
 Therefore Karatsuba's algorithm is $\M{O}(n^{\log_2 3})$.
 
-Karatsuba's algorithms also remains one of the most practically efficient algorithms. A lot of the algorithms we cover in this paper concern improving the theoretical complexity but in practice they require a large degree size before they out-perform Karatsuba's algorithm. Combined with the fact that it is very simple to implement, Karatsuba's algorithms remains incredibly popular among many computer algebra software (I think it is the default for Maxima).
+Karatsuba's algorithms also remains one of the most practically efficient algorithms. A lot of the algorithms we cover in this paper concern improving the theoretical complexity but in practice they require a large degree size before they out-perform Karatsuba's algorithm. Combined with the fact that it is very simple to implement, Karatsuba's algorithms remains incredibly popular among many computer algebra software (I think it is the default for Maxima, https://math.tntech.edu/machida/1911/maxima/help/maxima_11.html. It says multiplication is $n^{1.5}$ so I'm guessing its Karatsuba).
 
 
 \section{Kronecker Substitution}%
@@ -71,15 +72,15 @@ Kronecker substitution is about grouping together or expanding certain part of a
 
 To illustrate the usefulness of Kronecker substitution we will return to the problem of using integer multiplication to multiply polynomials in $\Z[x]$. The key is that in polynomial multiplication, we don't have any ``carry'' whereas in integer multiplication you do. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs.
 
-Suppose that $B$ is an absolute bound on the coefficients in the polynomials, and suppose $n$ is the maximum degree. Then the resulting polynomial has maximum coefficient size $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$ (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$. So we get
+Suppose that $B$ is an absolute bound on the coefficients in the polynomials, and suppose $n$ is the maximum degree. Then the resulting polynomial has maximum coefficient size $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$ (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$ which gives
 \[
-    f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}
+    f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}.
 \]
-Thus when we multiply we get some expression
+Thus when we multiply we obtain
 \[
-    f(2^\ell)g(2^\ell) = \sum^{n+m}_{i=0} \bb{\sum_{j + k = i} a_jb_k}2^{\ell i}
+    f(2^\ell)g(2^\ell) = \sum^{n+m}_{i=0} \bb{\sum_{j + k = i} a_jb_k}2^{\ell i}.
 \]
-Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$ no carries have occurred, so we can then convert the result back into a polynomial form by setting $2^\ell = x$.
+Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$ no carries have occurred, so we can convert the result back into a polynomial by setting $2^\ell = x$.
 
 In fact, since there are many heavily optimised algorithms for integer multiplication and less for polynomial multiplication, many computer algebra systems do large polynomial calculations by first converting them to integers via Kronecker substitution and then calling the integer multiplication library. (TODO insert citation, I believe Magma does this)
 
@@ -88,18 +89,25 @@ In fact, since there are many heavily optimised algorithms for integer multiplic
 
 Kronecker substitution allows us to obtain quick bounds on a variety of problems. In particular, multiplication of polynomials with coefficients in a finite field and multivariate polynomial multiplication.
 
-Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method in the first section in this chapter, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. And polynomial multiplication is $M_\Z(n) = \M{O}(I(n\log B))$ (TODO double check this).
+Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method from the previous subsection, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size(TODO double check this). The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around, since it is always easy to apply the carry later on. However we can't undo a carry, so we need to do some extra steps to avoid the carry happening in the first place with the other one.
 
-% TODO From ffnlogn need t reword
-Let $M_q(n)$ be the bit complexity of polynomial multiplication over a finite field $\F_q$ with $q = p^k$ for some prime $p$. Then by Kronecker substitution we have
-\[
-    M_q(n) \leq M_p(2nk) + \M{O}(n M_p(k))
-\]
-which reduces us the problem to the case where $k = 1$.
+% TODO From ffnlogn need to reword
+Now we will introduce a lemma to use Kronecker substitution to multiply polynomials in finite fields
 
-This is obtained by making the identification of an element of $\F_q$ with an element of $F_p[x]/f(x)$ for some polynomial $f(x) \in F_p[x]$ of degree $k$. Then the result of multiplying two polynomials of degree $k$ has degree at most $2k$, so you will need $2k$ space for the result. So you will need to pad the polynomials so the new polynomial has $2nk$ coefficients. So get $M_p(2nk)$. The might come from coercing these polynomials of length $2k$ back into $F_q[x]$ which would involve the division algorithm which can be shown to be done using multiplication by Newton substitution (TODO not 100\% this is correct)
+\begin{lemma}
+    Let $M_q(n)$ be the bit complexity of polynomial multiplication over a finite field $\F_q$ with $q = p^k$ for some prime $p$. By Kronecker substitution we have
+    \[
+        M_q(n) \leq M_p(2nk) + \M{O}(n M_p(k))
+    \]
+    which reduces us the problem to the case where $k = 1$.
+\end{lemma}
 
-Then the multiplication of polynomials in $\F_p[x]$ of small degree can be reduced to integer multiplication using Kronecker substitution: the input polynomial are first lifted into polynomials with integer coefficients in $0, \ldots, p - 1$ then converted into an integer using appropriate Kronecker substitution as above ($x =$ the smallest power of two greater than $n p^2$). The desired result can finally be read off from the integer product of these two evaluations. If $\log n = \M{O}(\log p)$, this yields
+\begin{proof}
+    This is obtained by identifying an element of $\F_q$ with an element of $F_p[x]/f(x)$ as a polynomial $f(x) \in F_p[x]$ of degree $k$. Then the result of multiplying two polynomials of degree $k$ has degree at most $2k$, so you will need $2k$ space for the result. So you will need to pad the polynomials so the new polynomial has $2nk$ coefficients which gives us the $M_p(2nk)$ term. Then we need to coerce the coefficients which are polynomials of length $2k$ back into $F_q[x]$ which would involve the division algorithm which can be done using multiplication by Newton substitution (TODO not 100\% this is correct)
+
+\end{proof}
+
+We can also use the same technique as before to convert multiplication in $F_p$ into integer multiplication. We first identify the elements in the finite field with the integers $0,\ldots, p-1$. Then we know that these are bounded above by $p$ so we have an upper bound of $np^2$ size for the coefficients in the result. So we obtain
 \[
     M_p(n) = \M{O}(I(n \log \pi)).
 \]

@@ -16,18 +16,15 @@ When I was implementing the program I found that I could combine the reverse-bit
 The idea is that we compress the polynomial (i.e. ignoring the zero terms), then do a fft in that compressed state, multiply, then expand back into full
 e.g. Imagine $(x^{20} - 1)(x^{40} - 1)$, then I can replace the exponents with $n = 20$ and $m = 40$ and calculate $(x^n - 1)(x^m -1)$, which gives me $x^{n+m} - x^n - x^m + 1$, then I could have actually chosen $n = 1$ and $m = 2$, and calculated $(x - 1)(x^2 - 1)$ via the fft and gotten $x^3 - x^2 - x + 1$ and then expanded back into $x^{60} - x^{40} - x^{20} + 1$. Thats the basic premise
 
-\subsection{Unravelling the FFT into multiplication}
-
-The way that the FFT can be unravelled into a multiplication (other than just the interpretation of, evaluate, interpolate). Is that when you take the transform, you are making a linear basis for that $n$-tupled coefficient space. What I mean by that is that If you want to see what $a + b$ is, then you want to have $a + c$ and $b - c$, then you can still do it easily. Then instead of $a + b$ you have many arbitrary expressions, then you'll want to have many complicated expressions instead of $a + c$ and $b - c$ so you can still do all of it quickly.
-
-
 I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
 
-\subsection{Symbolic representation of ROU}
+\subsection{Representation of ROU}
 
-So, representing them losslessly takes $n/2$ cells. But the idea is to represent them as small as possible such that we allow error, but the error is controlled enough such that we actually get the correct answer in the end (since we are working with integers). This is something called forwards or backwards error. Since each number will only face $log n$ multiplications and additions, I'm hoping we can have a $O(log n)$ representation.
+Representing them losslessly takes $n/2$ cells. But the idea is to represent them as small as possible such that we allow error, but the error is controlled enough such that we actually get the correct answer in the end (since we are working with integers). This is something called forwards or backwards error. Since each number will only face $log n$ multiplications and additions, I'm hoping we can have a $O(log n)$ representation. Indeed the $\cite{nlogn}$ paper does this.
 
 Though it looks like it might be better to just do it over quotient rings
+
+\subsection{Runtimes}
 
 \begin{center}
     \begin{tabular}{|c| c c|}
@@ -42,10 +39,6 @@ Though it looks like it might be better to just do it over quotient rings
         8192   & 126315317 & 16,154233194 \\
     \end{tabular}
 \end{center}
-
-% \subsubsection{Other representation}
-
-Another thing we can do is perform our operations over a quotient in which the roots of unity can be represented much more nicely in memory (hopefully by an integer), then Chinese Remainder or lift our way out of there.
 
 \subsection{Sparse evaluation}
 
@@ -125,9 +118,9 @@ The best result would be if I could interpolate the results whilst still in thei
 
 \section{Addition of Sparse Polynomials}
 
-This has application is polynomial multiplication since multiplication can be reworded as a sum of many polynomials.
+This has applications here as polynomial multiplication since multiplication can be reworded as a sum of many polynomials.
 
-So I think its actually better to do addition of sparse polynomials as a batch operation, that is, try and do all the additions together if possible.
+I think its actually better to do addition of sparse polynomials as a batch operation, that is, try and do all the additions together if possible.
 
 In http://www.i3s.unice.fr/~malapert/R/act06/johnson.pdf they recommend to do a divide and conquer approach but actually it would be better to do it this way
 
@@ -139,7 +132,11 @@ The only downside I can see is that it isn't as parallelisable as the other algo
 
 It seems like the most popular method used to be the recursive approach because it was \emph{elegant}. But now everyone in the past decade or so are moving towards flat representations.
 
-Furthermore, I'm using the representation as suggested in Maple, it seems to be very good.\\
+Maxima uses a recursive representation https://math.tntech.edu/machida/1911/maxima/help/maxima_11.html
+
+\subsection{Maple Style}%
+\label{sub:Maple Style}
+
 In this, we store a vector of coefficient-degree pairs. The degrees are stored in a single word ideally, so the first one is stored in the first 16 bits and so on. Also we store the total degree at the beginning. Then by using normal u64 operations, we can compare them and get a graded lex ordering. Accessing the elements is very easy use bit operations.
 
 To further structure the anatomy of the polynomial type, I will store another object inside it. The 'Terms' object. This should contain the symbols i.e. variables, and the coefficient list itself. Though it will also contain a set of ``masks'' these masks are use to quickly access parts of the degree type, such as each of the variable's individual degrees and the total graded degree. 
@@ -148,11 +145,13 @@ To further structure the anatomy of the polynomial type, I will store another ob
 
  If all the variables are alloted the same space on the degree word, then it might be more efficient to just store one mask and use shifts. Though the total degree might require an additional mask because it needs more space than the others
 
- To solve the problem of what do we do when we need to represent a constant polynomial in terms of what do we initialise the mask and stuff to? The answer to do to what every CAS does and explicitly make them part of domains. So i might need to develop domains now
-We could even look at storing the masks inside the domain.
-But still, I think a problem is going to remain until I can figure out how to use those typed generic array to cope with the increasing degree sizes
+\subsection{My current style}%
+\label{sub:My current style}
 
-A slighty weird point that I was considering was: Should the ring domain e.g. R[x, y] also have a particular monomial ordering? I thought yes, because it leads to some knots that I need to untie later about adding elements in the same domain with different orderings. And then I also remembered M2 does that so I trust that
+Just using a generic array of usize to store the degrees
+
+I've made a pretty modular system in Rust on zero-cost abstractions so it is as fast as it would be had I not made it modular.
+This is done through Rust's parametric polymorphism system called "Traits". Things like the: Monomial order, coefficient type, and representation of monomials are as fast as if I had hard-coded them. This will make testing much easier later on.
 
 \section{Search trees for membership in monomial ideals}
 
@@ -164,7 +163,6 @@ The next best thing would be to try and do a search based off each of the values
 
 Another optimisation would be to record the highest index value for each of the indices. Then we might be able to fit multiple indices inside a single machine word.
 
-
 The division relation "|", where $a | b$ for $a$ and $b$ monomials. Is independent of monomial orderings, and is reflexive and transitive. But it is not a total order so we cannot perform a normal binary search. In fact, if we have that one generator of the ideal divides the other, then the other can be eliminated so it is unclear how we would even go about searching for divisibility.
 
 What we can do is:
@@ -174,8 +172,6 @@ What we can do is:
   \item Then order by their second half and so forth. This way we can build up a key for the monomial.
 \end{enumerate}
 
-This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker
+This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker because the variance in the variables should be lower when you sum them and so they should be more accurate.
 
-You could also choose to search based on the sum of every second index or something like that
-
-Maybe only have a small tree depth and do a manual search later.
+Actually I would propose this as a new monomial order. It might allow you to obtain tighter bounds on certain algorithms.

@@ -1,52 +1,53 @@
 % My study of Basis mostly came from https://arxiv.org/ftp/arxiv/papers/1304/1304.0420.pdf
 \chapter{Finite Fields}\label{finite-fields}
 
-In this section we will look at performing polynomial multiplication where the coefficients are in a finite field and the polynomial is perhaps in a quotient ring.
+In this section, we will look at performing polynomial multiplication where the coefficients are in a finite field and the polynomial is perhaps in a quotient ring.
 
 Some common reasons to use a finite field are:
 \begin{itemize}
-\item Your problem is naturally stated for polynomials with coefficents
+\item Your problem is naturally stated for polynomials with coefficients
 in a finite field. Thus $p^n$ can be anything and we need to be as generic as possible.
-\item You are using it to control the error that would arise if you used a complex FFT instead. In this case we perform the calculation over several finite fields and use the Chinese Remainder Theorem to reconstruct the final result. This allows us to have some control over the primes that we choose. (It is actually quite common to use integer rings as well as prime fields).
+\item You are using it to control the error that would arise if you used a complex FFT instead. In this case, we perform the calculation over several finite fields and use the Chinese Remainder Theorem to reconstruct the final result. This allows us to have some control over the primes that we choose. (It is quite common to use integer rings as well as prime fields).
 \item You just any finite field to perform your calculations in, such as the Ring Learning with Errors problems. This gives us the most flexibility over the choice of prime field and so we can choose ones which are very efficient to perform arithmetic in using a computer.
 \end{itemize}
 
-It is important to differentiate the use cases as each imposes a different set of restriction on the finite fields we can use. The most favourable to implement are of course, those where arithmetic is easily implemented in. This correlates to field fields whose characteristic's binary representation has few ones or that admit very nice optimal normal bases (I haven't covered normal bases yet though).
+It is important to differentiate the use cases as each imposes a different set of restriction on the finite fields we can use. The most favourable to implement are, of course, those whose arithmetic is efficiently implemented. This correlates to field fields whose characteristic's binary representation has few ones or that admit very nice optimal normal bases (I haven't covered normal bases yet though).
 
 Remember that one can still use the Karatsuba/Toom-Cook algorithms here as well as the Sch\"{o}nage-Strassen one if we use Kronecker substitution to turn a problem in $\F_p[x]$ to a problem in $\Z[x]$.
 
-In this section we will cover the Number Theoretic Transform (NTT) which is a generalisation of the Fast Fourier Transform for integer rings. 
+In this section, we will cover the Number Theoretic Transform (NTT) which is a generalisation of the Fast Fourier Transform for integer rings. 
 
 \section{Number Theoretic Transform}
 \label{sec:ntt}
 
 Say we want to take the DFT of a sequence of coefficients of length $m$ in an integer ring $\Z/N$.
 
-In this we look at the Fast Fourier Transform analogue for integer rings. From our previous explanation of the FFT, we showed that the algorithm is based around the existence of roots of unity. Hence we simply must find such a root in a given finite field.
+In this, we look at the Fast Fourier Transform analogue for integer rings. From our previous explanation of the FFT, we showed that the algorithm is based around the existence of roots of unity. Hence we simply must find such a root in a given finite field.
 
 We now look at finding a suitable $N$ such that the NTT in $GF(N)$ can be performed efficiently. As outlined in \cite{intro-to-fmt} this requirement can be formulated into three criteria
 \begin{itemize}
 \item The transform length $T$, is highly composite to facilitate FFT-like algorithms.
-\item Multiplication by the roots of unity are efficient to implement. This corresponds to having a small number of ones in the binary representation
+\item Multiplication by the roots of unity is efficient to implement. This corresponds to having a small number of ones in the binary representation
 \item Dividing by $N$ is efficient. Also corresponds to a small number of ones in the binary representation.
 \end{itemize}
 
-Introduce a theorem
 % from Intro-to-FMT
+We know that for a DFT to exist we need to have an $N^{\tx{th}}$ root of unity, and $N^{-1}$. 
+
 \begin{theorem}\label{thm:fmt-transform-length}
     An $N \times N$ transform $T$ having the cyclic convolution property in the ring of integers modulo an integer $F$ exists if and only if $N$ divides $\gcd(p_1 - 1, \ldots, p_n - 1)$
 \end{theorem}
 
-Looking at the last requirement on our list at the beginning of the section, if we were to take $N$ to be a power of two, then by Theorem \ref{thm:fmt-transform-length}, the maximum transform length would be $1$. In keeping in line with that requirement the next would be to consider $2^k - 1$  for some $k \in \N$ (this doesn't have a small number of ones but it would still be efficient to implement). Numbers of this form are known as a Mersenne numbers and their corresponding transforms are Mersenne Number Transforms (MNT). The next we consider is $2^k + 1$, it can then be shown that when $k$ itself is a power of two, it has less small divisors e.g. If $k$ is odd then $3$ divides $2^k + 1$ hence the maximum transform length is $2$. Numbers of the form $2^{2^\ell} + 1$ are known as Fermat Numbers and their corresponding transforms are Fermat Number Transforms (FMT).
+Looking at the last requirement on our list at the beginning of the section, if we were to take $N$ to be a power of two, then by Theorem \ref{thm:fmt-transform-length}, the maximum transform length would be $1$. In keeping in line with that requirement the next would be to consider $2^k - 1$  for some $k \in \N$ (this doesn't have a small number of ones but it would still be efficient to implement). Numbers of this form are known as Mersenne numbers and their corresponding transforms are Mersenne Number Transforms (MNT). The next we consider is $2^k + 1$, it can then be shown that when $k$ itself is a power of two, it has less small divisors e.g. If $k$ is odd then $3$ divides $2^k + 1$ hence the maximum transform length is $2$. Numbers of the form $2^{2^\ell} + 1$ are known as Fermat Numbers and their corresponding transforms are Fermat Number Transforms (FMT).
 
 In fact the Fermat Numbers up to $\ell = 4$ are all primes and so they can be calculated very efficiently using the Rader Transform \ref{thm:rader-transform}. It can then be shown (in the same paper) that all the factors of Fermat numbers are of the form $c2^{\ell + 2} + 1$ for $c \in \N$. Therefore by Theorem \ref{thm:fmt-transform-length} the maximum transform length is $2^{\ell + 2}$. It can also be shown that a root of such order is $2^{2^{t-2}}(2^{2^{t-1}} - 1)$.
 
-A downside with this representation is that it requires the representation of $2^k + 1$ bits, so in a computer we would need $2^{k+1}$ bits to represent it. This is therefore not ideal in terms of memory efficiency. Some authors suggest just forgetting about it and rounding a $-1$ to $0$ or $-2$ because there is a low probability ($2^{-k}$ chance) that the number will arise. This of course somewhat defeats the purpose of this technique if your goal was to eliminate all error. Although if you were doing this to reduce intermediate expression swell then this is still valid.
+A downside with this representation is that it requires the representation of $2^k + 1$ bits, so in a computer, we would need $2^{k+1}$ bits to represent it. This is therefore not ideal in terms of memory efficiency. Some authors suggest just forgetting about it and rounding a $-1$ to $0$ or $-2$ because there is a low probability ($2^{-k}$ chance) that the number will arise. This of course somewhat defeats the purpose of this technique if your goal was to eliminate all error. Although if you were doing this to reduce intermediate expression swell then this is still valid.
 
 \subsection{Rader Transform}
 \label{subsec:rt}
 
-This is a nice algorithm if $n$ is prime. FFTW is a industry standard for a FFT implementation and it say its uses Rader's algorithm to gain a $2$x speedup in some cases http://fftw.org/fftw-paper-ieee.pdf.
+This is a nice algorithm if $n$ is prime. FFTW is an industry-standard for an FFT implementation and it says it uses Rader's algorithm to gain a $2$x speedup in some cases http://fftw.org/fftw-paper-ieee.pdf.
 
 \begin{theorem}\label{thm:rader-transform}
     Suppose that $N$ is prime, then there exists a primitive element for $GF^\times(N)$, that is, a $g \in GF(N)$ such that $\{g^i\}_{i=1}^{N-1}$ generates is a permutation of $1, \ldots, N-1$. Then we consider the DFT under this permutation
@@ -62,17 +63,17 @@ This is a nice algorithm if $n$ is prime. FFTW is a industry standard for a FFT 
 % Stockham-DFT-for-Convolutions
 Hence this is good if $N - 1$ is highly composite because then we can apply normal FFT algorithms.
 
-From this we can then see that our ideal case is where $N = 2^n + 1$ for some $n$ and where $N$ is prime. This leads us to our use of Fermat numbers in the next section.
+From this, we can then see that our ideal case is where $N = 2^n + 1$ for some $n$ and where $N$ is prime. This leads us to our use of Fermat numbers in the next section.
 
 \section{Use case: $\Z$ to $\F_p$}\label{sec:Z-Fp}
 
-In this section we look at a popular technique for controlling rounding error that can occur with complex FFTs. If we need to perform the Fourier transform on a polynomial in $\Z$ then as we have shown previously, we can lift the polynomial to $\C$ and apply the complex transform. This can cause a problem with very large transforms as we loose precision in the floating point representation of complex numbers. Some paper (FFT-Error-Bound in my computer) said that its about $n / 2$ bits of precision lost for a $2^n$ transform. 
+In this section, we look at a popular technique for controlling rounding error that can occur with complex FFTs. If we need to perform the Fourier transform on a polynomial in $\Z$ then as we have shown previously, we can lift the polynomial to $\C$ and apply the complex transform. This can cause a problem with very large transforms as we loose precision in the floating-point representation of complex numbers. Some paper (FFT-Error-Bound in my computer) said that it's about $n / 2$ bits of precision lost for a $2^n$ transform. 
 
-To control the size of the coefficients throughout the process, we can multiply the polynomials via a FFT in several finite fields of relatively small coefficient sizes, and then reconstruct the result in $\Z[x]$ by means of the Chinese Remainder Theorem (CRT).
+To control the size of the coefficients throughout the process, we can multiply the polynomials via an FFT in several finite fields of relatively small coefficient sizes, and then reconstruct the result in $\Z[x]$ through the Chinese Remainder Theorem (CRT).
 \[
     \frac{\Z[x]}{M\Z} \cong \frac{\Z[x]}{p_1\Z} \times \cdots \times \frac{\Z[x]}{p_n\Z}
 \]
-where $M = p_1 \ldots p_n$ where $\{p_i\}_{i=1}^n$ are coprime and where $M$ is greater that the absolute value of the coefficients in the resulting polynomial. It then follows that $M > 2nB^2$ where all the coefficients of the input polynomials are bounded by $B$. $nB^2$ is a bound for the absolute size of the resulting coefficients, and then the 2 is there to take into account the fact that the coefficients can be positive or negative.
+where $M = p_1 \ldots p_n$ where $\{p_i\}_{i=1}^n$ are coprime and where $M$ is greater than the absolute value of the coefficients in the resulting polynomial. It then follows that $M > 2nB^2$ where all the coefficients of the input polynomials are bounded by $B$. $nB^2$ is a bound for the absolute size of the resulting coefficients, and then the 2 is there to take into account the fact that the coefficients can be positive or negative.
 
 
 
@@ -82,7 +83,7 @@ where $M = p_1 \ldots p_n$ where $\{p_i\}_{i=1}^n$ are coprime and where $M$ is 
 \label{sec:impl-tricks}
 
 \section{Normal Bases}
-They are used to make calculations faster, there are both hardware and software designs that arise from normal bases.
+They are used to make calculations faster,  both software and hardware have been developed to fully leverage the power of optimal normal bases.
 
 Definition from the Normal bases thesis.
 A normal basis of $\mathbb{F}_{q^n}$ over $\mathbb{F}_q$ is thus of the form: $\{\alpha,\alpha^q,\ldots ,\alpha^{q^{n-1}}\}$ for some $\alpha \in \F_{q^n}$.
@@ -90,4 +91,4 @@ A normal basis of $\mathbb{F}_{q^n}$ over $\mathbb{F}_q$ is thus of the form: $\
 \subsection{Barret and Montgomery Multiplication}%
 \label{sub:Barret and Montgomery Multiplication}
 
-Also from\footnote{A. Fog. Instruction tables: lists of instruction latencies, throughputs and micro- operation breakdowns for intel, AMD and VIA CPUs, 2017. http://www.agner. org/optimize/} we can see that in general, divisions are not optimised in common CPU's and are thus an expensive operation, operating proportional to the length of the operands. To remedy this in a CPU, we can use Montgomery multiplication\footnote{P. Montgomery. Modular multiplication without trial division. Mathematics of Computation, 44(170):519–521, 1985.} or Barret Reduction.
+Also from\footnote{A. Fog. Instruction tables: lists of instruction latencies, throughputs and micro-operation breakdowns for Intel, AMD and VIA CPUs, 2017. http://www.agner. org/optimize/} we can see that in general, divisions are not optimised in common CPU's and are thus an expensive operation, operating proportional to the length of the operands. To remedy this in a CPU, we can use Montgomery multiplication\footnote{P. Montgomery. Modular multiplication without trial division. Mathematics of Computation, 44(170):519–521, 1985.} or Barret Reduction.

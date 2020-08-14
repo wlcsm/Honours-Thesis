@@ -1,5 +1,3 @@
-% Explains the Evaluation-Interpolation technique, and gives some algorithms
-% as examples, such as FFT and Schonage Strassen
 \chapter{Evaluation and interpolation}\label{chapter2}
 
 Let $K[x]$ be the ring of univariate polynomials over a field $K$.\\
@@ -15,9 +13,9 @@ Note that coercing $a(x)$ into $K[x] / (x - \alpha_i)$ is just $a(\alpha_i)$. Su
 
 As we know, if $g(x) \in K[x]$ then $g(x) \mod (x - \alpha_i) = g(\alpha_i)$, this is the evaluation step. The step where we recover the original polynomial in $K[x]/f(x)$ is known as the interpolation step.
 
-Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n + m$ distinct points in $\M{O}((n + m)^2)$ time. Standard interpolation can also be performed in $\M{O}((n+m)^2)$ time. Leading us to calculate this is $\M{O}((n + m)^2)$ time which isn't better than th standard method we introduced before
+Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n + m$ distinct points in $\M{O}((n + m)^2)$ time. Standard interpolation can also be performed in $\M{O}((n+m)^2)$ time. Leading us to calculate this is $\M{O}((n + m)^2)$ time which isn't better than the standard method we introduced before
 
-Though this method appears that it would take longer than a direct calculation, we will show not only is there an asymptotically fast method of evaluating and interpolating polynomials at specifically chosen points, it is even quite practically efficient and is highly applicable with medium sized inputs
+Though this method appears that it would take longer than a direct calculation, we will show not only is there an asymptotically fast method of evaluating and interpolating polynomials at specifically chosen points, it is even quite practically efficient and is highly applicable with medium-sized inputs
 
 \section{Classical Algorithms reviewed as evaluation and interpolation}%
 \label{sec:classical_algorithms_reviewed_as_evaluation_and_interpolation}
@@ -37,11 +35,11 @@ We then apply the Chinese remainder theorem. Evaluate at $y = 0$ and $y = 1$, to
 
 Apply the Chinese remainder theorem to get $c(x) = a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \in K[x]/(x^2 - x)$. 
 
-Then you "evaluate at infinity" to get the $x^2$ term. This could be interpreted as substituting $x^{-1}$ for $x$, multiplying by $x$ and then quotienting by $x$. The idea is that $a(x)$ evaluated at infinity is just the coefficient of the largest term. 
+Then you ``evaluate at infinity'' to get the $x^2$ term. This could be interpreted as substituting $x^{-1}$ for $x$, multiplying by $x$ and then quotienting by $x$. The idea is that $a(x)$ evaluated at infinity is just the coefficient of the largest term. 
 
 I think I found a better interpretation of this. The polynomial $a(x)b(x)$ may have a non-zero $x^2$ term, but we have used the Chinese remainder theorem to put it into $K[x] / (x^2 - x)$. Hence we have to undo a modular wrapping. That is, there is a unique $c(x) = c_0 + c_1x + c_2x^2$ such that $c(x) \cong a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \mod x^2 - x$. Namely $c(x) \cong c_0 + (c_1 + c_2)x \mod x^2 - x$. We know for sure that $c_2 = a_1b_1$ (i.e. the evaluation at infinity), therefore we can conclude that $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x$ corresponds to the polynomial $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0 - a_1b_1)x + a_1b_1x^2 \in K[x]$
 
-The Toom-Cook algorithm generalises Karatsuba's method and evaluates at several points $-k + 1, \ldots, k - 1$ and is recovered in a similar way, although there are many variants with the Toom-Cook algorithm depending of how the result is interpolated. It is asymptotically superior to Karatsuba's method and but practically overtakes Karatsuba's method at a large input size.
+The Toom-Cook algorithm generalises Karatsuba's method and evaluates at several points $-k + 1, \ldots, k - 1$ and is recovered similarly, although there are many variants with the Toom-Cook algorithm depending on how the result is interpolated. It is asymptotically superior to Karatsuba's method and but practically overtakes Karatsuba's method at a large input size.
 
 \section{The Fast Fourier Transform}
 
@@ -84,7 +82,7 @@ There are many different variations of the Fast Fourier Transform but here we wi
     If $N$ is a power of two, then the DFT with $N$ samples can be calculated in $\M{O}(N\log N)$ time.
 \end{theorem}
 
-This follows a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements  which can then be computed recursively and then combined quickly. Since we already established that the DFT can be computed in $\M{O}(N^2)$, the two DFTs of size $N/2$ can be computed in approximately $(N/2)^2 = N^2/4$ times, thus computing both of them takes $N^2 / 2$. Recombining the two takes $\M{O}(n)$ time. Therefore for large $N$ we would expect that $N^2/2 + \M{O}(N) < N$. This procedure repeats recursively until only one element (or some predefined constant number) remains in each DFT, so we would expect this to be much faster than the direct $\M{O}(N^2)$ calculation.
+This follows a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements which can then be computed recursively and then combined quickly. Since we already established that the DFT can be computed in $\M{O}(N^2)$, the two DFTs of size $N/2$ can be computed in approximately $(N/2)^2 = N^2/4$ times, thus computing both of them takes $N^2 / 2$. Recombining the two takes $\M{O}(n)$ time. Therefore for large $N$ we would expect that $N^2/2 + \M{O}(N) < N$. This procedure repeats recursively until only one element (or some predefined constant number) remains in each DFT, so we would expect this to be much faster than the direct $\M{O}(N^2)$ calculation.
 
 We will now prove a lemma which formalises this intuition. The lemma serves to outline the general algorithm for computing the DFT efficiently, and the remainder of the proof verifies the time complexity of the algorithm.
 
@@ -159,13 +157,13 @@ This concludes the proof of the lemma.
 \end{proof}
 
 \begin{remark}
-    In order to perform the FFT we need to pad the polynomials with zeros until the resulting polynomial has length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. And that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials of interest are sparse.
+    To perform the FFT we need to pad the polynomials with zeros until the resulting polynomial has length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If you know your polynomials to be sparse, then this is even worse. And that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials of interest are sparse.
 
-    For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have to round it up to the next power of two $512$. Hence, despite this being something that is trivial to compute using the school-book method, it ends up taking this algorithm really long time.
+    For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have to round it up to the next power of two $512$. Hence, despite this being trivial to compute using the school-book method, it ends up taking this algorithm really long time.
 
     There are ways to mitigate this but ultimately the FFT algorithm is not well suited for sparse polynomials.
 
-    Another good technique is if your polynomial's degree is nearly a power of two, i.e. it has another small prime factor, then just leave that small prime factor as the base case because at that point in the program the FFT should be hard coded anyway or just a direct algorithm to evaluate the DFT so its fine.
+    Another good technique is if your polynomial's degree is nearly a power of two, i.e. it has another small prime factor, then just leave that small prime factor as the base case because at that point in the program the FFT should be hardcoded anyway or just a direct algorithm to evaluate the DFT so it's fine.
 
 \end{remark}
 
@@ -202,14 +200,15 @@ time.
 
 Say we set $m = \sqrt{n}$ then we would get $2\sqrt{n}F_{\sqrt{n}}$. TODO Double check this bound.
 
-However, in general it is always faster to use the smallest radix as possible. Having a radix of two also lends itself to many hardware optimisations since computers perform all calculations in base 2. One such optimisation is the reverse bit encoding.
+However, in general, it is always faster to use the smallest radix as possible. Having a radix of two also lends itself to many hardware optimisations since computers perform all calculations in base 2. One such optimisation is the reverse bit encoding.
 
 \subsection{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
 \label{subsec:schon-strass}
 
-The problem with multiplying polynomials in $\Z$ is that $\Z$ doesn't have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithms, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium sized inputs however, often when we want to work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity. Another option is to use the CRT to put the result into finite fields, but we will cover than later. For now we will look at the most popular algorithm for large $\Z[x]$ multiplication, Sch\"{o}nage and Strassen's second integer multiplication. The algorithm's original intention was for integer multiplication but it ends up converting integers into polynomials in $\Z[x]$ first using the technique described in Chapter X and multiplying them there.\\
+The problem with multiplying polynomials in $\Z$ is that $\Z$ doesn't have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithms, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs, however, often when we want to work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity. Another option is to use the CRT to put the result into finite fields, but we will cover than later. For now, we will look at the most popular algorithm for large $\Z[x]$ multiplication, Sch\"{o}nage and Strassen's second integer multiplication. The algorithm's original intention was for integer multiplication but it ends up converting integers into polynomials in $\Z[x]$ first using the technique described in Chapter X and multiplying them there.\\
 
-The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong in a ring that does have roots of unity, so called "synthetic roots".
+The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong in a ring that does have roots of unity, so-called ``synthetic roots''.
+
 
 Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. So we now want to convert our original polynomial into one with coefficients in a ring of the above form. To do this we can use Kronecker substitution to partition the polynomial into $n^{\frac{1}{2}}$ pieces with the substitution $y = x^{n^{\frac{1}{2}}}$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}} \times n^{\frac{1}{2}}) = \M{O}(n \log n)$ where the arithmetic on the $n^{\frac{1}{2}}$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and then the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}}$. Then to perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 \[
@@ -218,11 +217,12 @@ Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th
 Just trust me, its $\M{O}(n \log n \log \log n)$ when you do the math.
 % TODO I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
 
-\section{Rader's Algorithm}%
-\label{sec:Rader's Algorithm}
+% \section{Rader's Algorithm}%
+% \label{sec:Rader's Algorithm}
 
-In this one we find an efficient algorithm if the transform length $n$ is prime and $n - 1$ has small coefficients.
+% In this one we find an efficient algorithm if the transform length $n$ is prime and $n - 1$ has small coefficients.
 
-This algorithm is often cited in many papers but people also say it ends up being slower than the FFT algorithm so idk. Also Winograd generalised it to powers of primes. In  they say that they use Rader's algorithm and it produces a speed-up of approximately 2x, but they also say that they might have modified the algorithm a bit
+% This algorithm is often cited in many papers but people also say it ends up being slower than the FFT algorithm so idk. Also, Winograd generalised it to powers of primes. In  they say that they use Rader's algorithm and it produces a speed-up of approximately 2x, but they also say that they might have modified the algorithm a bit
 
-I think it might be more beneficial in the finite fields case because its much harder to use a DFT there. (And I have put a little section there about it).
+% I think it might be more beneficial in the case of the finite field because its much is harder to use a DFT there. (And I have put a little section there about it).
+

@@ -2,10 +2,13 @@
 \addcontentsline{toc}{chapter}{Introduction}
 
 
-Polynomial multiplication is a fundamental problem in applied algebra. It can use it to multiply integers and vice-versa. Is used in solving systems of polynomial equations, making Gr\"{o}bner bases, dividing polynomials etc. I recently found out it can be used in modelling cellular automata. Also can be used to evaluate DFT's through Bluestein's transform
+Polynomial multiplication is a fundamental problem in computational mathematics. It is used for integer multiplication, solving systems of polynomial equations, computing Gr\"{o}bner bases, dividing polynomials, modelling cellular automata, and evaluating DFTs through Bluestein's transform, among other applications.
 
-% TODO Fill in Karatsuba date here
-This thesis focuses on studying and cataloguing the most popular advancements, starting the first improvement by Karatsuba in (XXXX) all the way to the most recent paper by Harvey and van der Hoeven for multiplying integers in $O(n\log n)$ time. A polynomials package has been developed alongside this project which implements many of the algorithms for the Rust programming language.
+This thesis focuses on studying and cataloguing the most significant advancements in the field, starting from the first improvement over the school-book method by Karatsuba in 1962 \cite{karatsuba}, and ending with the recent paper by Harvey and van der Hoeven for multiplying integers in $O(n\log n)$ time \cite{nlogn}. 
+
+In addition to the theoretical study of these algorithms, we have developed a polynomial multiplication software package in the Rust programming language which implements many of the algorithms discussed in the thesis. We use this implementation to obtain a practical comparison of the algorithms presented on a variety of realistic examples.
+
+A polynomial package has been developed alongside this project which implements many of the algorithms for the Rust programming language.
 
 \subsection{Goals}%
 \label{sub:goals}
@@ -18,15 +21,19 @@ This thesis focuses on studying and cataloguing the most popular advancements, s
 \end{itemize}
 
 
-\subsection{Structure}%
-\label{sub:Structure}
+\subsection{Structure of Thesis}
+\label{sub:Structure-of-Thesis}
 
-The structure of the document
+TODO Come back and fix all of this
 
-\begin{itemize}
-    \item Mathematical preliminaries such as the algebras we will be using, computational models and asymptotic notation.
-    \item Classical algorithms like Schoolbook multiplication, and Karatsuba's algorithm. As well as some fundamental techniques such as Kronecker substitution and the equivalence of polynomial multiplication and integer multiplication
-    \item Evaluation-Interpolation: Reformulate the classical algorithms in the Evaluation-Interpolation way and then present the DFT-based algorithm
-    \item Finite fields: Present algorithms for finite fields
-    \item Asymptotically superior algorithms
-\end{itemize}
+Since there is not a ubiquitous model of computation for algorithms, Chapter \ref{preliminaries} we will cover some mathematical preliminaries such: as the algebras we will work in, computational models and asymptotic notation for those unfamiliar with this style of analysis. Indeed, throughout the thesis we will swap between the RAM model and the Turing model, the former for more practical algorithms designed for efficiency within a certain range of inputs, and the latter for the theoretical asymptotic complexity as it captures a truer form of it.
+
+Polynomial multiplication has been a fundamental problem with a far reaching history, the first method dating back the Egyptians. With the advent of computers a stronger need was found for algorithms computable by machines, indeed 1962 marks the beginning of the first improvement by Karatsuba \cite{karatsuba} which then quickly saw a pique in interest in the mathematical community with several new algorithms being produced (citation). Chapter ref will give a brief overview of these fundamental algorithms. One special thing about these algorithms is that they are mostly for integer multiplication and characteristic 0.
+We also get to use Kronecker substitution to solve integers as well. Also the Sch\"{o}nage-Strassen integer multiplication scheme. The algorithms here are the most simple and generic and so can be used to multiply polynomials in a wide variety of algebras. For these reasons, they are the most popular in modern computer algebra systems. For example, Macaulay2 uses only the schoolbook method, and Maxima uses Karatsuba's method. As far as I can tell from the source code, it seems like Sage actually uses an FFT or SS and it was written by David Harvey in 2007 lol.
+
+Then in 1965 Cooley-Tukey FFT came out which was able to solve the DFT in $O(n \log n)$; an improvement over the traditional $O(n^2)$ times. It was soon showed afterwards that it could also be applied to polynomial multiplication. This marks the birth of more exotic algorithms which go beyond simply arithmetic manipulation, and also spawned the Evaluation-Interpolation scheme of algorithms. We will cover these in Chapter \cite{eval-interp}
+
+Then we start to see that polynomials have very real practical uses in the world of computers, especially cryptography. This created the need for algorithms to work over finite fields and lead to the discover of Number Theoretic Transforms. Also for multiplying large integers without the error that is cause by the Cooley-Tukey FFT.
+
+Then we start seeing how far we can push the envelope asymptotically. In some time Fuer made the first asymptotic improvement in many years. This started a flurry of improvements culminating in 2019 with Harvey-van der Hoeven publishing an algorithm for polynomial multiplication in $O(n\log n)$ time \cite{nlogn}. They also published another algorithm that is conditional on an unproven hypothesis but extends the result for finite fields. We will cover both in Chapter ??.
+
