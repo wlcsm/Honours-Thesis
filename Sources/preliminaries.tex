@@ -1,39 +1,39 @@
-\chapter{Preliminaries}\label{preliminaries}
+\chapter{Preliminaries}\label{chp:preliminaries}
 
-All algorithms need to reside in a computation model, something that tells us what operations can and can't be done. We will introduce the two computation models we will be using throughout the thesis here as well as a mathematical refresher on the algebras we will be using.
-
-\section{Rings and stuff}
-\label{sec:prelim-rings}
-
-\section{Measuring Complexity}%
-\label{sec:Measuring Complexity}
-
+All algorithms need to reside in a computation model, something that tells us what operations can and cannot be done. We will introduce the two computation models we will be using throughout the thesis here as well as a mathematical refresher on the algebras we will be using.
 
 When analysing an algorithm, we want to have some well-defined metric to indicate whether one algorithm is superior to the other. There are many questions one can ask when analysing algorithms, but two main ones we will ask ourselves are:
 
 \begin{itemize}
-    \item What operations can we perform and what is their computational cost?(Computation model)
+    \item What operations can we perform and what is their computational cost? (Computation model)
         % TODO this is still a bit unclear
     \item How do we analyse complexities once we have measured them (notation, theoretical vs practical)
 \end{itemize}
 
-There are many other sources of variation in this kind of analysis (most notably linear vs non-linear operations) but we won't go into that here.
+There are many other variations in this kind of analysis (most notably linear vs non-linear operations) that are of particular interest in the field of complexity theory. However, we will not cover them here as our primary focus is on the algebraic manipulations of polynomials to create algorithms (probably reword this) rather than the complexity side, we defer a discussion to Chapter 4 of \cite{burgisser}.
+
+\section{Rings and stuff}
+\label{sec:prelim-rings}
+
 
 \subsection{Complexity models}%
 \label{sub:Complexity models}
 
-A \textit{computation model} is a framework which specifies the operations we are allowed to perform on the data as well as their computational cost. 
+TODO Reword this part 
 
-The two most popular computation models are the \textit{Turing machine}, and the \textit{Random Access machine} (RAM). We will not give a formal definition here, however the main difference we need to be aware of for our purposes is that the Turing machine takes into account the size of the individual pieces of data better. That is, as intermediate expressions grow bigger, the complexity in the Turing model increases; whereas this is not the case in the Random access machine (TODO Check this).\\
-The RAM considers operations such as reading, writing and basic arithmetic (addition subtraction) constant time operations as well as in-direct addressing (the use of pointers in modern programming languages). This is quite adequate for most complexity analysis but in many cases we are interested in the asymptotic complexity of our algorithms as all of our data grows increasingly large. Therefore for the asymptotic section we will use the Turing model to reflect this. Whereas in other sections where we are more focused on the practical complexity, we will use the RAM model to simplify the calculation.
+A \textit{computation model} is a framework which specifies the operations we are allowed to perform on the data and their computational cost. We consider our algorithms being run on a machine which has a set of operations that it can perform on data. Each operation has an associated computation cost with it. The questions is then to develop an algorithm which can take a range of inputs and produce the correct result such that the computational cost is minimised.
+
+The two most popular computation models are the \textit{Turing machine}, and the \textit{Random Access machine} (RAM). Both can emulate the other (double check this, maybe reference) but the Turing machine's complexity is often higher as operates on the individual bits in the data whereas the random access machine operates on natural numbers. Hence, fundamental operations such as addition are executed in constant time whereas they are not in the Turing machine (double check). The RAM model also perform \emph{indirect addressing} where it can use data to point to other data, and then immediately access, whereas this is not possible in the Turing model.
+
+The RAM model is quite adequate for most complexity analysis concerning practical algorithms as it more closely emulates a modern computer with moderate inputs. However, this begins to fail when expressions become increasingly large as things like addition are not constant time in modern computers and so it does not give a good representation for extremely large numbers. Therefore for the asymptotic section, we will use the Turing model to reflect this. Whereas in other sections where we are more focused on the practical complexity, we will use the RAM model to simplify the calculation.
 
 \subsection{Comparing Computational Cost and Big O-notation}%
 \label{sub:Comparing Computational Cost and Big O-notation}
 
-In this thesis we present a study of algorithms from both a practical and theoretical viewpoint. Note that both of these complexities are relative to the computation model being used.
+In this thesis, we present a study of algorithms from both a practical and theoretical viewpoint. Note that both of these complexities are relative to the computation model being used.
 
 % TODO it may be a little weird how technically SS and H-vdH are integer multiplication algorithms rather than polynomial ones, and I haven't mentioned the equivalence yet
-We say that an algorithm has a good \textit{practical complexity} if it is the fastest for a certain range of input parameters and say that it has a good \textit{theoretical complexity} if it is the fastest asymptotically i.e. for large enough inputs. A good example of this distinction are the Karatsuba, Schonage-Strassen (SS), and Harvey-van der Hoeven (H-vdH) algorithms. Considering their asymptotic complexity with respect to the Turing model, Harvey-van der Hoeven is the fastest, followed by SS, followed by Karatsuba. However, SS only becomes faster than Karatsuba when the degree of the input polynomials are around $2^{2^{15}}$ (SS wiki page) and H-vdH becomes faster than it at around $2^{1729^{12}}$ bits. (TODO one measurement is in size, one is in bits, should standardize). Despite the H-vdH and SS algorithms having much greater theoretical complexity, Karatsuba, it is by far the most practical in normal use cases, and so many computer algebra systems e.g. Maxima only implement Karatsuba's.
+We say that an algorithm has a good \textit{practical complexity} if it is the fastest for a specific range of input parameters and say that it has a good \textit{theoretical complexity} if it is the fastest asymptotically, i.e. for large enough inputs. An example of this distinction are the Karatsuba, Schonage-Strassen (SS), and Harvey-van der Hoeven (H-vdH) algorithms. Considering their asymptotic complexity with respect to the Turing model, Harvey-van der Hoeven is the fastest, followed by SS, followed by Karatsuba. However, SS only becomes faster than Karatsuba when the degree of the input polynomials are around $2^{2^{15}}$ (SS wiki page) and H-vdH becomes faster than it at around $2^{1729^{12}}$ bits. (TODO one measurement is in size, one is in bits, should standardise). Despite the H-vdH and SS algorithms having much greater theoretical complexity, Karatsuba, it is by far the most practical in typical use cases, and so many computer algebra systems, e.g. Maxima only implement Karatsuba's.
 
 The most common way to talk about the asymptotic complexity of an algorithm is in ``big-O notation''. Informally, let $\M{C}(n)$ be the cost of an algorithm with respect to some computational model and $n \in \N$ an input parameter. We say that $\M{C}(n) = \M{O}(f(n))$ for some function $f$, if the cost of the algorithm increases with respect to the increase in its at the same rate as $f$ or slower for suitably large input $n \in \N$.
 
@@ -50,13 +50,13 @@ To give some idea about asymptotic complexity, we note that $\log n = \M{O}(n^{1
 \subsection{Recursive formulae}%
 \label{sub:Recursive forumulae}
 
-It is quite common in the study of algorithms to derive recursive algorithms, hence when we are analysing their complexity we may do so with a recursive expression. For instance in the Karatsuba algorithm we will see that, we get
+It is quite common in the study of algorithms to derive recursive algorithms; hence when we are analysing their complexity, we may do so with a recursive expression. For instance, in the Karatsuba algorithm we will see that, we get
 \[
     \M{C}(n) = 3C\bb{\frac{n}{2}} + O(n)
 \]
-This terminates when we have $C(1)$ which will happen in $\log_2 n$ steps so we get
+This terminates when we have $C(1)$ which will happen in $\log_2 n$ steps, so we get
 \[
     \M{C}(n) = \sum^{\log n} 3^i O\bb{\frac{n}{2^i}} = n\sum^{\log_2 n}_{i=0} \bb{\frac{3}{2}}^i \approx n(n^{\log_2 3/2}) = n^{\log_2 3}.
 \]
 
-I also just want to note somewhere in this chapter that even though the two polynomials can have different sizes, we still tend to treat only the case where they are the same
+TODO I also just want to note somewhere in this chapter that even though the two polynomials can have different sizes, we still tend to treat only the case where they are the same
