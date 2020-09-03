@@ -1,5 +1,34 @@
 \chapter{Implementation Details}\label{impl-details}
 
+\section{Sparse Polynomial multiplication with Heaps}
+
+
+Here we are going to multiply two sparse multivariate polynomials together. The problem we encounter is how do we keep track of all the resulting monomial is memory? One way is to use a hashmap and hash the monomial when we compute it and store the coefficient ins a hashmap. At the end we then collect the elements of the hashmap and sort them to obtain the final result. This is $O(m)$ to hash the monomial (where $m$ is the number of indeterminates) we perform $O(\# f \# g)$ hashes, and then we require $O(\#f \#g \log \# f \# g$ time to sort the remaining list of monomials.
+
+The main problem however is the memory usage and the cost of hashing.
+
+Here we consider a technique whereby we construct the resulting polynomial in ascending order one monomial at a time by managing a heap we can use $O(\#f \#g \log \min(\# f, \# g)$
+
+
+
+\section{The different kinds of Multivariate Polynomial Techniques}
+
+\begin{itemize}
+    \item Do it over the field $K[x]/(x^{\alpha_1} -1) \times K[x]/(x^{\alpha_n} -1$. To essentially make the polynomial more dense. The problem I have with this at the moment is that of how to recover the original from the ones in the smaller fields
+    \item Randomised Kronecker substitution. Uses randomised Kronecker substitution to multiply the polynomials, it will return the correct result with some probability.
+    \item Group variables together to reduce the dimensionality if we were to use Kronecker substitution e.g.
+        \[
+        x^5y + x^2y^3 + x^3y^3
+    \]
+    If we want to use Kronecker substitution we would need to expand this to $6 \times 4 = 24$ monomials.\\
+    By making the substitution $z = x^2y^3$ we have and the substitution $w = x^5y$ we get
+    \[
+        w + z + xz
+    \]
+    Which requires $2 \times 2 \times 2 = 8$ monomials.
+
+\end{itemize}
+
 When I was implementing the program I found that I could combine the reverse-bit-encoding step with the first step of the FFT algorithm to create no loss in performance when putting it into reverse-bit-encoding.
 \begin{figure}
     \centering
@@ -20,7 +49,7 @@ I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or 
 
 \subsection{Representation of ROU}
 
-Representing them losslessly takes $n/2$ cells. But the idea is to represent them as small as possible such that we allow error, but the error is controlled enough such that we actually get the correct answer in the end (since we are working with integers). This is something called forwards or backwards error. Since each number will only face $log n$ multiplications and additions, I'm hoping we can have a $O(log n)$ representation. Indeed the $\cite{nlogn}$ paper does this.
+Representing them losslessly takes $n/2$ cells. But the idea is to represent them as small as possible such that we allow error, but the error is controlled enough such that we actually get the correct answer in the end (since we are working with integers). This is something called forwards or backwards error. Since each number will only face $\log n$ multiplications and additions, I'm hoping we can have a $O(\log n)$ representation. Indeed the \cite{nlogn} paper does this.
 
 Though it looks like it might be better to just do it over quotient rings
 
@@ -132,7 +161,7 @@ The only downside I can see is that it isn't as parallelisable as the other algo
 
 It seems like the most popular method used to be the recursive approach because it was \emph{elegant}. But now everyone in the past decade or so are moving towards flat representations.
 
-Maxima uses a recursive representation https://math.tntech.edu/machida/1911/maxima/help/maxima_11.html
+Maxima uses a recursive representation https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html
 
 \subsection{Maple Style}%
 \label{sub:Maple Style}

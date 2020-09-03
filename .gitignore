@@ -38,3 +38,5 @@ auto
 Sources/auto
 Sources/_region_.tex
 thesis.bcf
+.DS_Store
+.chktexrc

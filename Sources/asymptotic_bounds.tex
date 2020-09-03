@@ -1,14 +1,14 @@
-\chapter{Asymptotic Bounds}\label{ch:asymptotic-bounds}
+\chapter{Asymptotic Bounds}\label{chp:asymptotic}
 
 In this chapter we will look at the most recent developments in polynomial multiplication, namely \cite{nlogn} which presents a method for polynomial multiplication in $\M{O}(n \log n)$ time in the Turing model, and \cite{ffnlogn} which presents an algorithm that achieves the same bound but is conditional on an unproven hypothesis. The conditional algorithm has the advantage of being more easily generalised to finite fields than the first where such a generalisation has not yet been found.
 
 This solved a long-standing problem in complexity theory and is conjectured by Strassen (citation) to be optimal.
 
-We will omit certain details from each of the methods as they are quite involved. The unconditional algorithm performs approximations and carefully controls the error of the approximations throughout. We will not rigorously formalise the error model they have and focus more on the algorithm itself.
+We will omit certain details from each of the methods as they are quite involved. The unconditional algorithm performs approximations and carefully controls the error of the approximations throughout the entire algorithm. We will not rigorously formalise the error model they have and focus more on the algorithm itself.
 
-These algorithms were originally presented for integer multiplication rather than multiplication in $\Z[x]$. Though we showed equivalence between these two problems before, there is a fundamental difference when we are working in the Turing model: when you convert integers to polynomials in $\Z[x]$ you can easily enforce a uniform bound on the coefficients of the polynomial in $\Z[x]$, however, when simply presented with a polynomial in $\Z[x]$ you do not have this bound. In fact, in the Turing model, the size of the coefficients will produce a significant impact on the complexity. 
+These algorithms were originally presented for integer multiplication rather than multiplication in $\Z[x]$. Though we showed equivalence between these two problems before, there is a fundamental difference when we are working in the Turing model: when we convert integers to polynomials in $\Z[x]$ you can easily enforce a uniform bound on the coefficients of the polynomial in $\Z[x]$, however, when presented with a polynomial in $\Z[x]$ you do not have this bound. In fact, in the Turing model, the size of the coefficients will produce a significant impact on the complexity. 
 
-Though I am confident that we can adapt the algorithm to work for polynomials in $\Z[x]$ (though we will still need to put some restrictions on the size of the coefficients) it isn't clear at the moment and so I will present the integer multiplication version for the moment.
+Though I am confident that we can adapt the algorithm to work for polynomials in $\Z[x]$ (though we will still need to put some restrictions on the size of the coefficients), it is not clear at the moment, and so I will present the integer multiplication version for the moment.
 
 \section{Multi-dimensional Variant of Rader's trick}%
 \label{sec:multi_dimensional_variant_of_rader_s_trick}
@@ -69,13 +69,13 @@ More generally,
 \label{subsec:nlogn}
 % Of course this is taken from the nlogn paper
 
-This algorithm uses multi-dimensional FFT transforms in $\C$ to approximate the solution and round to the nearest integer values. This contrasts previous attempts to improve the theoretical bound which kept the polynomials in $\Z$ and tried to only use exact intermediate expressions (TODO verify).
+This algorithm uses multidimensional FFT transforms in $\C$ to approximate the solution and round to the nearest integer values. This contrasts previous attempts to improve the theoretical bound which kept the polynomials in $\Z$ and tried only to use exact intermediate expressions (TODO verify).
 
 % They suggest that their unconditional algorithm is similar to Schonage and Strassen's first integer multiplication algorithm in that it achieves the same recursive relation, except that with the new one they are free to choose their own 
 
 The crux of this method is that there exist efficient convolution methods in multivariate polynomial rings in higher dimensions that have small enough error such that it will always give the correct result. That is, we can compute our convolution such that the error between the correct answer and the approximation is less than $1 / 4$, therefore by rounded to the nearest integer we will always obtain the correct result.
 
-We begin by proving a lemma which will allow us to transform our DFT into a multi-dimensional DFT
+We begin by proving a lemma which will allow us to transform our DFT into a multidimensional DFT.
 
 \begin{lemma}
     For distinct primes $s_1, \ldots, s_d$ 
@@ -116,7 +116,7 @@ This is done by identifying polynomials in $\C[x]/(x_i^{s_i} - 1)$ by their coef
     \item Perform the convolution in $\C^{t_1} \otimes \times \otimes \C^{t_d}$ and convert the convolution back into $\C^{s_1} \otimes \times \otimes \C^{s_d}$. 
     \item Convert the result back into $\Z[x]$.
 
-    Later complexity analysis will show that the recurrence inequality gives
+    Later complexity analysis will show the recurrence inequality can be simplified to
     \[
     M(n) = \M{O}(n \log n)
     \]
@@ -153,7 +153,7 @@ Let $r = t_d$ and $\M{R} = \C[y] / (y^r + 1)$
     \[
         \M{C}(\tilde{\M{G}}_t) < 2 \M{C}(\tilde{\M{G}}_{t/2}) + \M{O}(trp)
     \]
-    The $2 \M{C}(\tilde{\M{G}}_{t/2})$ term comes from when we split the DFT into two smaller DFTs of half the size. Then when recombining them we only need additions and bit shifts (since the root of unity in $\M{R}$ is $y$, multiplication by roots of unity can just be a bit shift), thus the arithmetic is $\M{O}(rp)$ and there are $t$ points, so the combination step is $\M{O}(trp)$.
+    The $2 \M{C}(\tilde{\M{G}}_{t/2})$ term comes from when we split the DFT into two smaller DFTs of half the size. Then when recombining them we only need additions and bit shifts (since the root of unity in $\M{R}$ is $y$, multiplication by roots of unity can just be a bit shift). Thus the arithmetic is $\M{O}(rp)$, and there are $t$ points, so the combination step is $\M{O}(trp)$.
 
     Solving this recurrence inequality gives us the complexity bound $\M{O}(trp \log 2t)$.
 \end{proof}
@@ -183,7 +183,7 @@ Let $r = t_d$ and $\M{R} = \C[y] / (y^r + 1)$
     \[
         \M{F}_{t_1,\ldots, t_{d-1}}(\frac{1}{r}(\M{G_{t_1, \ldots, t_{d-1}}}((\M{G_{t_1, \ldots, t_d}}u)\cdot (\M{G_{t_1, \ldots, t_{d-1}}} v)))).
     \]
-    As we showed before in the previous theorem we have that each of the DFTs takes $\M{O}(Tp\log T)$.
+    As we showed before in the previous theorem, we have that each of the DFTs takes $\M{O}(Tp\log T)$.
 
     We use the previous Proposition 3.3 to compute approximations $\tilde{u}^\prime, \tilde{v}^\prime \in \otimes_i \tilde{\M{R}}^{t_i}$ for $u^\prime: \M{G}_{t_1, \ldots, t_{d-1}} u \in \otimes_i \tilde{\M{R}}^{t_i}$ and $v^\prime: \M{G}_{t_1, \ldots, t_{d-1}} v \in \otimes_i \M{R}^{t_i}$. The cost of this step is $\M{O}(Tp \log T)$.
 
@@ -192,7 +192,7 @@ Let $r = t_d$ and $\M{R} = \C[y] / (y^r + 1)$
         \frac{T}{r}(4M(3rp) + \M{O}(rp)) = \frac{4T}{r} M(3rp) + O(Tp)
     \]
 
-    The inverse transform is as you would expect.
+    The inverse transform is as we would expect.
 
     There is also a final scaling step which takes $\M{O}(Tp^{1 + \delta})$ (though it only makes sense after you have formulated the error model, so I might need to do that).
 \end{proof}
@@ -223,7 +223,7 @@ This is shown by first observing by defining two ``resampling maps'' $\M{S}: \C^
 for $0 \leq k < t$.\\
 That is, $\M{S}$ and $\M{T}$ are linear maps, that create the points in $\C^t$ from a linear combination of the points in $\C^s$. Due to the rapid decay of the Gaussians, the sum converges.
 
-Next, we have the resampling identity
+Next, we have the resampling identity.
 \[
   \M{T}\M{P}_s\M{F}_s = \M{P}_t\M{F}_t\M{S}
 \]
@@ -234,7 +234,7 @@ Hence if we can solve the system $\M{T}x = y$ then we can find an expression for
 \subsection{Putting it all together}%
 \label{sub:Putting it all together}
 
-First, we need to define some terms
+First, we need to define some terms.
 
 Let $b = \lceil \log_2 n\rceil \geq d^{12} \geq 4096$ be the ``chunk size'' that we break up the initial integers into, and let the working precision be $p = 6b$.
 
@@ -257,7 +257,7 @@ Let $T$ be the unique power of two that is in the interval
 \end{equation}
 Or in other words, greater than the degree of the polynomial in $\Z[x]$ (when we break up the integers into polynomials in $\Z[x]$) multiplied by two to account for the fact that we are multiplying two polynomials together so the total degree of the result could be twice as big.
 
-Let $r$ be the unique power of two in the interval
+Let $r$ be the unique power of two in the interval.
 \[
     T^{1/d} \leq r < 2T^{1/d}
 \]
@@ -331,12 +331,12 @@ The key step to converting the DFT to a multidimensional DFT is the following is
     R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1), \qquad R := \C[y]/(y^r + 1)
 \end{equation}
 
-TODO The paper gives an overview of the integer multiplication scheme and then say "some modifications are made to generalise to the case of polynomial multiplication" but then don't precisely say what they are, they just promise they make them in the proof of the main theorem later. So what follows is the overview for integer multiplication with small notes about some of the changes made at the end, I eventually need to rewrite this to explain the polynomial case directly.
+TODO The paper gives an overview of the integer multiplication scheme and then say "some modifications are made to generalise to the case of polynomial multiplication" but then do not precisely say what they are, they promise they make them in the proof of the main theorem later. So what follows is the overview for integer multiplication with small notes about some of the changes made at the end, I eventually need to rewrite this to explain the polynomial case directly.
 \medskip
 
 % Taken directly from the paper page 5
 Under the assumption of a suitable prime distribution, we chose primes $s_1, \ldots, s_d$ such that $s_i = 1 \;(\tx{mod } r)$, where $r$ is a power of two, and where the $s_i$ are not much larger than $r$. We then use a multi-dimensional generalisation of Rader's Algorithm to reduce the DFT of size $s_1 \times \cdots \times s_d$ to one of size $s_1-1 \times \cdots \times s_d-1$ and hence to a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$, where $s_i - 1 = q_i r$ where the $q_i$ are suitably small, we may then reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d] / (x_1^r - 1, \ldots, x_d^r - 1)$. \\
-Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These, in turn, are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you don't need that if you are just doing polynomial multiplication).
+Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These, in turn, are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you do not need that if you are just doing polynomial multiplication).
 
 As one may have guessed, the trick is in obtaining the primes $s_1, \ldots, s_d$. To formalise this, take
 \[
@@ -353,7 +353,7 @@ To establish the bounds for integer multiplication, we reduce integer multiplica
 
 Where $s$ is a power of two and $p_1, \ldots, p_d$ are the first $d$ prime numbers in the arithmetic progression $\ell + 1, 3\ell + 1, 5\ell + 1, \ldots$ where $\ell$ is another power of two with $s^{1/3} \leq \ell \leq s^{2/3}$.  Setting $v = \lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)p_1\dots p_d$, we choose $m$ such that there exists a principal $v$-th root of unity in $\Z/m\Z$ that makes it possible to compute products in the algebra $\M{R}$ using FFT algorithms. It is shown that we may in fact take $d = O(1)$, although larger dimensions may allows for speed ups by a constant factor as long as $\lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)$ can be kept small.
 
-Using multivariate Rader transforms the DFTs in $\M{R}$ reduce to the computation of multivariate cyclic convolutions in the algebra
+Using multivariate Rader transforms the DFTs in $\M{R}$ reduce to the computation of multivariate cyclic convolutions in the algebra.
 \[
     \M{S} = \A[z_1, \ldots, _d] / (z_1^{p_1 - 1} - 1, \ldots, z_d^{p_d - 1} - 1).
 \]

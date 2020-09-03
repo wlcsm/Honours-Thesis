@@ -1,4 +1,4 @@
-\chapter{Classical Algorithms}\label{classical algorithms}
+\chapter{Classical Algorithms}\label{chp:classical}
 
 Here we review the classical algorithms which were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite their asymptotic complexities being far worse than their newer counterparts, they still have quite good practical complexities for smaller input sizes. They also have the benefit of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms. For example, the FFT algorithm only works over the complex numbers, one can coerce $\Z$ or $\Q$ into $\C$ and then coerce back again by rounding to the nearest integer, but it will suffer a fair amount of error, and so the FFT algorithm is not commonly used.
 
@@ -59,7 +59,7 @@ Let $\M{C}(n)$ be the computation cost of performing Karatsuba's algorithm when 
 Where $k$ is some constant and $kn$ is an upper bound on the addition operation we need to do to.\\
 Therefore Karatsuba's algorithm is $\M{O}(n^{\log_2 3})$.
 
-Karatsuba's algorithm also remains one of the most practically efficient algorithms. A lot of the algorithms we cover in this paper concern improving the theoretical complexity, but in practice, they require a large degree size before they out-perform Karatsuba's algorithm. Combined with the fact that it is straightforward to implement, Karatsuba's algorithms remains incredibly popular among many computer algebra software (I think it is the default for Maxima, https://math.tntech.edu/machida/1911/maxima/help/maxima_11.html. It says multiplication is $n^{1.5}$ so I am guessing its Karatsuba).
+Karatsuba's algorithm also remains one of the most practically efficient algorithms. A lot of the algorithms we cover in this paper concern improving the theoretical complexity, but in practice, they require a large degree size before they out-perform Karatsuba's algorithm. Combined with the fact that it is straightforward to implement, Karatsuba's algorithms remains incredibly popular among many computer algebra software (I think it is the default for Maxima, https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html. It says multiplication is $n^{1.5}$ so I am guessing its Karatsuba).
 
 
 \section{Kronecker Substitution}%
@@ -88,6 +88,21 @@ Since there are many heavily optimised algorithms for integer multiplication and
 \label{sub:Establishing bounds on different problems}
 
 Kronecker substitution allows us to obtain quick bounds on a variety of problems. In particular, multiplication of polynomials with coefficients in a finite field and multivariate polynomial multiplication.
+
+
+\subsubsection{Using Kronecker Substitution on Multivariate polynomials}
+
+Say we have a polynomial $f(x_1, \ldots, x_n) = \sum^n_{i \in I}a_Ix^I$. Then let $d(i)$ be the upper bound on the degree of the polynomial. Then we can convert this losslessly into a univariate polynomial via the substitution
+\[
+    x_1^{\alpha_1}\ldots x_n^{\alpha_n} = x^{\alpha_1 + \alpha_2d(1) + \ldots + \alpha_n d(1)\ldots d(n-1)}
+\]
+TODO is this right? I can't actually find where this is explicitly stated anywhere
+
+Therefore we can then recover the polynomial by starting with $x^\alpha$, and then computing the quotient and remainder upon division by $d(1)$ to obtain $q_1 = \alpha_2d(2) + \alpha_3 d(2)d(3) + \ldots + \alpha_n d(1) \ldots d(n-1)$ and $r_1 = \alpha_1$. Then repeat this procedure on the result to obtain $\alpha_1, \ldots, \alpha_n$. Notice that this division operation is quite expensive and it is often much more efficient to use a power of two. Or it might be useful to figure it out once and then subtract monomials that are next to each other to potentially cut down the work if the polynomials are somewhat dense.
+Note actually that you may not need to make all of them powers of two, just some may suffice.  
+
+
+
 
 Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method from the previous subsection, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size(TODO double check this). The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on. However we cannot undo a carry, so we need to do some extra steps to avoid the carry happening in the first place with the other one.
 

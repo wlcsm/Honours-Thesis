@@ -2,15 +2,14 @@
 - Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
 - In the nlogn paper page 32 they mention that their algorithm may be good in practice to replace Rader's algorithm
 - In nlogn paper page 31 they say that certain constraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
-- In the code: When applying the division algorithm over a vector of polynomials, it might be more efficient to do the predictive algorithm in $F_4$ and perform all the subtractions at once, this may end up being more computationally efficient
-- There is a potential optimisation if we can guarantee that our polynomials are not zero, this avoids algorithms having to check all the time
 - Define the cyclic convolution property as it is mentioned in the beginning of 5.1, or I could reword Theorem 3 to not use that term
 - Write up my algorithm for searching for a divisible monomial in a monomial ideal.
 - Is the fact that the fftw paper is an "invited paper" mean anything?
 - End of introduction
 "This should be expanded to include references to the sections and likely some
 citations to the relevant papers. A bit of historical discussion and context would also be good as well as comments about the use of various algorithms in different software packages etc."
-- Explain why we only tend to consider the case where the two polynomials have the same length
+* Bluestein's Trick: Converts a DFT problem to a convolution problem
+* In FASTER POLYNOMIAL MULTIPLICATION VIA MULTIPOINT KRONECKER SUBSTITUTION, they said that "the Magma computer algebra system uses Kronecker substitution to multiply polynomials in Z[x] in some cases [6], and Victor Shoup’s NTL library [5] uses Kronecker substitution to reduce multiplication in GF(pn)[x] to multiplication in GF(p)[x]"
 
 # Preliminaries
 - Check the recursive relation for Karatsuba's algorithm for the "Recursive relation" subsection
@@ -49,8 +48,3 @@ Audience?
 * Introduce: Big O notation and some basic algorithms like schoolbook, Karatsuba, and show Chinese remainder theorem being included in Karatsuba, Toom-Cook and 
 * This chapter should introduce the basic concepts of both math and the complexity side of things
 * Introduce what a Turing machine is
-
-# Summary of Algorithms/Techniques
-
-* Rader's Algorithm: Very fast multiplication of polynomials of prime powers
-* Bluestein's Trick: Converts a DFT problem to a convolution problem

@@ -2,38 +2,27 @@
 \addcontentsline{toc}{chapter}{Introduction}
 
 
-Polynomial multiplication is a fundamental problem in computational mathematics. It is used for integer multiplication, solving systems of polynomial equations, computing Gr\"{o}bner bases, dividing polynomials, modelling cellular automata, and evaluating DFTs through Bluestein's transform, among other applications.
+Polynomial multiplication is a fundamental problem in computational mathematics. Not only is it seen by itself throughout many applications, but it can be generalised to a wider class of problems namely integers multiplication, calculating the Discrete Fourier Transform and calculating convolutions. Despite being widely applicable, the first major algorithmic advancement was in 1960 by Karatsuba \cite{karatsuba} who presented his Andrey Kolmogorov a week after attending a seminar by Kolmogorov where he conjectured that no such improvement was possible. This quickly saw a pique in interest in the mathematical community with several new algorithms being produced shortly after including FFT-based algorithms after the FFT's rediscovery in 1965. (citation). Along with the advent of computers came the need to multiply increasingly large polynomial in solving systems of polynomial equations, computing Gr\"{o}bner bases, and evaluating DFTs. The schoolbook method experience a quadratic increase in complexity as the size of the inputs increase, which renders certain calculations infeasible.
 
-This thesis focuses on studying and cataloguing the most significant advancements in the field, starting from the first improvement over the school-book method by Karatsuba in 1962 \cite{karatsuba}, and ending with the recent paper by Harvey and van der Hoeven for multiplying integers in $O(n\log n)$ time \cite{nlogn}. 
+The focus of this thesis is on studying and cataloguing the most significant advancements in the field, starting from the first improvement over the school-book method by Karatsuba and ending with the recent result by Harvey and van der Hoeven \cite{n\log n}. There are numerous factors that can affect what algorithms can be used to multiply the polynomials and affect their efficiency. The two of most interest are: sparsity and the coefficient algebra of the polynomials.\\
+
+TODO say something about analysing both the practical and theoretical complexity
+
+Due the variety of such algorithms, it is common to find popular computer algebra systems still rely on old multiplication schemes which can work across a large range of inputs at the sacrifice of performance.\\
+One of our goals is to analyse the practical complexity of such methods to develop a heuristic for computer algebra systems to select the most efficient algorithm for the given inputs.
 
 In addition to the theoretical study of these algorithms, we have developed a polynomial multiplication software package in the Rust programming language which implements many of the algorithms discussed in the thesis. We use this implementation to obtain a practical comparison of the algorithms presented on a variety of realistic examples.
-
-A polynomial package has been developed alongside this project which implements many of the algorithms for the Rust programming language.
-
-\subsection{Goals}%
-\label{sub:goals}
-
-\begin{itemize}
-    \item Provide an overview of the main classical algorithms
-    \item Present practical methods that are readily available for real-world use
-    \item Present some of the state-of-the-art algorithms in the area in asymptotic complexity
-    \item Demonstrate through a program written in conjunction with this paper how these things can be applied
-\end{itemize}
-
 
 \subsection{Structure of Thesis}
 \label{sub:Structure-of-Thesis}
 
-TODO Come back and fix all of this
+To formalise the analysis of algorithms, we need to first formalise the computational model our algorithms will execute inside. Since there is no ubiquitous model of computation, Chapter \ref{chp:preliminaries} will provide a mathematical refresher along with brief introduction to the two computation models we will be using throughout this thesis, namely the Random access Machine (RAM) and the Turing machine, along with asymptotic complexity notation.
 
-Since there is not a ubiquitous model of computation for algorithms, Chapter \ref{preliminaries} we will cover some mathematical preliminaries such: as the algebras we will work in, computational models and asymptotic notation for those unfamiliar with this style of analysis. Indeed, throughout the thesis we will swap between the RAM model and the Turing model, the former for more practical algorithms designed for efficiency within a certain range of inputs, and the latter for the theoretical asymptotic complexity as it captures a truer form of it.
+Chapter \ref{chp:classical} will give a brief overview of the classical algorithms. These are the most widely implemented algorithms due to their simplicity, ability to work for a wide range of coefficient algebras, and efficiency for polynomials of small degree. Computer algebra systems such as Macaulay2, Maxima, and Magma all use techniques from here. (TODO Citations? Macaulay2 I know from looking at the source code, Maxima mentions it uses Karatsuba somewhere, and I know Magma uses Kronecker substitution I believe)
 
-Polynomial multiplication has been a fundamental problem with a far reaching history, the first method dating back the Egyptians. With the advent of computers a stronger need was found for algorithms computable by machines, indeed 1962 marks the beginning of the first improvement by Karatsuba \cite{karatsuba} which then quickly saw a pique in interest in the mathematical community with several new algorithms being produced (citation). Chapter ref will give a brief overview of these fundamental algorithms. One special thing about these algorithms is that they are mostly for integer multiplication and characteristic 0.
-We also get to use Kronecker substitution to solve integers as well. Also the Sch\"{o}nage-Strassen integer multiplication scheme. The algorithms here are the most simple and generic and so can be used to multiply polynomials in a wide variety of algebras. For these reasons, they are the most popular in modern computer algebra systems. For example, Macaulay2 uses only the schoolbook method, and Maxima uses Karatsuba's method. As far as I can tell from the source code, it seems like Sage actually uses an FFT or SS and it was written by David Harvey in 2007 lol.
+Chapter \ref{chp:eval-interp} will look at the \emph{evaluation-interpolation strategy} for polynomial multiplication; where we will then return the classical algorithms in \ref{chp:classical} to reformulate some in terms of this strategy. We will then look at applying the Cooley-Tukey FFT to multiply polynomials in $O(n \log n)$ times, albeit at a loss of precision. This marks the birth of more exotic algorithms which go beyond the coefficient-agnostic transformations in the previous chapter. 
 
-Then in 1965 Cooley-Tukey FFT came out which was able to solve the DFT in $O(n \log n)$; an improvement over the traditional $O(n^2)$ times. It was soon showed afterwards that it could also be applied to polynomial multiplication. This marks the birth of more exotic algorithms which go beyond simply arithmetic manipulation, and also spawned the Evaluation-Interpolation scheme of algorithms. We will cover these in Chapter \cite{eval-interp}
+Chapter \ref{chp:finite} looks at algorithms for polynomials whose coefficient algebra is a finite field. This avoid two main problems with other algebras that other algorithms need to face: loss of precision for non-discrete (TODO is this the correct word?) algebras (e.g. $\R$, $\C$) and unbounded coefficient sizes (e.g. $\Q$, $\Z$). These allow us to optimise our algorithms for a better practical complexity as well some times theoretic (TODO really?). This area is of particular interest when computing very big polynomials (TODO cite the paper where they used the CRT to reduce the coefficient size) and other areas optimised for speed such as cryptography. This created the need for algorithms to work over finite fields and lead to the discover of Number Theoretic Transforms. 
 
-Then we start to see that polynomials have very real practical uses in the world of computers, especially cryptography. This created the need for algorithms to work over finite fields and lead to the discover of Number Theoretic Transforms. Also for multiplying large integers without the error that is cause by the Cooley-Tukey FFT.
-
-Then we start seeing how far we can push the envelope asymptotically. In some time Fuer made the first asymptotic improvement in many years. This started a flurry of improvements culminating in 2019 with Harvey-van der Hoeven publishing an algorithm for polynomial multiplication in $O(n\log n)$ time \cite{nlogn}. They also published another algorithm that is conditional on an unproven hypothesis but extends the result for finite fields. We will cover both in Chapter ??.
+Chapter \ref{chp:asymptotic} looks at the most recent advancement in the theoretical area which is Harvey and var der Hoeven's $O(n \log n)$ integer multiplication algorithm \cite{nlogn}, (TODO which can also multiply polynomials if they have some kind of bound on them). They achieves this by creating a multi-dimensional convolution and control the error in the terms such that rounding the final result to the nearest integer is guaranteed to give the correct result. They also published another algorithm that is conditional on an unproven hypothesis but gives a more intuitive result which then naturally generalises the result for finite fields. 
 
