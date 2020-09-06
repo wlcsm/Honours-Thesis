@@ -1,8 +1,15 @@
+# Last Position
+
+Classical algorithms line 42
+
 # General
 - Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
 - In the nlogn paper page 32 they mention that their algorithm may be good in practice to replace Rader's algorithm
 - In nlogn paper page 31 they say that certain constraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
+* In the preliminaries maybe we should mention that polynomial addition is linear, and it is asymptotically optimal
 - Define the cyclic convolution property as it is mentioned in the beginning of 5.1, or I could reword Theorem 3 to not use that term
+* It is hard to say that one algorithm beats another at precisely a certain degree because it is very much dependent on the implementation and the hardware as well, some algorithms lend themselves better to parallel or SIMD processing. But I suppose it should be all formulated in the perfect RAM model.
+* One genuine problem is that integer multiplication schemes have the luxury of having the coefficients of the polynomial bounded. For this reason I will need to develop some technique for bounding them. Otherwise I can't really talk about SS and H-vdH in the Preliminaries and I also need to make the nlogn paper relevant
 - Write up my algorithm for searching for a divisible monomial in a monomial ideal.
 - Is the fact that the fftw paper is an "invited paper" mean anything?
 - End of introduction
