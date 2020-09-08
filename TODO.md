@@ -1,10 +1,21 @@
 # Last Position
 
-Classical algorithms line 42
+Fast Mult Line 123
 
 # General
 - Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
+* Cover Winograd's generalised FFT algorithm?
+* Change the name of the fast_mult file and the finit_field file. As well as the finite_field references
+* Need to mention in the FFT that the field needs to have 2 is invertible
+* Cover MNTs?
+* State the convolution property and show how we can use DFTs to evaluate convolutions
+* In the finite fields one, should we include quotient rings? Maybe the interpretation that multiplication is a lattice operation
+* Normal bases? Montgomery multiplication or Barry reduction?
+* Need to mention the cyclic convolution property in fast_mult
+* How much precision is lost in the complex FFT
 - In the nlogn paper page 32 they mention that their algorithm may be good in practice to replace Rader's algorithm
+* Feel like I am forgetting about the computation model in my thing
+* Toom-Cook algorithm?
 - In nlogn paper page 31 they say that certain constraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
 * In the preliminaries maybe we should mention that polynomial addition is linear, and it is asymptotically optimal
 - Define the cyclic convolution property as it is mentioned in the beginning of 5.1, or I could reword Theorem 3 to not use that term

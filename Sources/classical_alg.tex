@@ -1,13 +1,13 @@
 \chapter{Classical Algorithms}\label{chp:classical}
 
-Here we review the classical algorithms which were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite their theoretical complexities being far worse than their newer counterparts, they still have quite good practical complexities for smaller input sizes. Additionally, they also tend have the benefit of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems. 
+Here we review the classical algorithms that were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite their theoretical complexities being far worse than their newer counterparts, they often have far greater practical complexities for smaller input sizes. Additionally, they also tend to have the advantage of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems.
 
-Throughout this chapter let $a(x)$ and $b(x)$ denote two univariate polynomials in the ring $K[x]$ where $K$ is an commutative ring. (TODO check that all of this works in non-integral domains)\\
-We write $a(x)$ and $b(x)$ as
+Throughout this chapter let $a, b \in K[x]$ denote two univariate polynomials in the ring $K[x]$ where $K$ is an commutative ring. (TODO check that all of this works in non-integral domains)\\
+We write $a$ and $b$ as
 \[
     a(x) = a_0 + a_1x + \cdots + a_nx^n = \sum^n_{i=0} a_ix^i, \qquad b(x) = b_0 + b_1x + \cdots + b_mx^m = \sum^n_{i=0} a_ix^i.
 \]
-The product is then defined as
+The product is defined as
 \[
     ab = \bb{\sum^n_{i=0} a_i x^i}\bb{\sum^m_{j=0} b_j x^j} = \sum^n_{i=0} a_ix^i\bb{\sum^m_{j=0} b_j x^j}
 \]
@@ -15,37 +15,39 @@ or more generally as a convolution
 \[
     ab = \sum^{n + m}_{k=0} \bb{\sum_{i + j = k}a_ib_j} x^{i + j}.
 \]
-Hence if we are able to evaluate convolutions efficiently, then we can multiply polynomials efficiently as well and vice-versa.
+Hence if we can evaluate convolutions efficiently, then we can multiply polynomials efficiently and vice-versa.
+
 (TODO Should I mention that the transformation from convolution to multiplication is Bluestein's chirp transform, and the transformation from multiplication to convolution is the FFT?)
 
-\section{School-book Multiplication}
+\section{Schoolbook Multiplication}
 \label{sec:prelim-schoolbook}
 
 In the standard method of polynomial multiplication, we evaluate
 \[
     ab = \sum^n_{i=0} a_ix^i\bb{\sum^m_{j=0} b_j x^j}
 \]
-by calculating each term individually as written.\\
-So we see that the inner sum requires $m$ coefficient multiplications and a similar number of additions. Therefore it takes $\M{O}(m)$ time to compute. To evaluate the outer sum, we must compute the inner sum $n$ times, so this algorithm is $\M{O}(nm)$ complexity.
+by calculating each term individually as written.
 
-Though it has poor theoretical complexity its complexity is completely independent of the degree of the polynomials and the coefficient algebra. It is also faster than other algorithms or inputs with less than around $10$ terms.
+The inner sum requires $m$ coefficient multiplications and a similar number of additions. Therefore it takes $\M{O}(m)$ time to compute. To evaluate the outer sum, we must compute the inner sum $n$ times, so this algorithm is $\M{O}(nm)$ complexity.
 
-Notice that this is very similar to the schoolbook method for performing integer multiplication. Suppose we have an integer $a_0a_1 \ldots a_n$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation, then we have
+Though it has an inferior theoretical complexity, its complexity is independent of the degree of the polynomials and the coefficient algebra. It is also faster than other algorithms or inputs with less than around $10$ terms.
+
+Notice that this is very similar to the schoolbook method for performing integer multiplication. Suppose we have an integer $a_n \ldots a_0$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation, then we have
 \[
-    a_0a_2 \ldots a_n = \sum^n_{i=0} a_i 10^i
+    a_n \ldots a_1 = \sum^n_{i=1} a_i 10^i
 \]
-if we want to multiply integers $a_0a_1\ldots a_n$ and $b_0b_1\ldots b_n$ we could first convert them into polynomials with the substitution $x = 10$. Which gives us the polynomials
+if we want to multiply integers $a_n\ldots a_1$ and $b_m\ldots b_1$ we could first convert them into polynomials with the substitution $x = 10$. Which gives us the polynomials
 \[
     a(x) = \sum^n_{i=0} a_ix^i, \qquad b(x) = \sum^m_{i=0} b_ix^i
 \]
-hence by evaluating the polynomial at $x = 10$ we would obtain our original integers. Then we can multiply the polynomials together to get $c(x) = a(x)b(x)$ and evaluate at $x = 10$ to get $c(10) = a(10)b(10) = a_0a_1\ldots a_n \cdot b_0b_1\ldots b_m$. Indeed this is the exact method that is commonly taught in schools, only without the substitution of variables.
+hence by evaluating the polynomial at $x = 10$ we would obtain our original integers. Then we can multiply the polynomials together to get $c(x) = a(x)b(x)$ and evaluate at $x = 10$ to get $c(10) = a(10)b(10) = a_n\ldots a_1 \cdot b_m\ldots b_1$. Indeed this is the exact method that is commonly taught in schools, only without the substitution of variables.
 
-However, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiply multiplication we need to ``carry'' digits, e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$. For this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true; we cannot easily undo a carry. Later in the chapter, we will use Kronecker substitution to resolve this issue.
+However, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiply multiplication we need to ``carry'' digits, e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$. For this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true; we cannot easily undo a carry to obtain the correct polynomial. Later in the chapter, we will use Kronecker substitution to resolve this issue.
 
 \section{Karatsuba's Algorithm}
 \label{sec:prelim-karatsuba}
 
-Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound for polynomials of degree $n$. As it happened, Karatsuba 1960 presented the algorithm to Kolmogorov who then proceeded present the algorithm and various events and even published a paper crediting Karatsuba in 1962 \cite{karatsuba} who famously only learnt of the paper's existence when it was in its reprints (maybe cite?). The algorithm works by splitting up the terms in the polynomials and calculating recursively, a technique which is now known as \emph{divide-and-conquer}. Let $a$ and $b$ be polynomials of degree $n$ (padding the inputs if necessary).\\
+Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound for polynomials of degree $n$. As it happened, Karatsuba 1960 presented the algorithm to Kolmogorov who then proceeded to present the algorithm and various events and even published a paper crediting Karatsuba in 1962 \cite{karatsuba} who famously only learnt of the paper's existence when it was in its reprints (maybe cite?). The algorithm splits up the terms in the polynomials and calculates the product recursively; a technique which is now known as \emph{divide-and-conquer}. Let $a$ and $b$ be polynomials of degree $n$ (padding the inputs if necessary).\\
 Consider $m = \ceil{n/2}$ and $a = a_1x^m + a_0$ and $b = b_1x^m + b_0$, where $a_0, a_1, b_0, b_1$ are polynomials of degree at most $m - 1$. Naturally we have
 \[
     ab = a_1b_1x^{2m} + (a_1b_0 + a_0b_1)x^m + a_0b_0
@@ -60,14 +62,16 @@ Let $\M{C}_K(n)$ be the computation cost of performing Karatsuba's algorithm whe
 \[
     \M{C}_K(n) = 3\M{C}_K\bb{\ceil{\frac{n}{2}}} + kn
 \]
-This can solved by induction. 
-For the base case if we let $c = \M{C}_K(1)$ (which should be great that zero), then we have $\M{C}(1) \le c1^{\log_2 3}$. 
-Now suppose $\M{C}_K(s) \le s^{\log_2 3} - 2ks$ for all $s < n$. Then 
+for some constant $k > 0$.
+
+We will solve this by induction.
+For the base case if we let $c = \M{C}_K(1)$ (which should be great that zero), then we have $\M{C}(1) \le c1^{\log_2 3}$.
+Now suppose $\M{C}_K(s) \le s^{\log_2 3} - 2ks$ for all $s < n$. Then
 \begin{align*}
     \M{C}_K(n) &= 3\M{C}_K(\tfrac{n}{2}) + kn\\
-                    &\le 3((\tfrac{n}{2})^{\log_2 3} - 2k \cdot \frac{n}{2}) + kn\\
-                    &= 3 \cdot 2^{-\log_2 3}n^{\log_2 3} - 3kn + kn\\
-                    &= n^{\log_2 3} - 2kn
+               &\le 3\bb{\bb{\frac{n}{2}}^{\log_2 3} - 2k \cdot \frac{n}{2}} + kn\\
+               &= 3 \cdot 2^{-\log_2 3}n^{\log_2 3} - 3kn + kn\\
+               &= n^{\log_2 3} - 2kn
 \end{align*}
 and in particular $\M{C}(n) \le n^{\log_2 3}$.\\
 Therefore if we set $c = \max\{C(1), 1\}$, then both the base case and the inductive hypothesis hold. Hence there exists a $c > 0$ such that $\M{C}(n) \le n^{\log_2 3} - 2kn$ for all $n \ge 1$.
@@ -100,14 +104,14 @@ Karatsuba's algorithm remains one of the most practically efficient algorithms. 
 \section{Kronecker Substitution}%
 \label{sub:kronecker_substitution}
 
-Kronecker substitution is process of grouping together or expanding certain parts of the inputs to convert them into polynomials of a different form. It is a powerful tool which allows us to convert polynomials in one form into another which we can already multiply efficiently. The most common example is converting multivariate polynomials to univariate. In Karatsuba's algorithm, we can think of substituting $x^{\ceil{\frac{n}{2}}} = y$ to obtain a polynomial in $K[x][y]$ whose coefficients are polynomials in $K[x]$ with degree at most $\ceil{n/2}$. We can also use it to convert multiplication in a finite field into multiplication in $\Z$, and multiplication in $\Z[x]$ into integer multiplication.
+Kronecker substitution is the process of grouping together or expanding certain parts of the inputs to convert them into polynomials of a different form. It is a powerful tool which allows us to convert polynomials in one form into another which we can already multiply efficiently. The most common example is converting multivariate polynomials to univariate. In Karatsuba's algorithm, we can think of substituting $x^{\ceil{\frac{n}{2}}} = y$ to obtain a polynomial in $K[x][y]$ whose coefficients are polynomials in $K[x]$ with degree at most $\ceil{n/2}$. We can also use it to convert multiplication in a finite field into multiplication in $\Z$, and multiplication in $\Z[x]$ into integer multiplication.
 
 \subsection{Using Integers to multiply Polynomials}%
 \label{sub:Using Integers to multiply Polynomials}
 
-To illustrate the usefulness of Kronecker substitution, we will return to the problem of using integer multiplication to multiply polynomials in $\Z[x]$. The key is that in polynomial multiplication, we do not have any ``carry'' whereas in integer multiplication we do. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs. This technique is used in the Magma computer algebra system to allow it is use the optimised integer multiplication methods in the GNU Multiple Precision library GMP.
+To illustrate the usefulness of Kronecker substitution, we will return to the problem of using integer multiplication to multiply polynomials in $\Z[x]$. The key is that in polynomial multiplication, we do not have any ``carry'' whereas in integer multiplication we do. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication methods in the GNU Multiple Precision library GMP.
 
-Let $B$ be an absolute bound on the coefficients in the polynomials, and $n$ is the maximum degree of the inputs. Then the resulting polynomial has a maximum coefficient size of $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$ (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$ which gives
+Let $B$ be an absolute bound on the coefficients in the polynomials, and $n$ the maximum degree of the inputs. Then the resulting polynomial has a maximum coefficient size of $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$ (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$ which gives
 \[
     f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}.
 \]
@@ -115,35 +119,38 @@ Thus when we multiply we obtain
 \[
     f(2^\ell)g(2^\ell) = \sum^{n+m}_{i=0} \bb{\sum_{j + k = i} a_jb_k}2^{\ell i}.
 \]
-Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$ no carries have occurred, so we can convert the result back into a polynomial by setting $2^\ell = x$.
+Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$ no carries can occur, so we recover the resulting polynomial by setting $2^\ell = x$.
 
-Since there are many heavily optimised algorithms for integer multiplication and less for polynomial multiplication, many computer algebra systems do large polynomial calculations by first converting them to integers via Kronecker substitution and then calling the integer multiplication library. (TODO insert citation, I believe Magma does this)
+Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method from the previous subsection, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size(TODO double-check this). The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on. However we cannot undo a carry, so we need to do some extra steps to avoid the carry happening in the first place with the other one.
 
-\subsection{Establishing bounds on different problems}%
-\label{sub:Establishing bounds on different problems}
+\subsection{Kronecker Substitution for Multivariate polynomials}
 
-Kronecker substitution allows us to obtain quick bounds on a variety of problems. In particular, multiplication of polynomials with coefficients in a finite field and multivariate polynomial multiplication.
-
-
-\subsubsection{Using Kronecker Substitution on Multivariate polynomials}
-
-Say we have a polynomial $f(x_1, \ldots, x_n) = \sum^n_{i \in I}a_Ix^I$. Then let $d(i)$ be the upper bound on the degree of the polynomial. Then we can convert this losslessly into a univariate polynomial via the substitution
+Let $f \in K[x_1, \ldots, x_n]$, $f(x_1, \ldots, x_n) = \sum^n_{i \in I}a_Ix^I$ be a multivariate polynomials where $I$ is a multi-index set. Then let $d(i)$ be the upper bound on the degree of the polynomial in the $i^{\text{tj}}$ variable. Then we can transform $f$ into a univariate polynomial $f^\prime \in K[x]$ via the substitution
 \[
     x_1^{\alpha_1}\ldots x_n^{\alpha_n} = x^{\alpha_1 + \alpha_2d(1) + \ldots + \alpha_n d(1)\ldots d(n-1)}
 \]
 TODO is this right? I can't actually find where this is explicitly stated anywhere
 
-Therefore we can then recover the polynomial by starting with $x^\alpha$, and then computing the quotient and remainder upon division by $d(1)$ to obtain $q_1 = \alpha_2d(2) + \alpha_3 d(2)d(3) + \ldots + \alpha_n d(1) \ldots d(n-1)$ and $r_1 = \alpha_1$. Then repeat this procedure on the result to obtain $\alpha_1, \ldots, \alpha_n$. Notice that this division operation is quite expensive and it is often much more efficient to use a power of two. Or it might be useful to figure it out once and then subtract monomials that are next to each other to potentially cut down the work if the polynomials are somewhat dense.
-Note actually that you may not need to make all of them powers of two, just some may suffice.  
+We can convert the polynomial back into its multivariate form by starting with $x^\alpha$, and then computing the quotient and remainder upon division by $d(1)$ to obtain $q_1 = \alpha_2d(2) + \alpha_3 d(2)d(3) + \ldots + \alpha_n d(1) \ldots d(n-1)$ and $r_1 = \alpha_1$. Then repeat this procedure on the result to obtain $\alpha_1, \ldots, \alpha_n$. Notice that this division operation is quite expensive and so it is desirable to make $d(i)$ a power of two to take advantage of fast bit shift operations.
+
+\medskip
+
+\subsubsection{A couple of ideas I had on the subject}
+
+If the polynomial is not too sparse and we wish to have the smallest possible value for the $d(i)$, then it might be beneficial to subtract adjacent monomials. Say we have transformed one polynomial back into its original multivariate representation. If we find the difference between it and another term is less than $d(1)\cdots d(k)$ for some $1 \le k \le n-1$ then we know that the last $n - k - 1$ indices must be the same. Hence we can reduce the number of calculations required.
+
+\medskip
+
+Notice that we still obtain a partial benefit by rounding just some of the $d(i)$ to a power of two. Say, for example, we made only the middle index a power of two. Then when recovering the multi-indices, we can essentially split the number in half. Say we require $b$ bits to hold the indices for the univariate polynomial, and that we set $d(n/2) = 2^{b/2}$. Then to recover the indices less than $n/2$, we modulo by $2^{b/2}$ and perform the division procedure on the lower $b/2$ bits. To recover the remaining indices, we would repeat this on upper $b/2$ bits. Since polynomial division does not run in linear time, this will result in performance increases because we only need to divide integers of size $b/2$ bits.
 
 
-
-
-Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method from the previous subsection, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size(TODO double check this). The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on. However we cannot undo a carry, so we need to do some extra steps to avoid the carry happening in the first place with the other one.
+\subsection{Finite Fields}%
+\label{sub:Finite Field}
 
 % TODO From ffnlogn need to reword
 Now we will introduce a lemma to use Kronecker substitution to multiply polynomials in finite fields.
 
+(TODO Haven't introduced the meaning of bit complexity)
 \begin{lemma}
     Let $M_q(n)$ be the bit complexity of polynomial multiplication over a finite field $\F_q$ with $q = p^k$ for some prime $p$. By Kronecker substitution we have
     \[
@@ -153,13 +160,12 @@ Now we will introduce a lemma to use Kronecker substitution to multiply polynomi
 \end{lemma}
 
 \begin{proof}
-    This is obtained by identifying an element of $\F_q$ with an element of $F_p[x]/f(x)$ as a polynomial $f(x) \in F_p[x]$ of degree $k$. Then the result of multiplying two polynomials of degree $k$ has degree at most $2k$, so we will need $2k$ space for the result. So we will need to pad the polynomials, so the new polynomial has $2nk$ coefficients which gives us the $M_p(2nk)$ term. Then we need to coerce the coefficients which are polynomials of length $2k$ back into $F_q[x]$ which would involve the division algorithm which can be done using multiplication by Newton substitution (TODO not 100\% this is correct)
-
+    First we consider the interpretation $\F_q = \F_p[x] / f(x)$ for a polynomial $f(x) \in F_p[x]$ of degree $k$. Notice the result of multiplying two polynomials of degree $k$ has degree at most $2k$, so we will need to pad the elements of $\F_q$ with zeros to allow for polynomials of degree $2k$ in the result. Hence the newly expanded polynomial in $\F_p[x]$ has $2nk$ terms, thus multiplying them requires $M_p(2nk)$ time. To transform the result back into a polynomial in $\F_q[x]$, we need to coerce the coefficients which are polynomials of length $2k$ back into $F_q[x]$, which we can achieve by dividing them by $f(x)$. Using Newton substitution, polynomial division is in the same complexity class as multiplication, so dividing the polynomial has time $M_p(k)$. Repeating this for all coefficients gives us the $\M{O}(n M_p(k))$ term (TODO not 100\% this is correct, the source that I obtained this lemma from did not provide a proof)
 \end{proof}
 
-We can also use the same technique as before to convert multiplication in $F_p$ into integer multiplication. We first identify the elements in the finite field with the integers $0,\ldots, p-1$. Then we know that these are bounded above by $p$ so we have an upper bound of $np^2$ size for the coefficients in the result. So we obtain
+We can also use the same technique as before to convert multiplication in $F_p$ into integer multiplication. We first identify the elements in the finite field with the integers $0,\ldots, p-1$. Then we know these are bounded above by $p$, so we have an upper bound of $np^2$ for the coefficients in the result. So we obtain
 \[
-    M_p(n) = \M{O}(I(n \log \pi)).
+    M_p(n) = \M{O}(I(n \log p)).
 \]
 
 \section{Chinese Remainder Theorem}%
@@ -175,13 +181,19 @@ The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of num
     \]
 \end{theorem}
 
-The map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ can be performed by coercing an element of $R/(I_1 \ldots I_k)$ into each $R / I_j$ by dividing by $I_1, \ldots, \hat{I}_j, \ldots, I_k$, using the standard division algorithm if it is a Euclidean domain. 
+\medskip
 
-TODO What is the map back in general? I know that for $I$ and $J$ coprime there exists $u \in I$ and $v \in J$ such that $u + v = 1$, and then the map back is given by $(x, y) \mapsto vx + uy$. We could use this technique inductively on $R/(IJK)$ to find the map from $R / I \times R / K$ to $R / (IJ)$, then from $R / (IJ) \times R / K$ to $R / (IJK)$. I think this might be the correct way, but I'm not 100\% sure whether its the best way.
+The map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ can be performed by coercing an element of $R/(I_1 \ldots I_k)$ into each $R / I_j$ by dividing by $I_1, \ldots, \hat{I}_j, \ldots, I_k$, using the standard division algorithm if it is a Euclidean domain.
+
+\medskip
+TODO Need to double check the map back is correct, I thought of this myself because I wasn't able to find anything online at the time
+
+For $I$ and $J$ coprime there exists $u \in I$ and $v \in J$ such that $u + v = 1$, then the map from $R/I \times R/J \to R/(IJ)$ is given by $(x, y) \mapsto vx + uy$. We can use this map inductively on $R/(I_1\cdots I_n)$ to find the map from $R / I_1 \times R / (I_2)$ to $R / (I_1I_2)$, then from $R / (I_1I_2) \times R / I_3$ to $R / (I_1I_2I_3)$. Continuing until we have recovered the entire term.
 
 In the case of $f(x) = (x - \alpha_1) \ldots (x - \alpha_k)$ we have the isomorphism
-
 \[
     \frac{R}{f(x)} \cong \frac{R}{x - \alpha_1} \times \cdots \times \frac{R}{x - \alpha_k}
 \]
-The map back can be given by the Lagrange interpolation, or by inverting the Vandermonde matrix. 
+The map back can be given by the Lagrange interpolation, or by inverting the Vandermonde matrix.
+
+In general, evaluating the isomorphism in either direction is a computationally expensive task. However, there are specific pairs of rings in which the isomorphisms can be efficiently evaluated in a divide-and-conquer approach to improve the theoretical complexity significantly.

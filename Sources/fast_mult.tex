@@ -1,44 +1,57 @@
 \chapter{Evaluation and interpolation}\label{chp:eval-interp}
 
-Here we will look at algorithms which use the Chinese Remainder Theorem to multiply polynomials as mentioned in Chapter \ref{chp:preliminaries}. The difficulty is in finding algorithms that can compute the isomorphism in the CRT and its inverse efficiently.
+The algorithms for polynomial multiplication that we have seen so far have been direct calculations of the product formula we introduced in Chapter \ref{chp:preliminaries}. Soon after the rediscovery of the Fast Fourier Transform in 1965, the evaluation-interpolation strategy became a much more popular choice. This involves evaluating the input polynomials at several points, combining them, and finally interpolating the result from them. This may seem to take more time than a direct calculation but it is remarkably efficient, and allows us to use the FFT to multiply polynomials in $\M{O}(n \log n)$ time in the RAM model. In fact, we will revisit Karatsuba's algorithm and see how it too can be interpreted as using the evaluation-interpolation strategy. To prove correctness of the strategy we will use the Chinese Remainder Theorem
 
-Here we find that it is most efficient to use the CRT over a set of linear divisors. That is, we consider multiplication in the ring $K[x] / f(x)$ where $f(x) = (x - \alpha_1)(x - \alpha_2) \ldots (x - \alpha_n)$ for some distinct $\alpha_1, \ldots, \alpha_n \in K$. So by the Chinese Remainder theorem we have
+It is often most efficient to use the CRT over a set of linear divisors. That is, we consider multiplication in the ring $K[x] / f(x)$ where $f(x) = (x - \alpha_1)(x - \alpha_2) \ldots (x - \alpha_n)$ for some distinct $\alpha_1, \ldots, \alpha_n \in K$. So by the Chinese Remainder theorem we have
 \[
     \frac{K[x]}{f(x)} \cong \frac{K[x]}{x - \alpha_1} \times \cdots \frac{K[x]}{x - \alpha_k}
 \]
-where $\alpha_1, \ldots, \alpha_k \in K$ constants. This tells us that if we have polynomials $a(x), b(x) \in K[x] / f(x)$. Then we could coerce $a(x)$ and $b(x)$ into $\frac{K[x]}{x - \alpha_1} \times \cdots \frac{K[x]}{x - \alpha_k}$ and combine them there in a way that corresponds to multiplication in $K[x] / f(x)$. 
+where $\alpha_1, \ldots, \alpha_k \in K$ constants. This tells us that if we have polynomials $a(x), b(x) \in K[x] / f(x)$. Then we could coerce $a(x)$ and $b(x)$ into $\frac{K[x]}{x - \alpha_1} \times \cdots \frac{K[x]}{x - \alpha_k}$ and combine them there in a way that corresponds to multiplication in $K[x] / f(x)$.
 
-Note that coercing $a(x)$ into $K[x] / (x - \alpha_i)$ is just $a(\alpha_i)$. Suppose $c(x) = a(x)b(x) \in K[x] / f(x)$ then we have $c(\alpha_i) = a(\alpha_i)b(\alpha_i)$. So to obtain $c(x)$ in the ring $K[x] / (x - \alpha_i)$ we simply need to multiply $a(\alpha_i)$ and $b(\alpha_i)$ together.
+\medskip
 
-As we know, if $g(x) \in K[x]$ then $g(x) \mod (x - \alpha_i) = g(\alpha_i)$, this is the evaluation step. The step where we recover the original polynomial in $K[x]/f(x)$ is known as the interpolation step.
+Note that coercing $a(x)$ into $K[x] / (x - \alpha_i)$ amounts to evaluating $a$ at the point $a(\alpha_i)$. Consider the multiplication $c(x) = a(x)b(x) \in K[x] / f(x)$, then $c(\alpha) = a(\alpha)b(\alpha)$ for all $\alpha \in K$. So to obtain $c(x)$ in the ring $K[x] / (x - \alpha_i)$ we simply need to multiply $a(\alpha_i)$ and $b(\alpha_i)$ together. Once we have obtained $c(x)$ in the subrings $K[x] / (x - \alpha_1) \times \cdots \times K[x] / (x - \alpha_n)$ we interpolate it back into $K[x]/ f(x)$ to recover the original polynomial. We will recover the full expression for $c(x)$ as long as the degree of $f(x)$ is greater than the degree of $c(x)$. This is a more algebraic formulation of the common fact that a polynomial of degree $n$ can be uniquely interpolated from $n + 1$ distinct points.
 
-Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n + m$ distinct points in $\M{O}((n + m)^2)$ time. Lagrange interpolation can also be performed in $\M{O}((n+m)^2)$ time. Leading us to calculate this is $\M{O}((n + m)^2)$ time which is not better than the standard method we introduced before
+The process of coercing $a$ and $b$ into $K[x]/ (x - \alpha_i)$ is called the \emph{evaluation} step. The step where we recover the original polynomial in $K[x]/f(x)$ is called the \emph{interpolation} step.
+
+\medskip
+
+Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal. Hence we could evaluate at $n$ distinct points in $\M{O}(n^2)$ time. Lagrange interpolation can also be performed in $\M{O}(n^2)$ time. Leading us to calculate this is $\M{O}(n^2)$ time which is no better than the standard method we introduced before.
 
 Though this method appears that it would take longer than a direct calculation, we will show not only is there an asymptotically fast method of evaluating and interpolating polynomials at specifically chosen points, it is even quite practically efficient and is highly applicable with medium-sized inputs.
 
-\section{Classical Algorithms reviewed as evaluation and interpolation}%
-\label{sec:classical_algorithms_reviewed_as_evaluation_and_interpolation}
+\section{Karatsuba's Algorithm as Evaluation-Interpolation}%
+\label{sec:Karatsuba's Algorithms as Evaluation-Interpolation}
 
 % This section comes from the Summary-of-Multiplication-Algorithms
-We will now show how classical algorithms can be viewed as evaluation-interpolation procedures. Here we will present Karatsuba's algorithm and the Toom-Cook algorithms in the language of evaluation and interpolation.
-
-Karatsuba's algorithm can be viewed as evaluation interpolation for $f(x) = x^2 - x$ (or $x^2 + x$ for a variation). However, we first need to use Kronecker substitution to put the polynomials into a form such that the degree is less than two. To do this, we introduce the variable $y = x^{n/2}$ where $n$ is the degree of the polynomials. So we obtain
+Karatsuba's algorithm can be viewed as a method for evaluating the Chinese Remainder Theorem for the isomorphism
+\[
+    \frac{K[x]}{x^2 - x} \cong \frac{K[x]}{x} \times \frac{K[x]}{x-1},
+\]
+Along with an \emph{evaluation at infinity} which we will explain shortly\footnote{There are variations that use $x^2 + x$ as the divisor which may be more computationally efficient in certain circumstances. See Knuth Art of Computer Programming Vol 2. TODO Properly cite}.\\
+However, in order to use this isomorphism we first need to use Kronecker substitution to express the input polynomials as elements of $K[x][y]/(y^2 - y)$. To do this, we introduce the variable $y = x^{n/2}$ where $n$ is the degree of the polynomials. So we obtain
 \[
     a(x)(y) = a_1(x)y + a_0(x), \qquad b(x)(y) = b_1(x)y + b_0(x)
 \]
-We then apply the Chinese remainder theorem. Evaluate at $y = 0$ and $y = 1$, to get
+Evaluate at $y = 0$ and $y = 1$, to get
 \begin{align*}
     a(x)(0) &= a_0(x), \qquad a(x)(1) = a_1(x) + a_0(x)\\
     b(x)(0) &= b_0(x), \qquad b(x)(1) = b_1(x) + b_0(x)
 \end{align*}
 
-Apply the Chinese remainder theorem to get $c(x) = a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \in K[x]/(x^2 - x)$. 
+Apply the Chinese remainder theorem to get
+\begin{equation}\label{eq:karatsuba-crt}
+    c(x) = a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \in K[x]/(x^2 - x).
+\end{equation}
+The problem is now that our result is in $K[x][y]/(y^2 - y)$ however, the true result of the multiplication of $a(x)(y)$ and $b(x)(y)$ could have a $y^2$ term. Therefore we must recover this term by \emph{evaluating at infinity}. This amounts to using the largest term of $a(x)(y)$ and $b(x)(y)$ to interpret the result.
 
-Then we ``evaluate at infinity'' to get the $x^2$ term. This could be interpreted as substituting $x^{-1}$ for $x$, multiplying by $x$ and then quotienting by $x$. The idea is that $a(x)$ evaluated at infinity is just the coefficient of the largest term. 
+\medskip 
 
-I think I found a better interpretation of this. The polynomial $a(x)b(x)$ may have a non-zero $x^2$ term, but we have used the Chinese remainder theorem to put it into $K[x] / (x^2 - x)$. Hence we have to undo a modular wrapping. That is, there is a unique $c(x) = c_0 + c_1x + c_2x^2$ such that $c(x) \cong a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \mod x^2 - x$. Namely $c(x) \cong c_0 + (c_1 + c_2)x \mod x^2 - x$. We know for sure that $c_2 = a_1b_1$ (i.e. the evaluation at infinity), therefore we can conclude that $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x$ corresponds to the polynomial $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0 - a_1b_1)x + a_1b_1x^2 \in K[x]$
+(TODO I have found like 5 papers that mention this ``evaluation at infinity'' step but no-one explains it, so I have made a guess. I think Knuth might explain it more formally in his book but I haven't checked)
 
-The Toom-Cook algorithm generalises Karatsuba's method and evaluates at several points $-k + 1, \ldots, k - 1$ and is recovered similarly, although there are many variants with the Toom-Cook algorithm depending on how the result is interpolated. It is asymptotically superior to Karatsuba's method, but practically overtakes Karatsuba's method at only a large input size.
+\medskip 
+
+Given that $c(y) = a(y)b(y) = (a_0 + a_1y)(b_0 + b_1 y)$, we know the greatest term in the result could be $y^2$, and that the coefficient of this term would be $a_1b_1$. Therefore if we were to coerce $c(y)$ into $K[y]/(x^2 - x)$ we would obtain $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) + a_1b_1)x$. Thus to undo this operation in our result \eqref{eq:karatsuba-crt} we obtain $a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0 - a_1b_1)x + a_1b_1x^2 \in K[x]$.
 
 \section{The Fast Fourier Transform}
 
@@ -57,6 +70,7 @@ Let $R$ be a commutative ring. The Discrete Fourier Transform is defined by eval
   \end{enumerate}
 \end{definition}
 
+It is clear that the complex roots of the equation $x^N - 1$ satisfy the above definition. Though there are many other coefficient algebras that also have roots of unity for a particular $N$. One such example we will look at Chapter \ref{chp:finite} is the integer rings, and another is the ring $K[x]/(x^n + 1)$ which has $x$ as a $2n^{\tx{th}}$ root of unity. The latter is used by Schn\"{o}nage and Strassen in their integer multiplication scheme which enables them to perform the FFT in $\Z$ despite $\Z$ not having roots of unity itself.
 
 \begin{definition}[Discrete Fourier Transform]
     The $k^{\tx{th}}$ Fourier coefficient of the Discrete Fourier Transform of samples $x_0, \ldots, x_{N-1}$ with roots of unity $(\omega_N^i)_{i=0}^{N-1}$ is
@@ -66,87 +80,94 @@ Let $R$ be a commutative ring. The Discrete Fourier Transform is defined by eval
 for $0 \leq k \leq N-1$.
 \end{definition}
 
-Note that when computed directly, each of the $N$ Fourier coefficients take $\M{O}(N)$ time to compute. Hence computing all coefficients takes $\M{O}(n^2)$ time.
+Note that when computed directly, each of the $N$ Fourier coefficients take $\M{O}(N)$ time to compute. Hence computing all coefficients takes $\M{O}(N^2)$ time.
 
 
-% <><><><><><><><><> FFT <><><><><><><><><>%
-\section{The Fast Fourier Transform}
+\subsection{The Fast Fourier Transform Algorithm}
 
-The Fast Fourier Transform is an algorithm for calculating the DFT with $N$ samples in $\M{O}(N \log N)$ time. First developed by Gauss in 1805 \cite{gauss}, this algorithm has had a profound impact on the course of human computing, making many options possible that were not considered before.\\
-There are many different variations of the Fast Fourier Transform, but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper \cite{10.2307/2003354}.
+The Fast Fourier Transform (FFT) is an algorithm for calculating the DFT with $N$ samples in $\M{O}(N \log N)$ time. First developed by Gauss in 1805 \cite{gauss}, this algorithm has had a profound impact on the course of human computing. Due to its efficiency on modern computer hardware, it was able to make many previously incomputable problems in signal processing tractable.
+There are many variations of the Fast Fourier Transform, but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper \cite{fft}.
 
 \begin{theorem}[Fast Fourier Transform]\label{thm:fft}
     If $N$ is a power of two, then the DFT with $N$ samples can be calculated in $\M{O}(N\log N)$ time.
 \end{theorem}
 
-Here we use a standard divide-and-conquer approach whereby the DFT is broken up into two smaller DFTs each with $N/2$ elements which can then be computed recursively and then combined quickly. Since we already established that the DFT can be computed in $\M{O}(N^2)$, the two DFTs of size $N/2$ can be computed in approximately $(N/2)^2 = N^2/4$ times, thus computing both of them takes $N^2 / 2$. Recombining the two takes $\M{O}(N)$ time. Therefore for large $N$ we would expect that $N^2/2 + \M{O}(N) < N$. This procedure repeats recursively until only one element (or some predefined constant number) remains in each DFT, so we would expect this to be much faster than the direct $\M{O}(N^2)$ calculation.
+The FFT uses a standard divide-and-conquer approach whereby the DFT is split into two smaller DFTs each with $N/2$ elements and computed recursively. Since we already established the DFT can be computed in $\M{O}(N^2)$ time, the two sub-DFTs of size $N/2$ can be computed in approximately $(N/2)^2 = N^2/4$ time (ignoring any constants). Thus computing both sub-DFTs takes $N^2 / 2$ time.\\
+Recombining two DFTs takes $\M{O}(N)$ time. Therefore in total the cost is approximately $N^2/2 + \M{O}(N)$. For large enough $N$, we have essentially halved the time it takes to compute the entire DFT. By recursively subdividing the DFT into progressively smaller DFTs we would expect to obtain a complexity similar to $\M{C}(n) = nC(1) + \sum^n_{i=1} \M{O}(N)$ where the $n\M{C}(1)$ term comes from performing the DFT on an input of size $1$ (in which case the DFT is the identity so $C(1) = 0$), and the $\sum^{\log_2 n}_{i=1} \M{O}(N)$ comes from recombining all the sub-DFTs. In total we have $\M{C}(n) = \M{O}(N \log N)$.
 
-We will now prove a lemma which formalises this intuition. The lemma serves to outline the general algorithm for computing the DFT efficiently, and the remainder of the proof verifies the time complexity of the algorithm.
+The following lemma which formalises this intuition and general algorithm for computing the DFT efficiently. The remainder of the proof verifies the time complexity.
 
 \begin{lemma}
-    Let $C(N)$ be the number of calculations required to compute the DFT with $N = 2^n$ elements. Then we have
+    Let $C(N)$ be the number of calculations required to compute the DFT with $N = 2^n$ elements. Then
     \begin{equation}
-        C(N) = 2 C(N/2) + pN \label{eq:fftlem}
+        C(N) \le 2 C(N/2) + pN \label{eq:fftlem}
     \end{equation}
-    for an absolute constant $p$.
+    for a positive constant $p > 0$.
 \end{lemma}
 
 \begin{proof}
-From the definition of the DFT we have
+From the definition of the DFT, for each $0 \le k \le N-1$ we have
 \[
-    X_k = \sum^{N-1}_{i=0}x_i\omega^{ik}
+    X_k = \sum^{N-1}_{i=0}x_i\omega_N^{ik}.
 \]
-Rearranging the expression we obtain
+The crucial step in the FFT, is to split the DFT into a sum of $x$ terms with even exponents and one with odd exponents
 \begin{align}
     X_k
-    &= \sum^{N-1}_{i=0}x_i\omega^{ik} \nonumber\\
-    &= \sum^{N-1}_{i=0}x_{2i}\omega^{2ik} \;+\; \sum^{N-1}_{i=0}x_{2i+1} \omega^{(2i+1)k} \nonumber\\
-    &= \sum^{N/2-1}_{i=0}x_{2i}\omega^{2ik} \;+\; \omega^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega^{2ik} \label{eq:keystep}
+    &= \sum^{N-1}_{i=0}x_i\omega_N^{ik} \nonumber\\
+    &= \sum^{N-1}_{i=0}x_{2i}\omega_N^{2ik} \;+\; \sum^{N-1}_{i=0}x_{2i+1} \omega_N^{(2i+1)k} \nonumber\\
+    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_N^{2ik} \;+\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_N^{2ik}\\
+    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{ik} \;+\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{ik} \label{eq:keystep}
 \end{align}
-Now note that $\omega^2$ is a root of unity of order $N/2$. Hence the two terms in the last line are DFTs of length $N/2$.
+Where the last line follows from th fact that $\omega_N^2 = \omega_{N/2}$. Hence the two terms in the last line are DFTs of length $N/2$. Moreover we have also obtained an expression of how to recombine these two sub-DFTs.
 
-TODO This explanation is not very good
-A very important observation to make is that the DFT has an $N$-dimensional image $[X_1, \ldots, X_k]$.
+(TODO technically it should be $X_{k + N/2 \mod N}$)
 
-So in the term $\sum^{N/2-1}_{n=0}x_{2n}\omega^{nk}_{N/2}$, $k$ should range from $0$ to $N$, but it is only necessary to calculate it for $0 \leq k < N/2$. This means that we need to evaluate the two sums on the RHS only for $0 \leq k \leq N/2$.
+Notice that
+\begin{align*}
+    X_{k + N/2}
+    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{i(k + N/2)} \;+\; \omega_N^{k+ N/2} \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{i(k + N/2)}\\
+    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{ik} \;-\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{ik}
+\end{align*}
+since $\omega_{N/2}^{N/2} = 1$ and $\omega_N^{N/2} = -1$.\\
+So the sub-DFTs in $X_k$ are the same as the sub-DFTs in $X_{k + N/2}$, the only difference is that they are recombined in a different way.
 
-Therefore we have transformed a DFT with $N$ elements, into two DFTs of $N/2$ elements, one containing all the samples with odd index, and one containing all the samples at an even index.\\
 Computing each of the two smaller DFTs takes $2C(N/2)$. Then multiplying by $\omega^k_N$ and adding the two DFTs together for all $0 \leq k < N$ will take $\M{O}(N)$ time. \\
 So we have
 \[
-    C(N) = 2 C(N/2) + pN
+    C(N) \le 2 C(N/2) + pN
 \]
-for some constant $p$.\\
-This concludes the proof of the lemma.
+for some constant $p > 0$.
 \end{proof}
 
 \begin{proof}[Proof of Theorem \ref{thm:fft}]
-    Notice that since we are halving the size of the DFT at every recursive call, the maximum recursion depth is $\log_2 N$ (how many times the function can call itself until it reaches the base case).
-    By expanding these recursive calls we obtain
+    We will show by induction that $\M{C}(N) \le pN\log_2 N$ for all $N$ a power of two.\\
+    We know this is true for $N = 1$, because in that case the DFT is simply the identity so $\M{C}(1) = 0 \le p1 \log_2 1$.
+    Suppose $\M{C}(M) \le pM\log_2 M$ holds for all $M$ a power of two less than $N$. Then
     \begin{align*}
-    C(N) &= 2\,(\;\cdots\; (2C(1) + p(N/2^{n-1})) + pN/2^{n-2}) + \cdots ) + pN\\
-         &= 2^{n}C(1) + pN/2^{(n-k)}\sum^n_{k=1} 2^{n-k}\\
-         &= 2^{\log_2(N)}C(1) + pN\log_2(N)\\
-         &= NC(1) + pN\log_2(N)
+        C(N)
+        &= 2\M{C}(N/2) + pN\\
+        &= pN\log_2 (N/2) + pN\\
+        &= pN\log_2 N - pN\log_2 2 + pN
+        &= pN\log_2 N
     \end{align*}
-    Thus $C(N) = \M{O}(N \log N)$.
+    Therefore by the principle of mathematical induction, we conclude that $C(N) = \M{O}(N \log N)$ for all $N$ a power of two.
 \end{proof}
 
 \begin{remark}
-    To perform the FFT, we need to pad the polynomials with zeros until the resulting polynomial has length $n + m$, and then rounded up to a power of two. This means that it can cause bloat even for dense polynomials, up to a factor of two. If we know our polynomials to be sparse, then this is even worse, and that is why it is terrible in the case for multivariate polynomials since almost all multivariate polynomials of interest are sparse.
+    (TODO Reword this)
 
-    For instance, let $a = x^{129} + 1$ and $b = x^{128} + 1$, then we have $n + m = 257$, and so we have to round it up to the next power of two $512$. Hence, despite this being trivial to compute using the school-book method, it ends up taking this algorithm a really long time.
+    \medskip
 
-    There are ways to mitigate this, but ultimately the FFT algorithm is not well suited for sparse polynomials.
+    Our formulation of the FFT is only valid for powers of two, so we may need to pad our inputs with zeros. In order to avoid this padding as much as possible, we explore the possibility of mixed-radix FFTs below. However, we note that these tend to be much more difficult to implement efficiently and in typical cases, it is more efficient to pad the polynomials in order to use the standard FFT than it is to use a mixed-radix DFT. This is because modern computers can perform many operations much more efficiently when everything is in base 2, and forcing a different radix can cause operations to be several times slower.
 
-    Another useful technique we can use if a polynomial's degree has another prime factor (other than two) is that we can just leave that prime factor as the base case which we can then handle through the naive algorithm.
+    One such optimisation in radix-$2$ is the \emph{reverse bit encoding}, where we can organise $X_1, \ldots, X_k$ in memory so that the entire FFT algorithm can be performed in-place (all data transformation happen inside the array the original data was passed in). This is done by putting $X_i$ at index $\tx{rev}(i, n)$, which is the function which reverses the order of the $n$-bit representation of $i$.
 \end{remark}
 
 \subsection{Mixed-radix FFT}
 
-To get around the fact that you need to round up to a power of two, one could perform the DFT with an arbitrary radix. In our previous formulation, we split the DFT into two smaller DFTs each time. Here $2$ is the \emph{radix} as that is our splitting factor. We could generalise the formula for an arbitrary radix.
+In our previous formulation, we split the DFT into two smaller DFTs each time. Here $2$ is the \emph{radix} as that is our splitting factor. The FFT can be generalised to an arbitrary radix. In practice, this does little to improve the performance in most situations, but it is necessary in rings where $2$ is not invertible
 
-Say we want to do the radix-$m$ DFT:
+Say we want to do the radix-$m$ DFT:\\
 Performing the same steps we obtain
 \[
     F_n(k) = \sum^{n-1}_{i=0} a_0\omega_n^{ik}
@@ -175,22 +196,25 @@ time.
 
 If we set $m = \sqrt{n}$ then we would get $2\sqrt{n}F_{\sqrt{n}}$. TODO Double check this bound.
 
-However, in general, it is always faster to use the smallest radix possible; two being the most desirable since in practice computers perform all operations in base two and so there are many optimisations. One such optimisation is the \emph{reverse bit encoding}, where we can organise $X_1, \ldots, X_k$ in memory so that the entire FFT algorithm can be performed in-place on the data (without having to copy elements). This is done by putting $X_i$ at index $\tx{rev}(i, n)$, which is the function which reverses the order of the $n$-bit representation of $i$.
 
 \subsection{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
 \label{subsec:schon-strass}
 
-The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithms, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs; however, often when we work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity. Another option is to use the CRT to put the result into finite fields, but we will cover than later. For now, we will look at the most popular algorithm for large $\Z[x]$ multiplication, Sch\"{o}nage and Strassen's second integer multiplication. The algorithm's original intention was for integer multiplication, but it ends up converting integers into polynomials in $\Z[x]$ first using Kronecker substitution from Chapter \ref{chp:preliminaries}.
+(TODO I have not taken into account the fact that n might not be square and we also need to round to the largest power of two)
 
-The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong in a ring that does have roots of unity, so-called ``synthetic roots''.
+The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithm, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs; however, often when we work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity, and it is not a simple feat. For now, we will look at the most popular algorithm for large multiplication in $\Z[x]$ which is Sch\"{o}nage and Strassen's second integer multiplication (adapted for polynomials). The algorithm was originally formulated for integer multiplication, but is easily generalised for polynomials polynomials in $\Z[x]$ first using Kronecker substitution from Chapter \ref{chp:preliminaries}.
 
+\medskip
 
-Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. So we now want to convert our original polynomial into one with coefficients in a ring of the above form. To do this we can use Kronecker substitution to partition the polynomial into $n^{\frac{1}{2}}$ pieces with the substitution $y = x^{n^{\frac{1}{2}}}$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}} \times n^{\frac{1}{2}}) = \M{O}(n \log n)$ where the arithmetic on the $n^{\frac{1}{2}}$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
+Note however that the complexity of multiplication in $\Z[x]$ is usually parameterised by the degree of the polynomial, whereas for integer multiplication it is usually parameterised by the number of bits needed to represent the integer. This highlights a fundamental difference in how we measure certain operations since the former ignores the size and cost of multiplying the integer coefficients, whereas such an assumption would trivialise the latter case. This is because the former uses the RAM computation model whereas the latter uses the Turing model. 
+
+The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong to a ring that does have roots of unity, so-called \emph{synthetic roots}.
+
+Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. To convert our original polynomial into one with coefficients in a ring of the above form, we can use Kronecker substitution to partition the polynomial into $m = 2^{\ceil{k/2}}$ pieces with the substitution $y = x^m$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(m\log m \times 2^{\floor{\frac{k}{2}}} = \M{O}(n \log n)$ where the arithmetic on the $m$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 \[
     C(n) < n^{\frac{1}{2}}C(n^{\frac{1}{2}}) + \M{O}(n \log n)
 \]
-This can be solved to obtain $\M{O}(n \log n \log \log n)$. 
-% TODO I have not taken into account the fact that n might not be square and we also need to round n to the largest power of two.
+This can be solved to obtain $\M{O}(n \log n \log \log n)$.
 
 % \section{Rader's Algorithm}%
 % \label{sec:Rader's Algorithm}

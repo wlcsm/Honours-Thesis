@@ -1,20 +1,38 @@
-\chapter{Implementation Details}\label{impl-details}
+\chapter{Implementation Details}\label{chp:implementation}
 
 \section{Sparse Polynomial multiplication with Heaps}
 
+Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. If the input polynomials are sparse however, in practice it is difficult to efficiently organise our intermediate results in memory.
 
-Here we are going to multiply two sparse multivariate polynomials together. The problem we encounter is how do we keep track of all the resulting monomial is memory? One way is to use a hashmap and hash the monomial when we compute it and store the coefficient ins a hashmap. At the end we then collect the elements of the hashmap and sort them to obtain the final result. This is $O(m)$ to hash the monomial (where $m$ is the number of indeterminates) we perform $O(\# f \# g)$ hashes, and then we require $O(\#f \#g \log \# f \# g$ time to sort the remaining list of monomials.
+As an example, let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote cumulative result we have calculated after $k$ steps $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
+
+Using the formula
+\[
+    ab = \bb{\sum^n_{i=0} a_i x^i}\bb{\sum^m_{j=0} b_j x^j} = \sum^n_{i=0} a_ix^i\bb{\sum^m_{j=0} b_j x^j}
+\]
+When we calculate another term $a_ib_j x^{i + j}$ for some $1 \le i \le n$ and $1 \le j \le m$, we now need add this to the resulting polynomial we have calculated so far. To find the matching monomial in our result polynomial (or insert it if it doesn't exist) we will need to perform a binary search. However, if we have stored the result as an array, then inserting the monomial could cause an $\#c_k$ shift in elements. If we store is as a linked list then this is not very efficient due to the expensive memory read operations.
+
+A better way would be to evaluate it like the convolution formula 
+\[
+    ab = \sum^{n + m}_{k=0} \bb{\sum_{i + j = k}a_ib_j} x^{i + j}.
+\]
+If we can evaluate the terms in a way such that degree of each term we compute is greater than or equal to the degree of the result polynomial, then we can obtain $c_{k+1}$ from $c_k$ efficiently.
+
+In the case of univariate polynomials this does not present a problem and can be done in a straightforward way (TODO verify), but for multivariate polynomials, this becomes more complicated.
+
+Here we are going to multiply two sparse multivariate polynomials together. The problem we encounter is how do we keep track of all the resulting monomial is memory? One way is to use a hashmap and hash the monomial when we compute it and store the coefficient ins a hashmap. At the end we then collect the elements of the hashmap and sort them to obtain the final result. This is $O(m)$ to hash the monomial (where $m$ is the number of indeterminates) we perform $O(\# f \# g)$ hashes, and then we require $O(\#f \#g \log \# f \# g)$ time to sort the remaining list of monomials.
 
 The main problem however is the memory usage and the cost of hashing.
 
-Here we consider a technique whereby we construct the resulting polynomial in ascending order one monomial at a time by managing a heap we can use $O(\#f \#g \log \min(\# f, \# g)$
-
+Here we consider a technique whereby we construct the resulting polynomial in ascending order one monomial at a time by managing a heap we can use $O(\#f \#g \log \min(\# f, \# g))$
 
 
 \section{The different kinds of Multivariate Polynomial Techniques}
 
+This is just a scratchboard of some of the randomised algorithms
+
 \begin{itemize}
-    \item Do it over the field $K[x]/(x^{\alpha_1} -1) \times K[x]/(x^{\alpha_n} -1$. To essentially make the polynomial more dense. The problem I have with this at the moment is that of how to recover the original from the ones in the smaller fields
+    \item Do it over the field $K[x]/(x^{\alpha_1} -1) \times K[x]/(x^{\alpha_n} -1)$. To essentially make the polynomial more dense. The problem I have with this at the moment is that of how to recover the original from the ones in the smaller fields
     \item Randomised Kronecker substitution. Uses randomised Kronecker substitution to multiply the polynomials, it will return the correct result with some probability.
     \item Group variables together to reduce the dimensionality if we were to use Kronecker substitution e.g.
         \[
@@ -46,12 +64,6 @@ The idea is that we compress the polynomial (i.e. ignoring the zero terms), then
 e.g. Imagine $(x^{20} - 1)(x^{40} - 1)$, then I can replace the exponents with $n = 20$ and $m = 40$ and calculate $(x^n - 1)(x^m -1)$, which gives me $x^{n+m} - x^n - x^m + 1$, then I could have actually chosen $n = 1$ and $m = 2$, and calculated $(x - 1)(x^2 - 1)$ via the fft and gotten $x^3 - x^2 - x + 1$ and then expanded back into $x^{60} - x^{40} - x^{20} + 1$. Thats the basic premise
 
 I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
-
-\subsection{Representation of ROU}
-
-Representing them losslessly takes $n/2$ cells. But the idea is to represent them as small as possible such that we allow error, but the error is controlled enough such that we actually get the correct answer in the end (since we are working with integers). This is something called forwards or backwards error. Since each number will only face $\log n$ multiplications and additions, I'm hoping we can have a $O(\log n)$ representation. Indeed the \cite{nlogn} paper does this.
-
-Though it looks like it might be better to just do it over quotient rings
 
 \subsection{Runtimes}
 
@@ -144,18 +156,6 @@ Note: We can probably leverage the intermediate results from the bucket sort, fo
 
 Unfortunately in this one we still end up expanding the polynomials in the end so it must be $O(n\log n)$. But we should try not to do that.\\
 The best result would be if I could interpolate the results whilst still in their $O(t)$ space complexity format. Then we would also have a good representation for our resulting polynomial if we wanted to do calculations based on that.
-
-\section{Addition of Sparse Polynomials}
-
-This has applications here as polynomial multiplication since multiplication can be reworded as a sum of many polynomials.
-
-I think its actually better to do addition of sparse polynomials as a batch operation, that is, try and do all the additions together if possible.
-
-In http://www.i3s.unice.fr/~malapert/R/act06/johnson.pdf they recommend to do a divide and conquer approach but actually it would be better to do it this way
-
-Maintain a sorted queue of the next candidate monomial to add into the resulting polynomial, then when you add one, you take another monomial from that polynomial and then add it into the queue, the queue is sorted add so putting it in there take $\log n$ time. It is asymptotically the same but it will have smaller constants, it is also much more memory efficient, with their algorithm taking $mn\log n$ memory but this one takes $mn$ (to hold the resultant polynomial) and $\log p$ where $p$ is the number of polynomials to hold the queue.
-
-The only downside I can see is that it isn't as parallelisable as the other algorithm. So what you could do though, is your machine has $n$ cores say, then you split it up into $n$ sets of polynomials, and then each one does my algorithm, and then it is finally combined using their algorithm.
 
 \section{Representation of Polynomials}
 
