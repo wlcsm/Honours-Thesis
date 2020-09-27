@@ -1,10 +1,11 @@
 # Last Position
 
-Fast Mult Line 123
+Sources/classical_alg.tex:156
+
 
 # General
-- Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
-* Cover Winograd's generalised FFT algorithm?
+* Classical Algorithm still need to finish off
+* Should the mixed radix representation remark be used not as a remark but as part of the explanation
 * Change the name of the fast_mult file and the finit_field file. As well as the finite_field references
 * Need to mention in the FFT that the field needs to have 2 is invertible
 * Cover MNTs?
@@ -28,6 +29,10 @@ Fast Mult Line 123
 citations to the relevant papers. A bit of historical discussion and context would also be good as well as comments about the use of various algorithms in different software packages etc."
 * Bluestein's Trick: Converts a DFT problem to a convolution problem
 * In FASTER POLYNOMIAL MULTIPLICATION VIA MULTIPOINT KRONECKER SUBSTITUTION, they said that "the Magma computer algebra system uses Kronecker substitution to multiply polynomials in Z[x] in some cases [6], and Victor Shoup’s NTL library [5] uses Kronecker substitution to reduce multiplication in GF(pn)[x] to multiplication in GF(p)[x]"
+
+# Secondary Thought
+- Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
+* Cover Winograd's generalised FFT algorithm?
 
 # Preliminaries
 - Check the recursive relation for Karatsuba's algorithm for the "Recursive relation" subsection

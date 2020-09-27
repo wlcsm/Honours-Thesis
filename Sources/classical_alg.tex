@@ -5,7 +5,7 @@ Here we review the classical algorithms that were the leading methods of their t
 Throughout this chapter let $a, b \in K[x]$ denote two univariate polynomials in the ring $K[x]$ where $K$ is an commutative ring. (TODO check that all of this works in non-integral domains)\\
 We write $a$ and $b$ as
 \[
-    a(x) = a_0 + a_1x + \cdots + a_nx^n = \sum^n_{i=0} a_ix^i, \qquad b(x) = b_0 + b_1x + \cdots + b_mx^m = \sum^n_{i=0} a_ix^i.
+    a(x) = a_0 + a_1x + \cdots + a_nx^n = \sum^n_{i=0} a_ix^i, \qquad b(x) = b_0 + b_1x + \cdots + b_mx^m = \sum^n_{i=0} b_ix^i.
 \]
 The product is defined as
 \[
@@ -17,7 +17,7 @@ or more generally as a convolution
 \]
 Hence if we can evaluate convolutions efficiently, then we can multiply polynomials efficiently and vice-versa.
 
-(TODO Should I mention that the transformation from convolution to multiplication is Bluestein's chirp transform, and the transformation from multiplication to convolution is the FFT?)
+(TODO Mention that the transformation from convolution to multiplication is Bluestein's chirp transform, and the transformation from multiplication to convolution is the FFT)
 
 \section{Schoolbook Multiplication}
 \label{sec:prelim-schoolbook}
@@ -32,22 +32,22 @@ The inner sum requires $m$ coefficient multiplications and a similar number of a
 
 Though it has an inferior theoretical complexity, its complexity is independent of the degree of the polynomials and the coefficient algebra. It is also faster than other algorithms or inputs with less than around $10$ terms.
 
-Notice that this is very similar to the schoolbook method for performing integer multiplication. Suppose we have an integer $a_n \ldots a_0$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation, then we have
+Notice that this is very similar to the schoolbook method for performing integer multiplication. Suppose we have an integer $a_n \cdots a_1$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation, then we have
 \[
-    a_n \ldots a_1 = \sum^n_{i=1} a_i 10^i
+    a_n \ldots a_1 = \sum^n_{i=1} a_i 10^{i-1}
 \]
-if we want to multiply integers $a_n\ldots a_1$ and $b_m\ldots b_1$ we could first convert them into polynomials with the substitution $x = 10$. Which gives us the polynomials
+if we want to multiply integers $a_n\ldots a_1$ and $b_m\ldots b_1$ we could first convert them into polynomials with the substitution $x = 10$. This gives us the polynomials
 \[
-    a(x) = \sum^n_{i=0} a_ix^i, \qquad b(x) = \sum^m_{i=0} b_ix^i
+    a(x) = \sum^n_{i=1} a_ix^i, \qquad b(x) = \sum^m_{i=1} b_ix^i,
 \]
 hence by evaluating the polynomial at $x = 10$ we would obtain our original integers. Then we can multiply the polynomials together to get $c(x) = a(x)b(x)$ and evaluate at $x = 10$ to get $c(10) = a(10)b(10) = a_n\ldots a_1 \cdot b_m\ldots b_1$. Indeed this is the exact method that is commonly taught in schools, only without the substitution of variables.
 
-However, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiply multiplication we need to ``carry'' digits, e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$. For this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true; we cannot easily undo a carry to obtain the correct polynomial. Later in the chapter, we will use Kronecker substitution to resolve this issue.
+However, there is a fundamental difference between integer and polynomial multiplication, and that is that in integer multiplication we need to ``carry'' digits, e.g. $5 + 7 = 12$, but $5x + 7x \neq x^2 + 2x$. For this reason, polynomial multiplication is also known as ``carry-less'' multiplication. This does not present a problem when using polynomials to perform integer multiplication because the carry can always be applied later when we convert the result back into an integer. However, the converse is not true; we cannot easily undo a carry to obtain the correct polynomial. Later in the chapter, we will use Kronecker substitution to resolve this issue.
 
 \section{Karatsuba's Algorithm}
 \label{sec:prelim-karatsuba}
 
-Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound for polynomials of degree $n$. As it happened, Karatsuba 1960 presented the algorithm to Kolmogorov who then proceeded to present the algorithm and various events and even published a paper crediting Karatsuba in 1962 \cite{karatsuba} who famously only learnt of the paper's existence when it was in its reprints (maybe cite?). The algorithm splits up the terms in the polynomials and calculates the product recursively; a technique which is now known as \emph{divide-and-conquer}. Let $a$ and $b$ be polynomials of degree $n$ (padding the inputs if necessary).\\
+Karatsuba's algorithm was the first algorithm to improvement over the $\M{O}(n^2)$ bound for polynomials of degree $n$. As it happened, Karatsuba 1960 presented the algorithm to Kolmogorov who then proceeded to present the algorithm and various events and even published a paper crediting Karatsuba in 1962 \cite{karatsuba} who famously only learnt of the paper's existence when it was in its reprints (TODO citation, because it authored by Karatsuba an Ofman, maybe also mention Ofman's involvement. Modern Computer Algebra may have it). The algorithm splits up the terms in the polynomials and calculates the product recursively; a technique which is now known as \emph{divide-and-conquer}. Let $a$ and $b$ be polynomials of degree $n$ (padding the inputs if necessary).\\
 Consider $m = \ceil{n/2}$ and $a = a_1x^m + a_0$ and $b = b_1x^m + b_0$, where $a_0, a_1, b_0, b_1$ are polynomials of degree at most $m - 1$. Naturally we have
 \[
     ab = a_1b_1x^{2m} + (a_1b_0 + a_0b_1)x^m + a_0b_0
@@ -56,17 +56,17 @@ As it is written, this requires four multiplications. However, Karatsuba noticed
 \[
     a_1b_0 + a_0b_1 = (a_1 + a_0)(b_1 + b_0) - a_1b_1 - a_0b_0
 \]
-By saving a multiplication, it can be shown that the complexity of this algorithm goes from $\M{O}(n^{\log_2 4}) = \M{O}(n^2)$ to $\M{O}(n^{\log_2 3})$.
+This is a positive trade since addition is, in general, much faster than multiplication to compute. In fact, by saving a multiplication it can be shown that the complexity of this algorithm goes from $\M{O}(n^{\log_2 4}) = \M{O}(n^2)$ to $\M{O}(n^{\log_2 3})$.
 
-Let $\M{C}_K(n)$ be the computation cost of performing Karatsuba's algorithm when the input polynomials have degree at most $n$. Then we see that there are three polynomial multiplications and a constant number of additions. The multiplications can also be handled recursively with Karatsuba's algorithm, so we have
+\medskip 
+
+Let $\M{C}_K(n)$ be the computation cost of performing Karatsuba's algorithm when the input polynomials have degree at most $n$. Then we see that there are three polynomial multiplications of degree $m = \ceil{n/2}$ and 6 additions. The time taken to compute the additions can be bounded above by $kn$ for some positive constant $k > 0$. The multiplications can also be handled recursively with Karatsuba's algorithm, so we obtain the recursive expression for the complexity of the algorithm
 \[
-    \M{C}_K(n) = 3\M{C}_K\bb{\ceil{\frac{n}{2}}} + kn
+    \M{C}_K(n) = 3\M{C}_K\bb{\ceil{\frac{n}{2}}} + 6kn
 \]
-for some constant $k > 0$.
-
-We will solve this by induction.
+We will solve this recursion by induction.
 For the base case if we let $c = \M{C}_K(1)$ (which should be great that zero), then we have $\M{C}(1) \le c1^{\log_2 3}$.
-Now suppose $\M{C}_K(s) \le s^{\log_2 3} - 2ks$ for all $s < n$. Then
+Now, by induction, suppose $\M{C}_K(s) \le s^{\log_2 3} - 2ks$ for all $s < n$. Then
 \begin{align*}
     \M{C}_K(n) &= 3\M{C}_K(\tfrac{n}{2}) + kn\\
                &\le 3\bb{\bb{\frac{n}{2}}^{\log_2 3} - 2k \cdot \frac{n}{2}} + kn\\
@@ -97,21 +97,71 @@ Therefore $\M{C}_K \in \M{O}(n^{\log_2 3})$.
 % Where $k > 0$ is some constant and $kn$ is an upper bound on the cost of adding two polynomials with degree at most $n$ together.
 % Therefore Karatsuba's algorithm is $\M{O}(n^{\log_2 3})$.
 
-Karatsuba's algorithm remains one of the most practically efficient algorithms. Many of the algorithms we cover in this paper have a far greater theoretical complexity, but in practice, they require a large degree size before they out-perform Karatsuba's algorithm. This combined with being straightforward to implement, Karatsuba's algorithm remains incredibly popular among many computer algebra software (I think it is the default for Maxima, https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html. It says multiplication is $n^{1.5}$ so I am guessing its Karatsuba).
+Karatsuba's algorithm remains one of the most practically efficient algorithms. Many of the algorithms we cover in this paper have a far better theoretical complexity, but in practice, they require a large degree size before they out-perform Karatsuba's algorithm. This fact combined with Karatsuba's algorithm being straightforward to implement, means that it remains incredibly popular, and is used in many modern computer algebra software (I think it is the default for Maxima, https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html. It says multiplication is $n^{1.5}$ so I am guessing its Karatsuba).
+
+\medskip
 
 (TODO put something here about how well Karatsuba's algorithm performs in Rust)
+
+\medskip
 
 \section{Kronecker Substitution}%
 \label{sub:kronecker_substitution}
 
-Kronecker substitution is the process of grouping together or expanding certain parts of the inputs to convert them into polynomials of a different form. It is a powerful tool which allows us to convert polynomials in one form into another which we can already multiply efficiently. The most common example is converting multivariate polynomials to univariate. In Karatsuba's algorithm, we can think of substituting $x^{\ceil{\frac{n}{2}}} = y$ to obtain a polynomial in $K[x][y]$ whose coefficients are polynomials in $K[x]$ with degree at most $\ceil{n/2}$. We can also use it to convert multiplication in a finite field into multiplication in $\Z$, and multiplication in $\Z[x]$ into integer multiplication.
+Kronecker substitution is a powerful tool which allows us to convert polynomials in one form into another which we already can multiply efficients. It achieves this by grouping together or expanding certain parts of the input polynomials in such a way that it can emulate additional variables, different coefficient algebras, or even to convert parts into integer multiplication as we saw before. The most common example is reducing multivariate polynomial multiplication into univariate, and univariate to integers. In Karatsuba's algorithm, we can think of substituting $x^{\ceil{\frac{n}{2}}} = y$ to obtain a polynomial in $K[x][y]$ whose coefficients are polynomials in $K[x]$ with degree at most $\ceil{n/2}$. We can also use it to convert multiplication in a finite field into multiplication in $\Z$, and multiplication in $\Z[x]$ into integer multiplication.
 
-\subsection{Using Integers to multiply Polynomials}%
+\medskip 
+
+\subsection{Kronecker Substitution for Multivariate polynomials}
+
+Let $f \in K[x_1, \ldots, x_n]$, $f(x_1, \ldots, x_n) = \sum^n_{i \in I}a_Ix^I$ be a multivariate polynomial where $I$ is a multi-index set, and let $d(i)$ be the upper bound on the degree of the polynomial in $x_i$. Then we can transform $f$ into a univariate polynomial $f^\prime \in K[x]$ via the map $\phi_K: K[x_1, \ldots, x_n] \to K[x]$ given by
+\[
+    x_i \mapsto x^{d(1) \cdots d(i-1)}
+\]
+and in general
+\[
+    x_1^{\alpha_1}\ldots x_n^{\alpha_n} \mapsto x^{\alpha_1 + \cdots + \alpha_n d(1) \cdots d(n-1)}
+\]
+Notice that this depends on the order of the variables $\{x_1, \ldots, x_n\}$. Though this doesn't affect the space efficiency since the maximum will always be $x^{d(1)\ldots d(n)}$, it does however affect how efficiently we can evaluate the map.  This transform can be interpreted as computing the \emph{mixed radix representation} with base $[d(1), \ldots, d(n)]$. See \ref{subsec:kronecker-remarks} below.
+
+We can show this is a bijection by constructing an inverse: Suppose we have $x^\alpha$ for some $\alpha < d(1)\ldots d(n)$. Then computing the quotient and remainder upon division by $d(1)$ to return the remainder $r_1 = \alpha_1$ (since $\alpha_1 < d(1)$) and quotient $q_1 = \alpha_2 + \alpha_3 d(2) + \ldots + \alpha_n d(2) \ldots d(n-1)$. We can then repeat this procedure until no quotient remains. The result is then $x_1^{r_1} \ldots x_n^{r_n}$.
+
+This map can then be used to multiply multivariate polynomial using univariate multiplication.
+
+\begin{proposition}
+    Let $d_f(i)$ and $d_g(i)$ be the maximum degree of $x_i$ in $f, g \in K[x_1, \ldots, x_n]$ respectively, and $d^\prime(i) = d_f(i) + d_g(i)$. Then using the map $\phi_K: K[x_1, \ldots, x_n] \to K[x]$ given by
+    \[
+        \phi_K: x_i \mapsto x^{d^\prime(1) \cdots d^\prime(i-1)}
+    \]
+    we can evaluate $fg$ as
+    \[
+        f g= \phi^{-1}_K(\phi_K(f) \phi_K(g))
+    \]
+\end{proposition}
+
+\begin{proof}
+    Let $x_1^{\alpha_1}\ldots x_n^{\alpha_n}$ and $x_1^{\beta_1}\ldots x_n^{\beta_n}$ be terms in $f$ and $g$ respectively. Then
+    \begin{align*}
+        \phi_K^{-1}(\phi_K(x_1^{\alpha_1}\ldots x_n^{\alpha_n}) \cdot \phi_K(x_1^{\beta_1}\ldots x_n^{\beta_n})) &= \phi_K^{-1}(x^{\alpha_1 + \cdots  + \alpha_n d(1) \ldots d(n-1)} \cdot x^{\beta_1 + \cdots + \beta_n d(1) \ldots d(n-1)})\\
+                                                                                                                 &= \phi_K^{-1}(x^{(\alpha_1 + \beta_1) + \cdots + (\alpha_n + \beta_n)d^\prime(1) \ldots d^\prime(n-1)})\\
+        &= x_1^{\alpha_1 + \beta_1} \ldots x_n^{\alpha_n + \beta_n}
+    \end{align*}
+    We are able to correctly recover the coefficient in the last line since $\alpha_i + \beta_i < d(i)$ for all $i$.
+
+    Since any two monomials in $f$ and $g$ are multiplied correctly, we conclude
+    \[
+        f g= \phi^{-1}_K(\phi_K(f) \phi_K(g))
+    \]
+\end{proof}
+
+\medskip
+
+\subsection{Using Integers to Multiply Polynomials}%
 \label{sub:Using Integers to multiply Polynomials}
 
-To illustrate the usefulness of Kronecker substitution, we will return to the problem of using integer multiplication to multiply polynomials in $\Z[x]$. The key is that in polynomial multiplication, we do not have any ``carry'' whereas in integer multiplication we do. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication methods in the GNU Multiple Precision library GMP.
+Another popular use of Kronecker substitution is using integer multiplication to multiply polynomials in $\Z[x]$ and vice versa. As mentioned in \ref{sec:prelim-schoolbook}, the carry operation makes harder to multiply polynomials using integer multiplication. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs in the multiplication process. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication methods from the GNU Multiple Precision library GMP.
 
-Let $B$ be an absolute bound on the coefficients in the polynomials, and $n$ the maximum degree of the inputs. Then the resulting polynomial has a maximum coefficient size of $nB^2$. Then let $2^\ell$ be the smallest power of two that is greater than $2nB^2$ (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$ which gives
+Let $B$ be an absolute bound on the coefficients in the polynomials, and $n$ the maximum degree of the inputs. Then the coefficients of the resulting polynomial have an absolute bound of $nB^2$. Let $D = 2nB^2$ be an absolute bound on the coefficients (the two arises because the upper and lower bounds of the coefficients are $-nB^2$ and $nB^2$). Then we evaluate the polynomials at $2^\ell$ which gives
 \[
     f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}.
 \]
@@ -123,19 +173,8 @@ Since $\bb{\sum_{j + k = i}a_j b_k} \leq 2^{\ell}$ by our choice of $2^\ell$ no 
 
 Let $I(n)$ denote the cost of multiplying two integers with $n$ bits. Then using the method from the previous subsection, we obtain $I(n) = \M{O}(M_\Z(n))$ where $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size(TODO double-check this). The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on. However we cannot undo a carry, so we need to do some extra steps to avoid the carry happening in the first place with the other one.
 
-\subsection{Kronecker Substitution for Multivariate polynomials}
 
-Let $f \in K[x_1, \ldots, x_n]$, $f(x_1, \ldots, x_n) = \sum^n_{i \in I}a_Ix^I$ be a multivariate polynomials where $I$ is a multi-index set. Then let $d(i)$ be the upper bound on the degree of the polynomial in the $i^{\text{tj}}$ variable. Then we can transform $f$ into a univariate polynomial $f^\prime \in K[x]$ via the substitution
-\[
-    x_1^{\alpha_1}\ldots x_n^{\alpha_n} = x^{\alpha_1 + \alpha_2d(1) + \ldots + \alpha_n d(1)\ldots d(n-1)}
-\]
-TODO is this right? I can't actually find where this is explicitly stated anywhere
-
-We can convert the polynomial back into its multivariate form by starting with $x^\alpha$, and then computing the quotient and remainder upon division by $d(1)$ to obtain $q_1 = \alpha_2d(2) + \alpha_3 d(2)d(3) + \ldots + \alpha_n d(1) \ldots d(n-1)$ and $r_1 = \alpha_1$. Then repeat this procedure on the result to obtain $\alpha_1, \ldots, \alpha_n$. Notice that this division operation is quite expensive and so it is desirable to make $d(i)$ a power of two to take advantage of fast bit shift operations.
-
-\medskip
-
-\subsubsection{A couple of ideas I had on the subject}
+\subsubsection{Remarks on computing Kronecker substitution}\label{subsec:kronecker-remarks}
 
 If the polynomial is not too sparse and we wish to have the smallest possible value for the $d(i)$, then it might be beneficial to subtract adjacent monomials. Say we have transformed one polynomial back into its original multivariate representation. If we find the difference between it and another term is less than $d(1)\cdots d(k)$ for some $1 \le k \le n-1$ then we know that the last $n - k - 1$ indices must be the same. Hence we can reduce the number of calculations required.
 
@@ -143,6 +182,19 @@ If the polynomial is not too sparse and we wish to have the smallest possible va
 
 Notice that we still obtain a partial benefit by rounding just some of the $d(i)$ to a power of two. Say, for example, we made only the middle index a power of two. Then when recovering the multi-indices, we can essentially split the number in half. Say we require $b$ bits to hold the indices for the univariate polynomial, and that we set $d(n/2) = 2^{b/2}$. Then to recover the indices less than $n/2$, we modulo by $2^{b/2}$ and perform the division procedure on the lower $b/2$ bits. To recover the remaining indices, we would repeat this on upper $b/2$ bits. Since polynomial division does not run in linear time, this will result in performance increases because we only need to divide integers of size $b/2$ bits.
 
+Notice that this division operation is typically computationally expensive on most computer architectures and so it is desirable to make $d(i)$ a power of two to take advantage of fast bit shift operations.
+Note also that if we choose to make everything a power of two. Then nothing actually needs to happen memory wise
+(TODO fill this out a bit more)
+
+The map $\phi_K$ can be interpreted as expanding a number stored in \emph{mixed radix representation} with respect to the base $[d(1), \ldots, d(n)]$. f is a way of expressing numbers similar to our own base system. A number $m \in \N$ can be written uniquely as the sum
+\[
+    m = \sum^n_{i=1} a_i b_1 \ldots b_{i-1} \qquad \tx{with } a_i < b_i
+\]
+then in with respect to the mixed radix $B$, $m$ can be written as $a_n \cdots a_1$ where the numbers are concatenated rather then multiplied. For example, our familiar decimal number system is the base $[10, 10, \ldots ]$.
+
+It is indeed unique since it is quite simple to obtain the representation. Beginning with $m \in \N$. Use Euclidean division on $m$ with divisor $b_1$ to obtain a remainder of $a_1$ and quotient $\sum^n_{i=1} a_i b_1 \cdots b_{i-1}$. Then continue recursively to obtain $(a_1, \ldots, a_n)$. 
+
+It turns out that the mixed based representation is quite useful for performing Kronecker substitution.
 
 \subsection{Finite Fields}%
 \label{sub:Finite Field}

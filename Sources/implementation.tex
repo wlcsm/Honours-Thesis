@@ -12,7 +12,7 @@ Using the formula
 \]
 When we calculate another term $a_ib_j x^{i + j}$ for some $1 \le i \le n$ and $1 \le j \le m$, we now need add this to the resulting polynomial we have calculated so far. To find the matching monomial in our result polynomial (or insert it if it doesn't exist) we will need to perform a binary search. However, if we have stored the result as an array, then inserting the monomial could cause an $\#c_k$ shift in elements. If we store is as a linked list then this is not very efficient due to the expensive memory read operations.
 
-A better way would be to evaluate it like the convolution formula 
+A better way would be to evaluate it like the convolution formula
 \[
     ab = \sum^{n + m}_{k=0} \bb{\sum_{i + j = k}a_ib_j} x^{i + j}.
 \]
@@ -36,14 +36,14 @@ This is just a scratchboard of some of the randomised algorithms
     \item Randomised Kronecker substitution. Uses randomised Kronecker substitution to multiply the polynomials, it will return the correct result with some probability.
     \item Group variables together to reduce the dimensionality if we were to use Kronecker substitution e.g.
         \[
-        x^5y + x^2y^3 + x^3y^3
-    \]
-    If we want to use Kronecker substitution we would need to expand this to $6 \times 4 = 24$ monomials.\\
-    By making the substitution $z = x^2y^3$ we have and the substitution $w = x^5y$ we get
-    \[
-        w + z + xz
-    \]
-    Which requires $2 \times 2 \times 2 = 8$ monomials.
+            x^5y + x^2y^3 + x^3y^3
+        \]
+        If we want to use Kronecker substitution we would need to expand this to $6 \times 4 = 24$ monomials.\\
+        By making the substitution $z = x^2y^3$ we have and the substitution $w = x^5y$ we get
+        \[
+            w + z + xz
+        \]
+        Which requires $2 \times 2 \times 2 = 8$ monomials.
 
 \end{itemize}
 
@@ -52,8 +52,8 @@ When I was implementing the program I found that I could combine the reverse-bit
     \centering
     \begin{tikzcd}
         x_i \arrow[rdd] & x_{i+1} \arrow[rrrdd] & \cdots & x_{\frac{n}{2} + i} \arrow[llldd] & x_{\frac{n}{2} + i + 1} \arrow[ldd] \\
-            &                   &       &                   &                               \\
-        c_i & c_{\frac{n}{2} + i}  & \cdots & c_{i + 1} & c_{\frac{n}{2} + i + 1}           
+                        &                   &       &                   &                               \\
+        c_i & c_{\frac{n}{2} + i}  & \cdots & c_{i + 1} & c_{\frac{n}{2} + i + 1}
     \end{tikzcd}
     \caption{General case for $i \in \{0, 2, \ldots, \frac{n}{2}\}$}
 \end{figure}
@@ -93,65 +93,65 @@ Then we add the elements in their reverse bit order. When we add an element, we 
 Note: We can probably leverage the intermediate results from the bucket sort, for instance, if one bucket is empty after the first pass, then we know that that subtree is actually empty. So if the bucket sort is inefficient, then actually that implies that your underlying data in not random and can actually be leveraged because you know whole subtrees will be empty
 
 \begin{algorithm}[H]
-  \SetAlgoLined
-  \KwData{Vector of monomials to be transformed (non-expanded)}
-  \KwResult{Fourier transform of the input coefficients}
-  rbe $\gets$ Reverse Bit Encoding of monomials\;
-  acc $\gets$ Empty vector\; 
-  \For{el in rbe}{
-    acc.push(el)\;
-    \While{acc.len() > 1 \&\& canCombine(acc[-2], acc[-1])}{
-      tmp $\gets$ acc.pop()\;
-      acc[-1].combine(tmp)\;
+    \SetAlgoLined
+    \KwData{Vector of monomials to be transformed (non-expanded)}
+    \KwResult{Fourier transform of the input coefficients}
+    rbe $\gets$ Reverse Bit Encoding of monomials\;
+    acc $\gets$ Empty vector\;
+    \For{el in rbe}{
+        acc.push(el)\;
+        \While{acc.len() > 1 \&\& canCombine(acc[-2], acc[-1])}{
+            tmp $\gets$ acc.pop()\;
+            acc[-1].combine(tmp)\;
+        }
     }
-  }
-  \Return{acc}
-  \caption{Sparse FFT}
+    \Return{acc}
+    \caption{Sparse FFT}
 \end{algorithm}
 
 
 \begin{algorithm}[H]
-  \SetAlgoLined
-  \KwData{arg1, arg2: Two subtrees}
-  \KwResult{Boolean}
-  depth $\gets$ findLowestConnection(arg1.path, arg2.path, arg1.depth, arg2.depth)\;
-  \Comment{Note that simply constructing such a number of all 1's and testing if equal would be quicker}\;
-  \For{i in 0 ... (node - arg2.index)}{
-    \If{arg2.index \& 1 $<<<$ i = 0}{
-      \Return false
+    \SetAlgoLined
+    \KwData{arg1, arg2: Two subtrees}
+    \KwResult{Boolean}
+    depth $\gets$ findLowestConnection(arg1.path, arg2.path, arg1.depth, arg2.depth)\;
+    \Comment{Note that simply constructing such a number of all 1's and testing if equal would be quicker}\;
+    \For{i in 0 ... (node - arg2.index)}{
+        \If{arg2.index \& 1 $<<<$ i = 0}{
+            \Return false
+        }
     }
-  }
-  \Return{true}
-  \caption{canCombine}
+    \Return{true}
+    \caption{canCombine}
 \end{algorithm}
 
 \begin{algorithm}[H]
-  \SetAlgoLined
-  \KwData{path1, path2: Two subtrees; depth1, depth2: Usize}
-  \KwResult{Absolute depth of the connecting tree: usize}
-  \eIf{depth1 > depth2}{
-    path2 >>= depth1 - depth2\;
-    depth2 = depth1
-  }{
-    path1 >>= depth2 - depth1\;
-    depth1 = depth2
-  }
-  count $\gets$ 0\;
-  \While{path1 $\neq$ path2}{
-    count += 1\;
-    path1 >>= 1\;
-    path2 >>= 1\;
-  }
-  \Return{count + depth}
-  \caption{findLowestConnection}
+    \SetAlgoLined
+    \KwData{path1, path2: Two subtrees; depth1, depth2: Usize}
+    \KwResult{Absolute depth of the connecting tree: usize}
+    \eIf{depth1 > depth2}{
+        path2 >>= depth1 - depth2\;
+        depth2 = depth1
+        }{
+        path1 >>= depth2 - depth1\;
+        depth1 = depth2
+    }
+    count $\gets$ 0\;
+    \While{path1 $\neq$ path2}{
+        count += 1\;
+        path1 >>= 1\;
+        path2 >>= 1\;
+    }
+    \Return{count + depth}
+    \caption{findLowestConnection}
 \end{algorithm}
 
 \begin{enumerate}[1.]
-  \item Organise the list into its Reverse Bit encoding ($O(t \log t \log n)$). The $\log n$ term arises from the degrees of the polynomials are literally have $\log n$ space complexity
-  \item Add a new element to the vector and see if it can be combined with the previous element or we need to wait to see if it needs to be combined with the next element first
-  \item To combine, we ``expand'' the two elements into the appropriate size and then do the combination step from the FFT
-  \item Continue until all the elements have gone
-  \item Finish by combining all the elements remaining in the list into the final transform
+    \item Organise the list into its Reverse Bit encoding ($O(t \log t \log n)$). The $\log n$ term arises from the degrees of the polynomials are literally have $\log n$ space complexity
+    \item Add a new element to the vector and see if it can be combined with the previous element or we need to wait to see if it needs to be combined with the next element first
+    \item To combine, we ``expand'' the two elements into the appropriate size and then do the combination step from the FFT
+    \item Continue until all the elements have gone
+    \item Finish by combining all the elements remaining in the list into the final transform
 \end{enumerate}
 
 Unfortunately in this one we still end up expanding the polynomials in the end so it must be $O(n\log n)$. But we should try not to do that.\\
@@ -168,11 +168,11 @@ Maxima uses a recursive representation https://math.tntech.edu/machida/1911/maxi
 
 In this, we store a vector of coefficient-degree pairs. The degrees are stored in a single word ideally, so the first one is stored in the first 16 bits and so on. Also we store the total degree at the beginning. Then by using normal u64 operations, we can compare them and get a graded lex ordering. Accessing the elements is very easy use bit operations.
 
-To further structure the anatomy of the polynomial type, I will store another object inside it. The 'Terms' object. This should contain the symbols i.e. variables, and the coefficient list itself. Though it will also contain a set of ``masks'' these masks are use to quickly access parts of the degree type, such as each of the variable's individual degrees and the total graded degree. 
+To further structure the anatomy of the polynomial type, I will store another object inside it. The 'Terms' object. This should contain the symbols i.e. variables, and the coefficient list itself. Though it will also contain a set of ``masks'' these masks are use to quickly access parts of the degree type, such as each of the variable's individual degrees and the total graded degree.
 
- Current position on univariate vs multivariate. We have a similar type, except one generic field, that field will be of "Univariate" type if the polynomial is univariate, and "Multivariate" type if it is multivariate. The univariate type is empty, the multivariate type contains the masks needed to access things in the bit degree words. Thus we simply need to implement a "deg()" method for each type, then hopefully we can create generic algorithms that both call the "deg()" method, though that requires it to be a trait, but we can do that. A trait which has a function which takes self and the degree and outputs the total degree.
+Current position on univariate vs multivariate. We have a similar type, except one generic field, that field will be of "Univariate" type if the polynomial is univariate, and "Multivariate" type if it is multivariate. The univariate type is empty, the multivariate type contains the masks needed to access things in the bit degree words. Thus we simply need to implement a "deg()" method for each type, then hopefully we can create generic algorithms that both call the "deg()" method, though that requires it to be a trait, but we can do that. A trait which has a function which takes self and the degree and outputs the total degree.
 
- If all the variables are alloted the same space on the degree word, then it might be more efficient to just store one mask and use shifts. Though the total degree might require an additional mask because it needs more space than the others
+If all the variables are alloted the same space on the degree word, then it might be more efficient to just store one mask and use shifts. Though the total degree might require an additional mask because it needs more space than the others
 
 \subsection{My current style}%
 \label{sub:My current style}
@@ -196,9 +196,9 @@ The division relation "|", where $a | b$ for $a$ and $b$ monomials. Is independe
 
 What we can do is:
 \begin{enumerate}
-  \item Order then by total degree, if $\tx{totdeg}(a) < \tx{totdeg}(b)$ then certainly $b \not | a$. This can give us a rough estimate of where to place it
-  \item Order by total degree of the first half of the multi-index. Say if we have a monomial with multi-index $(1, 0, 5, 6, 2, 4)$, then we have its total degree is $1 + 5 + 6 + 2 + 4 = 18$, then the total degree of the first half is $1 + 0 + 5 = 6$.
-  \item Then order by their second half and so forth. This way we can build up a key for the monomial.
+    \item Order then by total degree, if $\tx{totdeg}(a) < \tx{totdeg}(b)$ then certainly $b \not | a$. This can give us a rough estimate of where to place it
+    \item Order by total degree of the first half of the multi-index. Say if we have a monomial with multi-index $(1, 0, 5, 6, 2, 4)$, then we have its total degree is $1 + 5 + 6 + 2 + 4 = 18$, then the total degree of the first half is $1 + 0 + 5 = 6$.
+    \item Then order by their second half and so forth. This way we can build up a key for the monomial.
 \end{enumerate}
 
 This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker because the variance in the variables should be lower when you sum them and so they should be more accurate.
