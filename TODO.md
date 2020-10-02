@@ -2,28 +2,20 @@
 
 Sources/classical_alg.tex:156
 
-
 # General
-* Classical Algorithm still need to finish off
-* Should the mixed radix representation remark be used not as a remark but as part of the explanation
-* Change the name of the fast_mult file and the finit_field file. As well as the finite_field references
+* In the polynomial representations, need to also mention hashmaps
+* Finish off the Schonage and Strassen one
+* Can we view Gaussian resampling as a heat diffusion
+* Classical Algorithm still need to finish off Martin's comments
 * Need to mention in the FFT that the field needs to have 2 is invertible
-* Cover MNTs?
 * State the convolution property and show how we can use DFTs to evaluate convolutions
 * In the finite fields one, should we include quotient rings? Maybe the interpretation that multiplication is a lattice operation
-* Normal bases? Montgomery multiplication or Barry reduction?
-* Need to mention the cyclic convolution property in fast_mult
 * How much precision is lost in the complex FFT
+* Essentially-Optimal-Sparse-Poly.... intro has a nice summary of the space requirements for polynomials
 - In the nlogn paper page 32 they mention that their algorithm may be good in practice to replace Rader's algorithm
-* Feel like I am forgetting about the computation model in my thing
 * Toom-Cook algorithm?
 - In nlogn paper page 31 they say that certain constraints are not necessary and that loosening one may actually be easier from a computational viewpoint 
 * In the preliminaries maybe we should mention that polynomial addition is linear, and it is asymptotically optimal
-- Define the cyclic convolution property as it is mentioned in the beginning of 5.1, or I could reword Theorem 3 to not use that term
-* It is hard to say that one algorithm beats another at precisely a certain degree because it is very much dependent on the implementation and the hardware as well, some algorithms lend themselves better to parallel or SIMD processing. But I suppose it should be all formulated in the perfect RAM model.
-* One genuine problem is that integer multiplication schemes have the luxury of having the coefficients of the polynomial bounded. For this reason I will need to develop some technique for bounding them. Otherwise I can't really talk about SS and H-vdH in the Preliminaries and I also need to make the nlogn paper relevant
-- Write up my algorithm for searching for a divisible monomial in a monomial ideal.
-- Is the fact that the fftw paper is an "invited paper" mean anything?
 - End of introduction
 "This should be expanded to include references to the sections and likely some
 citations to the relevant papers. A bit of historical discussion and context would also be good as well as comments about the use of various algorithms in different software packages etc."
@@ -31,8 +23,15 @@ citations to the relevant papers. A bit of historical discussion and context wou
 * In FASTER POLYNOMIAL MULTIPLICATION VIA MULTIPOINT KRONECKER SUBSTITUTION, they said that "the Magma computer algebra system uses Kronecker substitution to multiply polynomials in Z[x] in some cases [6], and Victor Shoup’s NTL library [5] uses Kronecker substitution to reduce multiplication in GF(pn)[x] to multiplication in GF(p)[x]"
 
 # Secondary Thought
+* Verifying the result is correct. Can just evaluate it, or use the Essentially optimal algorithms one. They actually say in Section 3 that a deterministic algorithm doesn't exist
+* Does the algorithm in Essentially-optimal ... rely on the O(n log n) integer mult?
+- Write up my algorithm for searching for a divisible monomial in a monomial ideal.
+* Normal bases? Montgomery multiplication or Barry reduction?
+* Cover MNTs?
 - Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
+* Should the mixed radix representation remark be used not as a remark but as part of the explanation
 * Cover Winograd's generalised FFT algorithm?
+* Feel like I am forgetting about the computation model in my thing
 
 # Preliminaries
 - Check the recursive relation for Karatsuba's algorithm for the "Recursive relation" subsection

@@ -28,18 +28,18 @@ Karatsuba's algorithm can be viewed as a method for evaluating the Chinese Remai
 \[
     \frac{K[x]}{x^2 - x} \cong \frac{K[x]}{x} \times \frac{K[x]}{x-1},
 \]
-Along with an \emph{evaluation at infinity} which we will explain shortly\footnote{There are variations that use $x^2 + x$ as the divisor which may be more computationally efficient in certain circumstances. See Knuth Art of Computer Programming Vol 2. TODO Properly cite}.\\
+along with an \emph{evaluation at infinity} which we will explain shortly\footnote{There are variations that use $x^2 + x$ as the divisor which may be more computationally efficient in certain circumstances. See Knuth Art of Computer Programming Vol 2. TODO Properly cite}.\\
 However, in order to use this isomorphism we first need to use Kronecker substitution to express the input polynomials as elements of $K[x][y]/(y^2 - y)$. To do this, we introduce the variable $y = x^{n/2}$ where $n$ is the degree of the polynomials. So we obtain
 \[
     a(x)(y) = a_1(x)y + a_0(x), \qquad b(x)(y) = b_1(x)y + b_0(x)
 \]
-Evaluate at $y = 0$ and $y = 1$, to get
+Evaluating this at $y = 0$ and $y = 1$, we get
 \begin{align*}
     a(x)(0) &= a_0(x), \qquad a(x)(1) = a_1(x) + a_0(x)\\
     b(x)(0) &= b_0(x), \qquad b(x)(1) = b_1(x) + b_0(x)
 \end{align*}
 
-Apply the Chinese remainder theorem to get
+and applying the Chinese remainder theorem gives
 \begin{equation}\label{eq:karatsuba-crt}
     c(x) = a_0b_0 + ((a_0 + a_1)(b_0 + b_1) - a_0b_0)x \in K[x]/(x^2 - x).
 \end{equation}
@@ -55,11 +55,15 @@ Given that $c(y) = a(y)b(y) = (a_0 + a_1y)(b_0 + b_1 y)$, we know the greatest t
 
 \section{The Fast Fourier Transform}
 
-The Discrete Fourier Transform of a function is defined by evaluating the function at the roots of unity. The Fast Fourier Transform is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ time.
+The Discrete Fourier Transform (DFT) is an powerful mathematical technique for performing Fourier analysis in a wide number of applications. Most notably, signal processing when it can be used to map the sample space to the frequency domain. The Fast Fourier Transform (FFT) is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ time. The na\"{i}ve algorithm for evaluating the DFT takes $\M{O}(n^2)$ time, which rendered it infeasible for most practical applications. So when Cooley and Tukey released their landmark paper on FFT in 1965, there was a great flurry of development across many fields. One example is the development of FFT based algorithms for polynomial multiplication (TODO find out who originally posed this, I think maybe it was Stockham), which saw the problem's first $\M{O}(n \log n)$ discovered.
+
+The DFT is defined by evaluating a function at roots of unity, and its inverse is a means of recovering the original function from samples. Hence this can be seen as an instance of the evaluation-interpolation strategy. 
+
+In this section we formulate both the DFT and FFT and explore the relationship between the DFT and polynomial multiplication. In the end showing them to be equivalent problems through Bluestein's Chip transform (TODO come back, I need to be careful about using the word "equivalent").
 
 \subsection{The Discrete Fourier Transform}
 
-Let $R$ be a commutative ring. The Discrete Fourier Transform is defined by evaluating a function at roots of unity.
+Let $R$ be a commutative ring. We are familiar with the complex roots of unity given as the solutions to the equation $x^n - 1$ for $n \in \N$, however in this paper it will be useful to generalise this definition to allow us to perform the FFT in quotient rings (Section \ref{sec:schon-strass}) and integer rings (Section \ref{sec:ntt}).
 
 % This definition obtained from the Algebraic Complexity theory book
 \begin{definition}[Roots of Unity]
@@ -95,7 +99,7 @@ There are many variations of the Fast Fourier Transform, but here we will analys
 The FFT uses a standard divide-and-conquer approach whereby the DFT is split into two smaller DFTs each with $N/2$ elements and computed recursively. Since we already established the DFT can be computed in $\M{O}(N^2)$ time, the two sub-DFTs of size $N/2$ can be computed in approximately $(N/2)^2 = N^2/4$ time (ignoring any constants). Thus computing both sub-DFTs takes $N^2 / 2$ time.\\
 Recombining two DFTs takes $\M{O}(N)$ time. Therefore in total the cost is approximately $N^2/2 + \M{O}(N)$. For large enough $N$, we have essentially halved the time it takes to compute the entire DFT. By recursively subdividing the DFT into progressively smaller DFTs we would expect to obtain a complexity similar to $\M{C}(n) = nC(1) + \sum^n_{i=1} \M{O}(N)$ where the $n\M{C}(1)$ term comes from performing the DFT on an input of size $1$ (in which case the DFT is the identity so $C(1) = 0$), and the $\sum^{\log_2 n}_{i=1} \M{O}(N)$ comes from recombining all the sub-DFTs. In total we have $\M{C}(n) = \M{O}(N \log N)$.
 
-The following lemma which formalises this intuition and general algorithm for computing the DFT efficiently. The remainder of the proof verifies the time complexity.
+The following lemma which formalises this intuition and the general algorithm for computing the DFT efficiently. The remainder of the proof verifies the time complexity.
 
 \begin{lemma}
     Let $C(N)$ be the number of calculations required to compute the DFT with $N = 2^n$ elements. Then
@@ -118,7 +122,7 @@ The crucial step in the FFT, is to split the DFT into a sum of $x$ terms with ev
     &= \sum^{N/2-1}_{i=0}x_{2i}\omega_N^{2ik} \;+\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_N^{2ik}\\
     &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{ik} \;+\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{ik} \label{eq:keystep}
 \end{align}
-Where the last line follows from th fact that $\omega_N^2 = \omega_{N/2}$. Hence the two terms in the last line are DFTs of length $N/2$. Moreover we have also obtained an expression of how to recombine these two sub-DFTs.
+where the last line follows from the fact that $\omega_N^2 = \omega_{N/2}$. Hence the two terms in the last line are DFTs of length $N/2$. Moreover we have also obtained an expression for how to recombine these two sub-DFTs.
 
 (TODO technically it should be $X_{k + N/2 \mod N}$)
 
@@ -126,7 +130,7 @@ Notice that
 \begin{align*}
     X_{k + N/2}
     &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{i(k + N/2)} \;+\; \omega_N^{k+ N/2} \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{i(k + N/2)}\\
-    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{ik} \;-\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{ik}
+    &= \sum^{N/2-1}_{i=0}x_{2i}\omega_{N/2}^{ik} \;-\; \omega_N^k \sum^{N/2-1}_{i=0}x_{2i+1}\omega_{N/2}^{ik},
 \end{align*}
 since $\omega_{N/2}^{N/2} = 1$ and $\omega_N^{N/2} = -1$.\\
 So the sub-DFTs in $X_k$ are the same as the sub-DFTs in $X_{k + N/2}$, the only difference is that they are recombined in a different way.
@@ -147,7 +151,7 @@ for some constant $p > 0$.
         C(N)
         &= 2\M{C}(N/2) + pN\\
         &= pN\log_2 (N/2) + pN\\
-        &= pN\log_2 N - pN\log_2 2 + pN
+        &= pN\log_2 N - pN\log_2 2 + pN\\
         &= pN\log_2 N
     \end{align*}
     Therefore by the principle of mathematical induction, we conclude that $C(N) = \M{O}(N \log N)$ for all $N$ a power of two.
@@ -167,42 +171,49 @@ for some constant $p > 0$.
 
 In our previous formulation, we split the DFT into two smaller DFTs each time. Here $2$ is the \emph{radix} as that is our splitting factor. The FFT can be generalised to an arbitrary radix. In practice, this does little to improve the performance in most situations, but it is necessary in rings where $2$ is not invertible
 
-Say we want to do the radix-$m$ DFT:\\
+Say we want to do the radix-$m$ DFT where $m$ divides $n$:\\
 Performing the same steps we obtain
 \[
-    F_n(k) = \sum^{n-1}_{i=0} a_0\omega_n^{ik}
+    F_n(k) = \sum^{n-1}_{i=0} a_0\omega_n^{ik}.
 \]
-Then instead of breaking it into $2$ pieces, break it into $m$ pieces
+Instead of breaking $F_n(k)$ into two pieces, break it into $m$ pieces,
+% TODO make sure this is correct. 
 \begin{align*}
-    F_n(k) &= \sum^{\frac{n}{m}-1}_{i=0} x_{mi}\omega_n^{mik} + \sum^{\frac{n}{m}-1}_{i=0} x_{mi+1}\omega_n^{(mi+1)k} + \ldots + \sum^{\frac{n}{m}-1}_{i=0} x_{mi+2}\omega_n^{(mi+2)k}\\
-          &= \sum^{\frac{n}{m}-1}_{i=0} x_{mi}\omega_n^{mik} + \omega_n^k\sum^{\frac{n}{m}-1}_{i=0} a_{mi+1}\omega_n^{mik} + \ldots +  \omega_n^{2k}\sum^{\frac{n}{m}-1}_{i=0} x_{mi+2}\omega_n^{mik}\\
-          &= F^0(k) + \omega_{\frac{n}{m}}^k F^1(k) + \ldots + \omega_{\frac{n}{m}}^{(m-1)k} F^{m-1}(k).
+    F_n(p_1\frac{n}{m} + p_2) &= \sum^{m-1}_{j=0} \sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{(mi + j)(p_1 \frac{n}{m} + p_2)}\\ 
+                              &= \sum^{m-1}_{j=0} \bb{\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{mi p_2}} \omega_n^{j(p_1\frac{n}{m} + p_2)}
+                              &= \sum^{m-1}_{j=0} \bb{\omega_n^{jp_2}\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{mi p_2}} (\omega_n^{\frac{n}{m}})^{p_1 j}
 \end{align*}
 
-But also notice that each of the smaller DFTs $F^i(k)$ have $\frac{n}{m}jk$ elements, in other words if $k = p\frac{n}{m} + q$ we have that $F^i(k) = F^i(q)$ so we further reconstruct it as follows
-\begin{align*}
-    F_n\bb{\frac{n}{m}p + q} &= \sum^{m-1}_{i=0} F^i\bb{\frac{n}{m} + q}\omega^{i(\frac{n}{m}p + q)}_n\\
-    &= \sum^{m-1}_{i=0} \omega^{ip\frac{n}{m}}_n \omega_n^{iq} F^i(q)\omega^{ip\frac{n}{m}}_n\\
-    &= \sum^{m-1}_{i=0} (\omega^{iq}_n F^i(k))\omega^{ip}_m.
-\end{align*}
-Hence if we fix $q$, this is now a DFT of $m$ elements. Thus we can calculate $F(\frac{n}{m}j + k)$ for all $0 \leq j < m$ in $F_m$ time.
+% TODO say what a twiddle factor is
 
-Calculating all the sub-DFTs takes $F_{\frac{n}{m}}$ time since there are $m$ of size $\frac{n}{m}$. Combining them together is equivalent to calculating $\frac{n}{m}$ sub-DFTs of size $m$, which contributes $\frac{n}{m}F_{m}$ time.\\
+Just as the original FFT first splits it into two sub-DFTs, one with all the coefficients at odd indices and the other the even indices. Each of the inner sums in the above expression correspond to a sub-DFT, and the $i^{\text{th}}$ one consist of all coefficients $a_r$ where $r = i \mod m$. The reason we split up the $\omega_n^{j(\frac{n}{m}p_1 + p_2)}$ in the last line is so that we can combine all of these sub-DFTs using a DFT of size $\frac{n}{m}$, we simply need to multiply each of the inner DFTs by $\omega_n^{jp_2}$.
+
+Calculating all the sub-DFTs takes $F_{\frac{n}{m}}$ time since there are $m$ of size $\frac{n}{m}$. Multiplying the inner DFTs by a twiddle factor (plus computing the twiddle factors) is $O(n)$. Combining them together is equivalent to calculating $\frac{n}{m}$ sub-DFTs of size $m$, which contributes $\frac{n}{m}F_{m}$ time.\\
 In total this is
 \[
-    mF_{\frac{n}{m}} + \frac{n}{m}F_m
+    mF_{\frac{n}{m}} + \frac{n}{m}F_m + O(n)
 \]
 time.
 
-If we set $m = \sqrt{n}$ then we would get $2\sqrt{n}F_{\sqrt{n}}$. TODO Double check this bound.
+Note that in a Turing machine, the $m$ inner sub-DFTs also require us to reorganise $x$ into $n_1$ consecutive vectors of size $\frac{n}{m}$ and vice versa. This can be achieved in $O(n \log( \min \{m, \frac{n}{m}\}\tx{bit}(R))$ time where $\tx{bit}(R)$ is the number of bits required to store an elements of $R$ \cite{ffnlogn}. We will revisit this fact in Section \ref{chp:asymptotic-bounds} where we will perform our computations in the Turing machine.
+
+From the above recursive formula we can see that changing $m$ does not change the asymptotic complexity; indeed, since we consider $m$ to be fixed we have $F_m$ is a constant, and so asymptotically this is equivalent to the recursive formula $mF_{\frac{n}{m}} + \M{O}(n)$ whose solution is $\M{O}(n \log n)$ as before. 
+
+\medskip
+(TODO polish this)
+\medskip
+
+So the main difference is a constant factor. Note however that it is much easier to structure a FFT with radix $2$ in memory since each recursive step requires us to combine two elements, so combining $m$ requires more jumping around in the memory. But Primarily because a computer does all computation in base two so it is much easier overall.
+
+For example when using a radix of 2, we can structure the elements in their \emph{reverse bit encoding} to perform all operations in place. The reverse bit encoding is often just one CPU instruction in modern CPUs but it is much more complicated to reorganise the elements if the radix is arbitrary.
 
 
-\subsection{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
-\label{subsec:schon-strass}
+\section{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
+\label{sec:schon-strass}
 
 (TODO I have not taken into account the fact that n might not be square and we also need to round to the largest power of two)
 
-The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithm, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs; however, often when we work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity, and it is not a simple feat. For now, we will look at the most popular algorithm for large multiplication in $\Z[x]$ which is Sch\"{o}nage and Strassen's second integer multiplication (adapted for polynomials). The algorithm was originally formulated for integer multiplication, but is easily generalised for polynomials polynomials in $\Z[x]$ first using Kronecker substitution from Chapter \ref{chp:preliminaries}.
+The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithm, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs; however, often when we work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. Indeed this is how \cite{nlogn} achieves $\M{O}(n\log n)$ complexity, and it is not a simple feat. For now, we will look at the most popular algorithm for multiplication of polynomials in $\Z[x]$ with large degree sizes, which is Sch\"{o}nage and Strassen's second integer multiplication (adapted for polynomials). The algorithm was originally formulated for integer multiplication, but can generalised for polynomials polynomials in $\Z[x]$ using Kronecker substitution from Chapter \ref{chp:preliminaries}.
 
 \medskip
 
@@ -210,9 +221,9 @@ Note however that the complexity of multiplication in $\Z[x]$ is usually paramet
 
 The Sch\"{o}nage and Strassen Integer multiplication algorithm works by reorganising the polynomial into another form where the coefficients belong to a ring that does have roots of unity, so-called \emph{synthetic roots}.
 
-Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. To convert our original polynomial into one with coefficients in a ring of the above form, we can use Kronecker substitution to partition the polynomial into $m = 2^{\ceil{k/2}}$ pieces with the substitution $y = x^m$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(m\log m \times 2^{\floor{\frac{k}{2}}} = \M{O}(n \log n)$ where the arithmetic on the $m$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
+Observe that in the ring $\Z[X] / (X^n + 1)$ the polynomial $X$ is a $2n^{\tx{th}}$ root of unity. To convert our original polynomial into one with coefficients in a ring of the above form, we can use Kronecker substitution to partition the polynomial into $m = 2^{\ceil{k/2}}$ pieces with the substitution $y = x^m$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(m\log m \times 2^{\floor{\frac{k}{2}}}) = \M{O}(n \log n)$ where the arithmetic on the $m$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 \[
-    C(n) < n^{\frac{1}{2}}C(n^{\frac{1}{2}}) + \M{O}(n \log n)
+    C(n) < n^{\frac{1}{2}}C(n^{\frac{1}{2}}) + \M{O}(n \log n).
 \]
 This can be solved to obtain $\M{O}(n \log n \log \log n)$.
 
