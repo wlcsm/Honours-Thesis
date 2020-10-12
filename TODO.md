@@ -4,9 +4,24 @@ Sources/classical_alg.tex:156
 
 # General
 * In the polynomial representations, need to also mention hashmaps
+* Include Bluesteins trick
+* I write things like n^2 = 2n + 1 + O(n^2). I need to explain what it means to have big-O notation there
+* Instead of writing sooooo many tildes, I want to say something like the "approximation space", and also for maps as well, ideall with one symbol
+* For the asymptotic analysis section I want it to follow this outline
+    + Overview of the major steps i.e. the theorems at the beginning of the sections and how they fit together
+    + Formally proving theorems
+    + Formally prove the main theorem using the rigorous definition.
+* We can't just use Rader's trick to avoid Gaussian resampling?
+* The equivalence between integer mult and polynomial mult, I think maybe we can actually find an equivalence now?
+* H-vdH use kroneker substitution with log. What if we go even smaller? We can't do sqrt(n) because the coefficients become too big. Maybe we can also use that idea for showing equivalence with integer mult and polynomial mult.
 * Finish off the Schonage and Strassen one
+* Put in the thing about DFTs being used to evaluate convolutions from the n log n paper
 * Can we view Gaussian resampling as a heat diffusion
 * Classical Algorithm still need to finish off Martin's comments
+* Say what a twiddle factor is
+* Maybe we can assume a bound on the total number of bits in the polynomial in Chapter 6
+* Why can't we apply the integer multiplication algorithm for multiplication in $\F_q[x]$. I think its because the coefficient size increase will be too much
+* Probably have a note somewhere to say that we could actually just convert polynomial to integers and then multiply that way and then its free money in the RAM model. 
 * Need to mention in the FFT that the field needs to have 2 is invertible
 * State the convolution property and show how we can use DFTs to evaluate convolutions
 * In the finite fields one, should we include quotient rings? Maybe the interpretation that multiplication is a lattice operation
