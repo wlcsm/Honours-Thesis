@@ -1,29 +1,23 @@
-# Last Position
-
-Sources/classical_alg.tex:156
-
 # General
-* In the polynomial representations, need to also mention hashmaps
+* Just mention that we can do constant time bit operations
+
+* Might need to say that in the RAM model, ring operations are also executed in constant time
+* Martin says put in some metrics about nPoly, like the number of lines
 * Include Bluesteins trick
-* I write things like n^2 = 2n + 1 + O(n^2). I need to explain what it means to have big-O notation there
-* Instead of writing sooooo many tildes, I want to say something like the "approximation space", and also for maps as well, ideall with one symbol
+* The equivalence between integer mult and polynomial mult, I think maybe we can actually find an equivalence now?
+* Instead of writing sooooo many tildes, I want to say something like the "approximation space", and also for maps as well, ideally with one symbol
 * For the asymptotic analysis section I want it to follow this outline
     + Overview of the major steps i.e. the theorems at the beginning of the sections and how they fit together
     + Formally proving theorems
     + Formally prove the main theorem using the rigorous definition.
-* We can't just use Rader's trick to avoid Gaussian resampling?
-* The equivalence between integer mult and polynomial mult, I think maybe we can actually find an equivalence now?
-* H-vdH use kroneker substitution with log. What if we go even smaller? We can't do sqrt(n) because the coefficients become too big. Maybe we can also use that idea for showing equivalence with integer mult and polynomial mult.
+* H-vdH use Kronecker substitution with log. What if we go even smaller? We can't do sqrt(n) because the coefficients become too big. Maybe we can also use that idea for showing equivalence with integer mult and polynomial mult.
 * Finish off the Schonage and Strassen one
-* Put in the thing about DFTs being used to evaluate convolutions from the n log n paper
 * Can we view Gaussian resampling as a heat diffusion
 * Classical Algorithm still need to finish off Martin's comments
 * Say what a twiddle factor is
-* Maybe we can assume a bound on the total number of bits in the polynomial in Chapter 6
 * Why can't we apply the integer multiplication algorithm for multiplication in $\F_q[x]$. I think its because the coefficient size increase will be too much
 * Probably have a note somewhere to say that we could actually just convert polynomial to integers and then multiply that way and then its free money in the RAM model. 
 * Need to mention in the FFT that the field needs to have 2 is invertible
-* State the convolution property and show how we can use DFTs to evaluate convolutions
 * In the finite fields one, should we include quotient rings? Maybe the interpretation that multiplication is a lattice operation
 * How much precision is lost in the complex FFT
 * Essentially-Optimal-Sparse-Poly.... intro has a nice summary of the space requirements for polynomials
@@ -34,34 +28,19 @@ Sources/classical_alg.tex:156
 - End of introduction
 "This should be expanded to include references to the sections and likely some
 citations to the relevant papers. A bit of historical discussion and context would also be good as well as comments about the use of various algorithms in different software packages etc."
-* Bluestein's Trick: Converts a DFT problem to a convolution problem
-* In FASTER POLYNOMIAL MULTIPLICATION VIA MULTIPOINT KRONECKER SUBSTITUTION, they said that "the Magma computer algebra system uses Kronecker substitution to multiply polynomials in Z[x] in some cases [6], and Victor Shoup’s NTL library [5] uses Kronecker substitution to reduce multiplication in GF(pn)[x] to multiplication in GF(p)[x]"
-
-# Secondary Thought
-* Verifying the result is correct. Can just evaluate it, or use the Essentially optimal algorithms one. They actually say in Section 3 that a deterministic algorithm doesn't exist
-* Does the algorithm in Essentially-optimal ... rely on the O(n log n) integer mult?
-- Write up my algorithm for searching for a divisible monomial in a monomial ideal.
-* Normal bases? Montgomery multiplication or Barry reduction?
-* Cover MNTs?
-- Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
-* Should the mixed radix representation remark be used not as a remark but as part of the explanation
-* Cover Winograd's generalised FFT algorithm?
+* In kronecker-talk.pdf, they said that "the Magma computer algebra system uses Kronecker substitution to multiply polynomials in Z[x] in some cases [6], and Victor Shoup’s NTL library [5] uses Kronecker substitution to reduce multiplication in GF(pn)[x] to multiplication in GF(p)[x]"
+* In "faster-poly-mult-kronecker-sub.pdf" Harvey just cites the original magma paper but the paper does mention kronecker substitution. 
 * Feel like I am forgetting about the computation model in my thing
 
 # Preliminaries
 - Check the recursive relation for Karatsuba's algorithm for the "Recursive relation" subsection
 
 # Classical Algorithms
-- Chinese Remainder Theorem at the end to unify all the approaches
 - Need to find some resource that says all the complexity times when applying Kronecker substitution
 - In the SS algorithm I haven't taken into account the fact that n might not be square and we also need to round n to the largest power of two.
 
 # Evaluation and Interpolation Strategy
 - My proof of the lemma at the beginning of nlogn need to be polished and check (can we do it simpler?)
-
-# Finite Fields
-
-# Implementation Details
 
 # Overview of nlogn
 * Theorem 3.1 to perform the calculation on the t_1, \ldots, t_d
@@ -78,10 +57,10 @@ citations to the relevant papers. A bit of historical discussion and context wou
 * Proposition 5.3 Uses the FFT in Proposition 5.2 to actually make the approximation of multiplication
 * Proposition 5.4 Puts it all together to work for integer multiplication.
 
-## Preliminaries
-
-Audience?
-
-* Introduce: Big O notation and some basic algorithms like schoolbook, Karatsuba, and show Chinese remainder theorem being included in Karatsuba, Toom-Cook and 
-* This chapter should introduce the basic concepts of both math and the complexity side of things
-* Introduce what a Turing machine is
+# Secondary Thought
+* Verifying the result is correct. Can just evaluate it, or use the Essentially optimal algorithms one. They actually say in Section 3 that a deterministic algorithm doesn't exist
+* Does the algorithm in Essentially-optimal ... rely on the O(n log n) integer mult?
+- Write up my algorithm for searching for a divisible monomial in a monomial ideal.
+* Normal bases? Montgomery multiplication or Barry reduction?
+- Do I need to cover Furer's algorithm? Or Harvery-van der Hoeven-Lecerf algorithm?
+* Cover Winograd's generalised FFT algorithm?

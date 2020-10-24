@@ -43,179 +43,124 @@ The idea is that we start with $x_{ij}$ then we compute $x_{(i+1)j}$ and $x_{i(j
 Therefore the multiplication operation will be $O(\# f \# g \min\{\# f, \# g\})$.
 
 
-\section{The different kinds of Multivariate Polynomial Techniques}
+% \subsection{Sparse polynomial (my way)}
 
-This is just a scratchboard of some of the randomised algorithms
+% The idea is that we compress the polynomial (i.e. ignoring the zero terms), then do a fft in that compressed state, multiply, then expand back into full
+% e.g. Imagine $(x^{20} - 1)(x^{40} - 1)$, then I can replace the exponents with $n = 20$ and $m = 40$ and calculate $(x^n - 1)(x^m -1)$, which gives me $x^{n+m} - x^n - x^m + 1$, then I could have actually chosen $n = 1$ and $m = 2$, and calculated $(x - 1)(x^2 - 1)$ via the fft and gotten $x^3 - x^2 - x + 1$ and then expanded back into $x^{60} - x^{40} - x^{20} + 1$. Thats the basic premise
 
-\begin{itemize}
-    \item Do it over the field $K[x]/(x^{\alpha_1} -1) \times K[x]/(x^{\alpha_n} -1)$. To essentially make the polynomial more dense. The problem I have with this at the moment is that of how to recover the original from the ones in the smaller fields
-    \item Randomised Kronecker substitution. Uses randomised Kronecker substitution to multiply the polynomials, it will return the correct result with some probability.
-    \item Group variables together to reduce the dimensionality if we were to use Kronecker substitution e.g.
-        \[
-            x^5y + x^2y^3 + x^3y^3
-        \]
-        If we want to use Kronecker substitution we would need to expand this to $6 \times 4 = 24$ monomials.\\
-        By making the substitution $z = x^2y^3$ we have and the substitution $w = x^5y$ we get
-        \[
-            w + z + xz
-        \]
-        Which requires $2 \times 2 \times 2 = 8$ monomials.
-\end{itemize}
+% I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
 
-When I was implementing the program I found that I could combine the reverse-bit-encoding step with the first step of the FFT algorithm to create no loss in performance when putting it into reverse-bit-encoding.
-\begin{figure}
-    \centering
-    \begin{tikzcd}
-        x_i \arrow[rdd] & x_{i+1} \arrow[rrrdd] & \cdots & x_{\frac{n}{2} + i} \arrow[llldd] & x_{\frac{n}{2} + i + 1} \arrow[ldd] \\
-                        &                   &       &                   &                               \\
-        c_i & c_{\frac{n}{2} + i}  & \cdots & c_{i + 1} & c_{\frac{n}{2} + i + 1}
-    \end{tikzcd}
-    \caption{General case for $i \in \{0, 2, \ldots, \frac{n}{2}\}$}
-\end{figure}
+% \subsection{Runtimes}
 
-\subsection{Sparse polynomial (my way)}
+% \begin{center}
+%     \begin{tabular}{|c| c c|}
+%         \# El. & FFT & STD\\
+%         8      & 191950 & 106140 \\
+%         16     & 277790 & 289350 \\
+%         64     & 934627 & 1859690 \\
+%         256    & 4282801 & 23703833 \\
+%         1024   & 17969459 & 264139561 \\
+%         2048   & 33150304 & 188562822 \\
+%         4096   & 78430218 & 4340959519 \\
+%         8192   & 126315317 & 16,154233194 \\
+%     \end{tabular}
+% \end{center}
 
-The idea is that we compress the polynomial (i.e. ignoring the zero terms), then do a fft in that compressed state, multiply, then expand back into full
-e.g. Imagine $(x^{20} - 1)(x^{40} - 1)$, then I can replace the exponents with $n = 20$ and $m = 40$ and calculate $(x^n - 1)(x^m -1)$, which gives me $x^{n+m} - x^n - x^m + 1$, then I could have actually chosen $n = 1$ and $m = 2$, and calculated $(x - 1)(x^2 - 1)$ via the fft and gotten $x^3 - x^2 - x + 1$ and then expanded back into $x^{60} - x^{40} - x^{20} + 1$. Thats the basic premise
+% \subsection{Sparse evaluation}
 
-I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
+% So i've got an algorithm here for some sparse multiplication technique.
 
-\subsection{Runtimes}
+% The basic premise is that we consider the tree created by the FFT and then we want to cut off branches, but by ``cut off'' I mean, ``never actually create in the first place''. So to do that we do as follows
 
-\begin{center}
-    \begin{tabular}{|c| c c|}
-        \# El. & FFT & STD\\
-        8      & 191950 & 106140 \\
-        16     & 277790 & 289350 \\
-        64     & 934627 & 1859690 \\
-        256    & 4282801 & 23703833 \\
-        1024   & 17969459 & 264139561 \\
-        2048   & 33150304 & 188562822 \\
-        4096   & 78430218 & 4340959519 \\
-        8192   & 126315317 & 16,154233194 \\
-    \end{tabular}
-\end{center}
+% Construct the tree below.
+% Then we add the elements in their reverse bit order. When we add an element, we slide it down the tree as far right as possible. All the ones that slide to the left need to have a calculation first.
 
-\subsection{Sparse evaluation}
+% Note: We can probably leverage the intermediate results from the bucket sort, for instance, if one bucket is empty after the first pass, then we know that that subtree is actually empty. So if the bucket sort is inefficient, then actually that implies that your underlying data in not random and can actually be leveraged because you know whole subtrees will be empty
 
-So i've got an algorithm here for some sparse multiplication technique.
-
-The basic premise is that we consider the tree created by the FFT and then we want to cut off branches, but by ``cut off'' I mean, ``never actually create in the first place''. So to do that we do as follows
-
-Construct the tree below.
-Then we add the elements in their reverse bit order. When we add an element, we slide it down the tree as far right as possible. All the ones that slide to the left need to have a calculation first.
-
-Note: We can probably leverage the intermediate results from the bucket sort, for instance, if one bucket is empty after the first pass, then we know that that subtree is actually empty. So if the bucket sort is inefficient, then actually that implies that your underlying data in not random and can actually be leveraged because you know whole subtrees will be empty
-
-\begin{algorithm}[H]
-    \SetAlgoLined
-    \KwData{Vector of monomials to be transformed (non-expanded)}
-    \KwResult{Fourier transform of the input coefficients}
-    rbe $\gets$ Reverse Bit Encoding of monomials\;
-    acc $\gets$ Empty vector\;
-    \For{el in rbe}{
-        acc.push(el)\;
-        \While{acc.len() > 1 \&\& canCombine(acc[-2], acc[-1])}{
-            tmp $\gets$ acc.pop()\;
-            acc[-1].combine(tmp)\;
-        }
-    }
-    \Return{acc}
-    \caption{Sparse FFT}
-\end{algorithm}
+% \begin{algorithm}[H]
+%     \SetAlgoLined
+%     \KwData{Vector of monomials to be transformed (non-expanded)}
+%     \KwResult{Fourier transform of the input coefficients}
+%     rbe $\gets$ Reverse Bit Encoding of monomials\;
+%     acc $\gets$ Empty vector\;
+%     \For{el in rbe}{
+%         acc.push(el)\;
+%         \While{acc.len() > 1 \&\& canCombine(acc[-2], acc[-1])}{
+%             tmp $\gets$ acc.pop()\;
+%             acc[-1].combine(tmp)\;
+%         }
+%     }
+%     \Return{acc}
+%     \caption{Sparse FFT}
+% \end{algorithm}
 
 
-\begin{algorithm}[H]
-    \SetAlgoLined
-    \KwData{arg1, arg2: Two subtrees}
-    \KwResult{Boolean}
-    depth $\gets$ findLowestConnection(arg1.path, arg2.path, arg1.depth, arg2.depth)\;
-    \Comment{Note that simply constructing such a number of all 1's and testing if equal would be quicker}\;
-    \For{i in 0 ... (node - arg2.index)}{
-        \If{arg2.index \& 1 $<<<$ i = 0}{
-            \Return false
-        }
-    }
-    \Return{true}
-    \caption{canCombine}
-\end{algorithm}
+% \begin{algorithm}[H]
+%     \SetAlgoLined
+%     \KwData{arg1, arg2: Two subtrees}
+%     \KwResult{Boolean}
+%     depth $\gets$ findLowestConnection(arg1.path, arg2.path, arg1.depth, arg2.depth)\;
+%     \Comment{Note that simply constructing such a number of all 1's and testing if equal would be quicker}\;
+%     \For{i in 0 ... (node - arg2.index)}{
+%         \If{arg2.index \& 1 $<<<$ i = 0}{
+%             \Return false
+%         }
+%     }
+%     \Return{true}
+%     \caption{canCombine}
+% \end{algorithm}
 
-\begin{algorithm}[H]
-    \SetAlgoLined
-    \KwData{path1, path2: Two subtrees; depth1, depth2: Usize}
-    \KwResult{Absolute depth of the connecting tree: usize}
-    \eIf{depth1 > depth2}{
-        path2 >>= depth1 - depth2\;
-        depth2 = depth1
-        }{
-        path1 >>= depth2 - depth1\;
-        depth1 = depth2
-    }
-    count $\gets$ 0\;
-    \While{path1 $\neq$ path2}{
-        count += 1\;
-        path1 >>= 1\;
-        path2 >>= 1\;
-    }
-    \Return{count + depth}
-    \caption{findLowestConnection}
-\end{algorithm}
+% \begin{algorithm}[H]
+%     \SetAlgoLined
+%     \KwData{path1, path2: Two subtrees; depth1, depth2: Usize}
+%     \KwResult{Absolute depth of the connecting tree: usize}
+%     \eIf{depth1 > depth2}{
+%         path2 >>= depth1 - depth2\;
+%         depth2 = depth1
+%         }{
+%         path1 >>= depth2 - depth1\;
+%         depth1 = depth2
+%     }
+%     count $\gets$ 0\;
+%     \While{path1 $\neq$ path2}{
+%         count += 1\;
+%         path1 >>= 1\;
+%         path2 >>= 1\;
+%     }
+%     \Return{count + depth}
+%     \caption{findLowestConnection}
+% \end{algorithm}
 
-\begin{enumerate}[1.]
-    \item Organise the list into its Reverse Bit encoding ($O(t \log t \log n)$). The $\log n$ term arises from the degrees of the polynomials are literally have $\log n$ space complexity
-    \item Add a new element to the vector and see if it can be combined with the previous element or we need to wait to see if it needs to be combined with the next element first
-    \item To combine, we ``expand'' the two elements into the appropriate size and then do the combination step from the FFT
-    \item Continue until all the elements have gone
-    \item Finish by combining all the elements remaining in the list into the final transform
-\end{enumerate}
+% \begin{enumerate}[1.]
+%     \item Organise the list into its Reverse Bit encoding ($O(t \log t \log n)$). The $\log n$ term arises from the degrees of the polynomials are literally have $\log n$ space complexity
+%     \item Add a new element to the vector and see if it can be combined with the previous element or we need to wait to see if it needs to be combined with the next element first
+%     \item To combine, we ``expand'' the two elements into the appropriate size and then do the combination step from the FFT
+%     \item Continue until all the elements have gone
+%     \item Finish by combining all the elements remaining in the list into the final transform
+% \end{enumerate}
 
-Unfortunately in this one we still end up expanding the polynomials in the end so it must be $O(n\log n)$. But we should try not to do that.\\
-The best result would be if I could interpolate the results whilst still in their $O(t)$ space complexity format. Then we would also have a good representation for our resulting polynomial if we wanted to do calculations based on that.
+% Unfortunately in this one we still end up expanding the polynomials in the end so it must be $O(n\log n)$. But we should try not to do that.\\
+% The best result would be if I could interpolate the results whilst still in their $O(t)$ space complexity format. Then we would also have a good representation for our resulting polynomial if we wanted to do calculations based on that.
 
-\section{Representation of Polynomials}
+% \section{Search trees for membership in monomial ideals}
 
-It seems like the most popular method used to be the recursive approach because it was \emph{elegant}. But now everyone in the past decade or so are moving towards flat representations.
+% \textbf{Problem:} Given a monomial ideal, want to test to see if a monomial is in it.
 
-Maxima uses a recursive representation https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html
+% The time to beat is $O(nm)$ where $n$ is the number of generators in the ideal and $m$ is the number of indeterminates. This is obtained by a linear search
 
-\subsection{Maple Style}%
-\label{sub:Maple Style}
+% The next best thing would be to try and do a search based off each of the values in the multi-index. You would try to do a binary search on th first value, then on the second, and so on. The problem is that it is pretty hard to see what kind of data structure this might use.
 
-In this, we store a vector of coefficient-degree pairs. The degrees are stored in a single word ideally, so the first one is stored in the first 16 bits and so on. Also we store the total degree at the beginning. Then by using normal u64 operations, we can compare them and get a graded lex ordering. Accessing the elements is very easy use bit operations.
+% Another optimisation would be to record the highest index value for each of the indices. Then we might be able to fit multiple indices inside a single machine word.
 
-To further structure the anatomy of the polynomial type, I will store another object inside it. The 'Terms' object. This should contain the symbols i.e. variables, and the coefficient list itself. Though it will also contain a set of ``masks'' these masks are use to quickly access parts of the degree type, such as each of the variable's individual degrees and the total graded degree.
+% The division relation "|", where $a | b$ for $a$ and $b$ monomials. Is independent of monomial orderings, and is reflexive and transitive. But it is not a total order so we cannot perform a normal binary search. In fact, if we have that one generator of the ideal divides the other, then the other can be eliminated so it is unclear how we would even go about searching for divisibility.
 
-Current position on univariate vs multivariate. We have a similar type, except one generic field, that field will be of "Univariate" type if the polynomial is univariate, and "Multivariate" type if it is multivariate. The univariate type is empty, the multivariate type contains the masks needed to access things in the bit degree words. Thus we simply need to implement a "deg()" method for each type, then hopefully we can create generic algorithms that both call the "deg()" method, though that requires it to be a trait, but we can do that. A trait which has a function which takes self and the degree and outputs the total degree.
+% What we can do is:
+% \begin{enumerate}
+%     \item Order then by total degree, if $\tx{totdeg}(a) < \tx{totdeg}(b)$ then certainly $b \not | a$. This can give us a rough estimate of where to place it
+%     \item Order by total degree of the first half of the multi-index. Say if we have a monomial with multi-index $(1, 0, 5, 6, 2, 4)$, then we have its total degree is $1 + 5 + 6 + 2 + 4 = 18$, then the total degree of the first half is $1 + 0 + 5 = 6$.
+%     \item Then order by their second half and so forth. This way we can build up a key for the monomial.
+% \end{enumerate}
 
-If all the variables are alloted the same space on the degree word, then it might be more efficient to just store one mask and use shifts. Though the total degree might require an additional mask because it needs more space than the others
+% This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker because the variance in the variables should be lower when you sum them and so they should be more accurate.
 
-\subsection{My current style}%
-\label{sub:My current style}
-
-Just using a generic array of usize to store the degrees
-
-I've made a pretty modular system in Rust on zero-cost abstractions so it is as fast as it would be had I not made it modular.
-This is done through Rust's parametric polymorphism system called "Traits". Things like the: Monomial order, coefficient type, and representation of monomials are as fast as if I had hard-coded them. This will make testing much easier later on.
-
-\section{Search trees for membership in monomial ideals}
-
-\textbf{Problem:} Given a monomial ideal, want to test to see if a monomial is in it.
-
-The time to beat is $O(nm)$ where $n$ is the number of generators in the ideal and $m$ is the number of indeterminates. This is obtained by a linear search
-
-The next best thing would be to try and do a search based off each of the values in the multi-index. You would try to do a binary search on th first value, then on the second, and so on. The problem is that it is pretty hard to see what kind of data structure this might use.
-
-Another optimisation would be to record the highest index value for each of the indices. Then we might be able to fit multiple indices inside a single machine word.
-
-The division relation "|", where $a | b$ for $a$ and $b$ monomials. Is independent of monomial orderings, and is reflexive and transitive. But it is not a total order so we cannot perform a normal binary search. In fact, if we have that one generator of the ideal divides the other, then the other can be eliminated so it is unclear how we would even go about searching for divisibility.
-
-What we can do is:
-\begin{enumerate}
-    \item Order then by total degree, if $\tx{totdeg}(a) < \tx{totdeg}(b)$ then certainly $b \not | a$. This can give us a rough estimate of where to place it
-    \item Order by total degree of the first half of the multi-index. Say if we have a monomial with multi-index $(1, 0, 5, 6, 2, 4)$, then we have its total degree is $1 + 5 + 6 + 2 + 4 = 18$, then the total degree of the first half is $1 + 0 + 5 = 6$.
-    \item Then order by their second half and so forth. This way we can build up a key for the monomial.
-\end{enumerate}
-
-This still has some of the same problems as the previous method of just searching through the indices but I think on average it will be quicker because the variance in the variables should be lower when you sum them and so they should be more accurate.
-
-Actually I would propose this as a new monomial order. It might allow you to obtain tighter bounds on certain algorithms.
+% Actually I would propose this as a new monomial order. It might allow you to obtain tighter bounds on certain algorithms.

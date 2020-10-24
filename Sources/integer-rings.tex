@@ -1,6 +1,8 @@
 % My study of Basis mostly came from https://arxiv.org/ftp/arxiv/papers/1304/1304.0420.pdf
 \chapter{Integer Rings}\label{chp:integer-rings}
 
+(TODO Mention that the transformation from convolution to multiplication is Bluestein's chirp transform, and the transformation from multiplication to convolution is the FFT)
+
 In this section, we will look at performing polynomial multiplication over integer rings.
 
 Some common scenarios which involve polynomial multiplication over integer rings $\Z/N$ for $N \in \N$ are:
@@ -22,7 +24,7 @@ Remember that one can still use the Karatsuba/Toom-Cook algorithms here as well 
 
 (TODO Reword this)
 
-Convolutions are an integral component in Fourier analysis as the DFT is the unique function that has the \emph{convolution property} that allows for efficient computations. We will introduce this property and show how polynomial multiplication can viewed as a convolution, thus giving a second intuition as to how the FFT can be used to multiply polynomials. The language of convolutions is often more apt in the context of signal processing and finite automata where the techniques in this section are commonly applied, so we will introduce it here.
+Convolutions are important in the field Fourier analysis as the DFT is the unique function that has the \emph{convolution property} that allows for efficient computations (TODO cite). We will introduce this property and show how polynomial multiplication can viewed as a convolution, thus giving a second intuition as to how the FFT can be used to multiply polynomials. The language of convolutions is often more apt in the context of signal processing and finite automata where the techniques in this section are commonly applied, so we will introduce it here.
 
 \begin{definition}[Discrete Convolution]
     Let $(x_i)_{i=0}^{n-1}$ and $(y_i)_{i=0}^{n-1}$ be two sequences in a ring $K$. The convolution of $x$ and $y$ is defined as
@@ -35,7 +37,7 @@ Notice that this definition is similar to polynomials multiplication. Let $f(x) 
 \[
     (f \ast g)_k = \sum^{n-1}_{i=0} f_i g_i = \sum^{n-1}_{i=0} (a_ix^i)(b_{k-i}x^{k-i} = \sum^{n-1}_{i=0} a_i b_{k-i} x^k = \sum_{i + j = k} a_ib_j x^k = fg
 \]
-Hence polynomial multiplication and discrete convolutions are an equivalent problem, meaning either can be used to solve the other. (TODO do I need a more formal definition of equivalence?)
+Hence polynomial multiplication and discrete convolutions can be seen as equivalent problems, meaning either can be used to solve the other with the same computational complexity.
 
 The convolution property can then be stated as
 
@@ -149,18 +151,18 @@ The Fermat Numbers up to $\ell = 4$ are all primes, and can be calculated very e
 A downside with this representation is that it requires the representation of $2^k + 1$ bits, so in a computer, we would need $2^{k+1}$ bits to represent it. Therefore this is not ideal in terms of memory efficiency. Some authors (TODO which authors?) suggest ignoring the last number and rounding it to a $-1$ to $0$ (letting it overflow) or $-2$ because there is a low probability ($2^{-k}$ chance) that the forgotten number will arise. This technique was originally suggested in the context of Fourier Transforms for fast signal processing, and so such an error is likely to be insignificant in those contexts. However, it is unsuitable for our purposes where we require correct solutions. It was also suggested in the 1970s, where saving an extra bit was a valid consideration, whereas now it is unusually insignificant except in the most extreme applications.
 
 
-\section{Normal Bases}
+% \section{Normal Bases}
 
-(TODO Do more here if I decide to do it)
+% (TODO Do more here if I decide to do it)
 
-They are used to make calculations faster; both software and hardware have been developed to fully leverage the power of optimal normal bases.
+% They are used to make calculations faster; both software and hardware have been developed to fully leverage the power of optimal normal bases.
 
-Definition from the Normal bases thesis.
-A normal basis of $\mathbb{F}_{q^n}$ over $\mathbb{F}_q$ is thus of the form: $\{\alpha,\alpha^q,\ldots ,\alpha^{q^{n-1}}\}$ for some $\alpha \in \F_{q^n}$.
+% Definition from the Normal bases thesis.
+% A normal basis of $\mathbb{F}_{q^n}$ over $\mathbb{F}_q$ is thus of the form: $\{\alpha,\alpha^q,\ldots ,\alpha^{q^{n-1}}\}$ for some $\alpha \in \F_{q^n}$.
 
-\subsection{Barret and Montgomery Multiplication}%
-\label{sub:Barret and Montgomery Multiplication}
+% \subsection{Barret and Montgomery Multiplication}%
+% \label{sub:Barret and Montgomery Multiplication}
 
-(TODO Do more here if I decide to do it)
+% (TODO Do more here if I decide to do it)
 
-Also from\footnote{A. Fog. Instruction tables: lists of instruction latencies, throughputs and micro-operation breakdowns for Intel, AMD and VIA CPUs, 2017. http://www.agner. org/optimize/} we can see that in general, divisions are not optimised in typical CPU's and are thus an expensive operation, operating proportional to the length of the operands. To remedy this in a CPU, we can use Montgomery multiplication\footnote{P. Montgomery. Modular multiplication without trial division. Mathematics of Computation, 44(170):519–521, 1985.} or Barret Reduction.
+% Also from\footnote{A. Fog. Instruction tables: lists of instruction latencies, throughputs and micro-operation breakdowns for Intel, AMD and VIA CPUs, 2017. http://www.agner. org/optimize/} we can see that in general, divisions are not optimised in typical CPU's and are thus an expensive operation, operating proportional to the length of the operands. To remedy this in a CPU, we can use Montgomery multiplication\footnote{P. Montgomery. Modular multiplication without trial division. Mathematics of Computation, 44(170):519–521, 1985.} or Barret Reduction.

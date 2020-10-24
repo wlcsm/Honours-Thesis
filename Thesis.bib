@@ -1,5 +1,114 @@
 Bibliography for my Honours Thesis
 
+@misc{ntl,
+    title = {NTL: A library for doing number theory},
+    howpublished = {\url{http://www.shoup.net/ntl/}},
+    note = {Accessed: 20-10-2020. Used to reduce multiplication in finite fields of prime powers, to fields of prime characteristic}
+}
+
+@misc{gmp-big-num,
+    title = {GNU Multiple Precision Arithmetic library},
+    howpublished = {\url{https://gmplib.org/manual/FFT-Multiplication#FFT-Multiplication}},
+    note = {Accessed: 20-10-2020}
+}
+
+@book{modern-comp-alg,
+    title = {Modern Computer Algebra. Third Edition},
+    author = {von vur Gathen, Joachim and Gerhard, Jürgen}
+    year = {2013},
+    isbn = {1107039037}
+}
+@misc{maxima-karatsuba,
+    title = {Maxima Polynomial Documentation},
+    howpublished = {\url{https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html}},
+    note = {Accessed: 20-10-2020. The "fasttimes" function has the same complexity as Karatsuba's algorithm}
+}
+
+@article{magma,
+    title = {The Magma algebra system. I. The user language},
+    author = {Bosma, Wieb and Cannon, John and Playoust, Catherine},
+    howpublished = {\url{https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html}},
+    published = {Journal of Symbolic Computation. Vol 24 (3-4)},
+    pages = {235-265},
+    year = {1997},
+}
+
+@misc{macaulay2-polynomial,
+    title = {Macaulay 2 Source code},
+    howpublished = {\url{https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/e/poly.cpp}},
+    note = {Accessed: 21-10-2020. Commit  0219847, Line 797 - 806 we see it uses essentially the schoolbook method}
+}
+
+@InProceedings{maple-new-poly-structure,
+    author = {Monagan, Michael and Pearce, Roman},
+    editor = {Feng, Ruyong and Lee, Wen-shin and Sato, Yosuke},
+    title = {POLY: A New Polynomial Data Structure for Maple 17},
+    booktitle = {Computer Mathematics},
+    year = {2014},
+    publisher = {Springer Berlin Heidelberg},
+    address = {Berlin, Heidelberg},
+    pages = {325--348},
+    % abstract = {We demonstrate how a new data structure for sparse distributed polynomials in the Maple 17 kernel significantly accelerates several key Maple library routines. The POLY data structure and its associated kernel operations are programmed for compactness, scalability, and low overhead. This allows polynomials to have tens of millions of terms, increases parallel speedup, and improves the performance of Maple library routines.},
+    isbn = {978-3-662-43799-5}
+}
+
+@InProceedings{ram-model,
+    author = {Cook, Stephen A. and Reckhow, Robert A.},
+    title = {Time-Bounded Random Access Machines},
+    year = {1972},
+    isbn = {9781450374576},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/800152.804898},
+    doi = {10.1145/800152.804898},
+    % abstract = {In this paper we introduce a formal model for random access computers and argue that the model is a good one to use in the theory of computational complexity. Results are proved which compare run times for recognizing sets using this model (which has a fixed program) with a stored program model and with Turing machines. The main result, theorem 3, shows the existence of a time complexity hierarchy which is finer than that of any standard abstract computer model. An Algol-like programming language is introduced which facilitates proofs of the theorems.},
+    booktitle = {Proceedings of the Fourth Annual ACM Symposium on Theory of Computing},
+    pages = {73–80},
+    numpages = {8},
+    location = {Denver, Colorado, USA},
+    series = {STOC '72}
+}
+
+  
+@InProceedings{crt-mul-gpu,
+    title = {Efficient Multiplication of Polynomials on Graphics Hardware},
+    author = {Emeliyanenko, Pavel},
+    editor = {Dou, Yong and Gruber, Ralf and Joller, Josef M.},
+    booktitle = {Advanced Parallel Processing Technologies},
+    year = {2009},
+    publisher = {Springer Berlin Heidelberg},
+    address = {Berlin, Heidelberg},
+    pages = {134--149},
+    isbn = {978-3-642-03644-6}
+}
+
+    % abstract={We present the algorithm to multiply univariate polynomials with integer coefficients efficiently using the Number Theoretic transform (NTT) on Graphics Processing Units (GPU). The same approach can be used to multiply large integers encoded as polynomials. Our algorithm exploits fused multiply-add capabilities of the graphics hardware. NTT multiplications are executed in parallel for a set of distinct primes followed by reconstruction using the Chinese Remainder theorem (CRT) on the GPU. Our benchmarking experiences show the NTT multiplication performance up to 77 GMul/s. We compared our approach with CPU-based implementations of polynomial and large integer multiplication provided by NTL and GMP libraries.},
+
+
+@inproceedings{crt-parallel-mul,
+    title = {Fast, Parallel Algorithm for Multiplying Polynomials with Integer Coefficients},
+    author = {Andrzej Chmielowiec},
+    year = {2012},
+    booktitle = {Proceedings of the World Congress on Engineering},
+}
+
+@book{knuthv2,
+    title = {The Art of Computer Programming Volume 2: Seminumerical Algorithms},
+    author = {Donald Knuth},
+    year = {1997},
+    ISBN = {0-201-89684-2},
+}
+
+@article{karatsuba1995,
+    author = {Karatsuba, Anatolii},
+    year = {1995},
+    month = {01},
+    pages = {169-},
+    title = {The Complexity of Computations},
+    volume = {211},
+    journal = {Proceedings of the Steklov Institute of Mathematics}
+}
+
 @article{sch-str-optimality-int-mult,
     author = {Sch\"{o}nhage, A. and  Strassen, V.},
     year = {1971},
@@ -69,7 +178,7 @@ Bibliography for my Honours Thesis
 }
 
 @unpublished{nlogn,
-    TITLE = {{Integer multiplication in time O(n log n)}},
+    TITLE = {Integer multiplication in time O(n log n)},
     AUTHOR = {Harvey, David and Van Der Hoeven, Joris},
     URL = {https://hal.archives-ouvertes.fr/hal-02070778},
     NOTE = {working paper or preprint},
