@@ -1,5 +1,6 @@
 \chapter{Classical Algorithms}\label{chp:classical}
 
+
 Here we review the classical algorithms that were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite having poorer theoretical complexities compared to their modern counterparts, they often have a far greater practical complexity for smaller input sizes. Additionally, they also have the advantage of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems.
 
 Let $a, b \in K[x]$ denote two univariate polynomials in the ring $K[x]$ where $K$ is an commutative ring.\\
@@ -58,7 +59,7 @@ This is a desirable trade since computing addition is, in general, much faster.
 
 \begin{theorem}[Karatsuba's Algorithm]
     
-    Let $a, b \in K[x]$ be polynomials of degree at most $n$, and let $C(n)$ denote the cost of computing the product $c = ab$ via Karatsuba's algorithm. Then 
+    Let $a, b \in K[x]$ be polynomials of degree at most $n$, and let $\M{C}(n)$ denote the cost of computing the product $c = ab$ via Karatsuba's algorithm. Then 
     \[
         \M{C}(n) \le 3\M{C}(n/2) + \M{O}(n).
     \]
@@ -93,7 +94,7 @@ Karatsuba's algorithm remains one of the most practically efficient algorithms. 
 
 \medskip
 
-\begin{Implemenation Remarks}
+\section{Implemenation Remarks}
     (TODO check this)
     Note that as it has been presented, Karatsuba's algorithm works best on dense polynomials, since the function recursively calls itself proportionally to the degree of the polynomial rather than the number of terms, hence the recursion depth is $\log_2 n$. Alternatively we could split the polynomials into two pieces that have the same number of elements in it. This way the recursion depth would be $\min\{\log_2 \# f, \log_2 \# g\}$. The minimum comes from the fact that once we get to polynomials of length one, the optimal strategy would then be to multiple the single term with the other polynomial regardless of how many other terms the polynomial has.
 
@@ -102,7 +103,6 @@ Karatsuba's algorithm remains one of the most practically efficient algorithms. 
         c_2x^{2m} + (c_1 - c_0 - c_2) x^m + c_0
     \]
     when we are actually evaluating this, one might try to first compute $(c_1 - c_0 - c_2)$, then perform the addition $(c_1 - c_0 - c_2)x^m + c_0$, then compute $c_2x^{2m}$ and finally perform the addition $c_2x^{2m} + (c_1x^m + c_0)$. However, if we use a coefficient vector, these operations can be done in one pass of a vector of size $3m$, and naturally generalises itself to SIMD instructions to obtain more than a 2x speedup. Which is done in nPoly.
-\end{Implemenation Remarks}
 
 \medskip
 
@@ -169,7 +169,7 @@ We could use sparse vector representation in which case we have $\# f$ monomials
 \medskip
 
 \subsection{Using Integers to Multiply Polynomials}%
-\label{sub:Using Integers to multiply Polynomials}
+\label{sub:integers-for-poly-mult}
 
 % TODO double check the magma things
 An equally popular use of Kronecker substitution is for using integers to multiply polynomials in $\Z[x]$ and vice versa. As mentioned in Section \ref{sec:prelim-schoolbook}, the carry operation makes it more difficult to multiply polynomials using integer multiplication than the converse. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs in the multiplication process. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication methods from the GNU Multiple Precision library GMP \cite{magma}.
@@ -184,12 +184,11 @@ Thus when we multiply we obtain
 \]
 Since $|\sum_{j + k = i}a_j b_k| \leq 2^{\ell}$ by our choice of $2^\ell$ no carries can occur, so we can recover the resulting polynomial by undoing the substitution $2^\ell = x$. We needed to choose $2^\ell$ to be greater than $2nB^2$ to account for the possibility of having negative numbers.
 
-% TODO Double check the complexity for M_\Z(n) in terms of I()
-Let $I(n)$ denote the cost of multiplying two integers with $n$ bits and $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. Then using the substitution method Section \ref{sec:prelim-schoolbook}, we obtain $I(n) = \M{O}(M_\Z(n))$ where . For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log B))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size. The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on.
-
+% TODO Double check the complexity for M_\Z(n) in terms of I(). Maybe introduce M_\Z earlier
+Let $I(n)$ denote the cost of multiplying two integers with $n$ bits and $M_\Z(n)$ is the time for polynomial multiplication in $\Z[x]$ for degree $n$. Then using the substitution method Section \ref{sec:prelim-schoolbook}, we obtain $I(n) = \M{O}(M_\Z(n))$ where . For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log nB^2))$ for multiplying polynomials with integers where $B$ is an upper bound on the coefficient size. In particular, if $\log n \in \M{O}(\log B)$, then this can be simplified to $\M{O}(\M{I}(n \log B)$. The reason that multiplying integers using polynomials is simpler than the converse is that going from multiplication with carry to multiplication without carry is much easier than the other way around since it is always easy to apply the carry later on.
 
 \subsection{Finite Fields}%
-\label{sub:Finite Field}
+\label{sub:finite-field}
 
 % TODO From ffnlogn need to reword
 Let $p$ be prime. We will now introduce a lemma to use Kronecker substitution to convert polynomial multiplication in a finite field $\F_{p^k}$ for some $k$ to multiplication in $\F_p [x]$. Shoup's NTL library for number theory \cite{ntl} performs this operation.
@@ -207,38 +206,16 @@ Let $p$ be prime. We will now introduce a lemma to use Kronecker substitution to
     First we consider the interpretation $\F_q = \F_p[x] / f(x)$ for a polynomial $f(x) \in F_p[x]$ of degree $k$. Notice the result of multiplying two polynomials of degree $k$ has degree at most $2k$, so we will need to pad the elements of $\F_q$ with zeros to allow for polynomials of degree $2k$ in the result. Hence the newly expanded polynomial in $\F_p[x]$ has $2nk$ terms, thus multiplying them requires $M_p(2nk)$ time. To transform the result back into a polynomial in $\F_q[x]$, we need to coerce the coefficients which are polynomials of length $2k$ back into $F_q[x]$, which we can achieve by dividing them by $f(x)$. Using Newton substitution (Theorem 9.6 \cite{modern-comp-alg}), polynomial division is in the same complexity class as multiplication, so dividing the polynomial has time $M_p(k)$. Repeating this for all $n$ coefficients gives us the $\M{O}(n M_p(k))$ term.
 \end{proof}
 
-% TODO check this
-We can also use the same technique as before to convert multiplication in $F_p$ into integer multiplication. We first identify the elements in the finite field with the integers $0,\ldots, p-1$. Then the largest an intermediate expression could get is $np^2$, so we obtain the same bound as the integer case. After computing the result, we must coerce all the coefficients back into $\F_p$, which can be done using the Euclidean algorithm with $\M{O}(\log(np^2) - \log (p)) \in \M{O}(\log (np))$, since we know that $I(n)$ is at least linear time, we can conclude that the cost of the last operation is negligible compared to the cost of the multiplication. Therefore the complexity is
+% TODO check this a bit more. This is the bit complexity
+We can also use the same technique as before to convert multiplication in any integer ring $\Z/p\Z[x]$ for $p \in \N$ into integer multiplication. We first coerce the elements in the integer ring with the integers $0,\ldots, p-1 \in \Z$. Then use our normal multiplication techniques in $\Z$. After computing the result, we must coerce all the coefficients back into $\F_p$, which can be done using the Euclidean algorithm in time $\M{O}(\log(p)(\log(np^2) - \log (p))) \in \M{O}(\log (np)\log (p))$ , since we know that $\M{M}_\Z(n)$ is at least linear time, we can conclude that the cost of the last operation is negligible compared to the cost of the multiplication. Therefore the complexity is
 \[
-    M_p(n) = \M{O}(I(n \log p)).
+    M_p(n) = \M{O}(I(n \log np^2)) + \M{O}(n \log p \log np).
 \]
-
-\section{Chinese Remainder Theorem}%
-\label{sec:crt}
-
-The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one for to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is far less tan the cost of applying an algorithm to the original large ring, the difficulty however, is in evaluating the isomorphism quickly enough.
-
-\begin{theorem}[Chinese remainder theorem]
-    Let $R$ be commutative ring and $I_1, \ldots, I_k \subseteq R$ mutually coprime ideals i.e. there exists $u \in I_i$ and $v \in I_j$ with $u + v = 1$ for any $i \neq j$.\\
-    Then
-    \[
-        \frac{R}{I_1\cdots I_k} \cong \frac{R}{I_1} \times \cdots \times \frac{R}{I_k}
-    \]
-\end{theorem}
 
 \medskip
 
-The map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ can be performed by coercing an element of $R/(I_1 \ldots I_k)$ into each $R / I_j$ by dividing by $I_1, \ldots, \hat{I}_j, \ldots, I_k$, using the standard division algorithm if it is a Euclidean domain.
 
-\medskip
-TODO Need to double check the map back is correct, I thought of this myself because I wasn't able to find anything online at the time
+% TODO Need to double check the map back is correct, I thought of this myself because I wasn't able to find anything online at the time
 
-For $I$ and $J$ coprime there exists $u \in I$ and $v \in J$ such that $u + v = 1$, then the map from $R/I \times R/J \to R/(IJ)$ is given by $(x, y) \mapsto vx + uy$. We can use this map inductively on $R/(I_1\cdots I_n)$ to find the map from $R / I_1 \times R / (I_2)$ to $R / (I_1I_2)$, then from $R / (I_1I_2) \times R / I_3$ to $R / (I_1I_2I_3)$. Continuing until we have recovered the entire term.
+% For $I$ and $J$ coprime there exists $u \in I$ and $v \in J$ such that $u + v = 1$, then the map from $R/I \times R/J \to R/(IJ)$ is given by $(x, y) \mapsto vx + uy$. We can use this map to find the map from $R / I_1 \times R / (I_2)$ to $R / (I_1I_2)$, then from $R / (I_1I_2) \times R / I_3$ to $R / (I_1I_2I_3)$. Continuing until we have recovered the entire term.
 
-In the case of $f(x) = (x - \alpha_1) \ldots (x - \alpha_k)$ we have the isomorphism
-\[
-    \frac{R}{f(x)} \cong \frac{R}{x - \alpha_1} \times \cdots \times \frac{R}{x - \alpha_k}
-\]
-The map back can be given by the Lagrange interpolation, or by inverting the Vandermonde matrix.
-
-In general, evaluating the isomorphism in either direction is a computationally expensive task. However, there are specific pairs of rings in which the isomorphisms can be efficiently evaluated in a divide-and-conquer approach to improve the theoretical complexity significantly.

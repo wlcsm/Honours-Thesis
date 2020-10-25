@@ -6,18 +6,70 @@ Bibliography for my Honours Thesis
     note = {Accessed: 20-10-2020. Used to reduce multiplication in finite fields of prime powers, to fields of prime characteristic}
 }
 
+@inproceedings{barret,
+    author = {Barrett, Paul},
+    editor = {Odlyzko, Andrew M.},
+    title = {Implementing the Rivest Shamir and Adleman Public Key Encryption Algorithm on a Standard Digital Signal Processor},
+    booktitle = {Advances in Cryptology --- CRYPTO' 86},
+    year = {1987},
+    publisher = {Springer Berlin Heidelberg},
+    address = {Berlin, Heidelberg},
+    pages = {311--323},
+    isbn = {978-3-540-47721-1}
+}
+
+@misc{instruction-times,
+    title = {Instruction tables: lists of instruction latencies, throughputs and micro-operation breakdowns for Intel, AMD and VIA CPUs},
+    author = {A. Fog.},
+    year = {2017},
+    howpublished = {\url{http://www.agner. org/optimize/}},
+    note = {Accessed: 20-10-2020.}
+}
+
+@inproceedings{gpu-mult,
+    author = {Emeliyanenko, Pavel},
+    editor = {Dou, Yong and Gruber, Ralf and Joller, Josef M.},
+    title = {Efficient Multiplication of Polynomials on Graphics Hardware},
+    booktitle = {Advanced Parallel Processing Technologies},
+    year = {2009},
+    publisher = {Springer Berlin Heidelberg},
+    address = {Berlin, Heidelberg},
+    pages = {134--149},
+    isbn = {978-3-642-03644-6}
+}
+
+
+@article{bluestein,
+    author = {L. Bluestein},
+    journal = {IEEE Transactions on Audio and Electroacoustics},
+    title = {A linear filtering approach to the computation of discrete Fourier transform},
+    year = {1970},
+    volume = {18},
+    number = {4},
+    pages = {451-455},
+    doi = {10.1109/TAU.1970.1162132}
+}
+
 @misc{gmp-big-num,
     title = {GNU Multiple Precision Arithmetic library},
-    howpublished = {\url{https://gmplib.org/manual/FFT-Multiplication#FFT-Multiplication}},
+    howpublished = {\url{https://gmplib.org/manual/FFT-Multiplication\#FFT-Multiplication}},
     note = {Accessed: 20-10-2020}
 }
 
 @book{modern-comp-alg,
     title = {Modern Computer Algebra. Third Edition},
-    author = {von vur Gathen, Joachim and Gerhard, Jürgen}
+    author = {von vur Gathen, Joachim and Gerhard, Jürgen},
     year = {2013},
     isbn = {1107039037}
 }
+
+@article{fft-error,
+    author = {Colin Percival},
+    title = {Rapid multiplication modulo the sum and difference of highly composite numbers},
+    journal = {Centre, Simon Fraser University},
+    pages = {387--395}
+}
+
 @misc{maxima-karatsuba,
     title = {Maxima Polynomial Documentation},
     howpublished = {\url{https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html}},
@@ -29,7 +81,7 @@ Bibliography for my Honours Thesis
     author = {Bosma, Wieb and Cannon, John and Playoust, Catherine},
     howpublished = {\url{https://math.tntech.edu/machida/1911/maxima/help/maxima\_11.html}},
     published = {Journal of Symbolic Computation. Vol 24 (3-4)},
-    pages = {235-265},
+    pages = {235--265},
     year = {1997},
 }
 
@@ -52,7 +104,7 @@ Bibliography for my Honours Thesis
     isbn = {978-3-662-43799-5}
 }
 
-@InProceedings{ram-model,
+@inproceedings{ram-model,
     author = {Cook, Stephen A. and Reckhow, Robert A.},
     title = {Time-Bounded Random Access Machines},
     year = {1972},
@@ -69,8 +121,7 @@ Bibliography for my Honours Thesis
     series = {STOC '72}
 }
 
-  
-@InProceedings{crt-mul-gpu,
+@inproceedings{crt-mul-gpu,
     title = {Efficient Multiplication of Polynomials on Graphics Hardware},
     author = {Emeliyanenko, Pavel},
     editor = {Dou, Yong and Gruber, Ralf and Joller, Josef M.},
@@ -84,6 +135,17 @@ Bibliography for my Honours Thesis
 
     % abstract={We present the algorithm to multiply univariate polynomials with integer coefficients efficiently using the Number Theoretic transform (NTT) on Graphics Processing Units (GPU). The same approach can be used to multiply large integers encoded as polynomials. Our algorithm exploits fused multiply-add capabilities of the graphics hardware. NTT multiplications are executed in parallel for a set of distinct primes followed by reconstruction using the Chinese Remainder theorem (CRT) on the GPU. Our benchmarking experiences show the NTT multiplication performance up to 77 GMul/s. We compared our approach with CPU-based implementations of polynomial and large integer multiplication provided by NTL and GMP libraries.},
 
+
+@inproceedings{gpu-kepler-architecture,
+    author = {B. {Chang} and B. {Goi} and R. C. -. {Phan} and W. {Lee}},
+    booktitle = {2016 IEEE 18th International Conference on High Performance Computing and Communications; IEEE 14th International Conference on Smart City; IEEE 2nd International Conference on Data Science and Systems (HPCC/SmartCity/DSS)},
+    title = {Accelerating Multiple Precision Multiplication in GPU with Kepler Architecture},
+    year = {2016},
+    volume = {},
+    number = {},
+    pages = {844-851},
+    doi = {10.1109/HPCC-SmartCity-DSS.2016.0122}
+}
 
 @inproceedings{crt-parallel-mul,
     title = {Fast, Parallel Algorithm for Multiplying Polynomials with Integer Coefficients},
@@ -134,6 +196,19 @@ Bibliography for my Honours Thesis
     author = {Siu, Wan-Chi and A.G.Constantinides},
     year = {1984},
     doi = {10.1016/0165-1684(85)90035-0}
+}
+
+@article{mersenne-recent,
+    title = {Efficient algorithms for computing the new Mersenne number transform},
+    journal = {Digital Signal Processing},
+    volume = {25},
+    pages = {280 - 288},
+    year = {2014},
+    issn = {1051-2004},
+    doi = {https://doi.org/10.1016/j.dsp.2013.10.018},
+    url = {http://www.sciencedirect.com/science/article/pii/S1051200413002388},
+    author = {Mounir T. Hamood and Said Boussakta},
+    keywords = {Number theoretic transforms (NTTs), New Mersenne number transform (NMNT), Radix-2 algorithm},
 }
 
 @inproceedings{stockham,

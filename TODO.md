@@ -1,6 +1,23 @@
 # General
 * Just mention that we can do constant time bit operations
 
+* Mention what "linear time" is in the preliminaries
+* Need to say that in the asymptotic analysis we have a normalised DFT
+* In the FFT stuff, make sure I put the negative in the exponent in the forward DFT
+* In FFT, be consistent in either using $n$ or $N$
+* Algebraic complexity theory book has a good theorem for the Chinese remainder theorem
+* Do I really need the rou-results lemma or can I just write the proofs when I need them?
+* Maybe say that we will try to say "ring" operations
+* I think we need to say something like "We will consider that ram model in Hanna's paper, and the Turing machine. However, for simplicity when working in arbitrary rings, we will often quantify the runtime as the number of "ring operations"
+* I think multiplications are supposed to be time $M$ and convolutions are time $\M{M}$
+* Mention in the preliminaries that rearranging things in the Turing model make take time 
+* Ask Martin where he thinks the section on convolutions should go
+* Talk about making the theorems in the asymptotic analysis section different from the ones in the paper
+* I just realised why we need to have the definition of the root of unity, its because the DFT requires a ROU but the FFT requires a primitive ROU.
+* Be consistent with x and X in the FFT stuff
+* Be consistent when using R and K
+* Solving systems of equations faster gives a good result for multivariate polynomial multiplication
+* Mention in preliminaries if we were strictly considering the ram model then we could just convert everything into integer multiplication and then we could do dfts and convolutions in constant time. So we need to define a different RAM model
 * Might need to say that in the RAM model, ring operations are also executed in constant time
 * Martin says put in some metrics about nPoly, like the number of lines
 * Include Bluesteins trick
