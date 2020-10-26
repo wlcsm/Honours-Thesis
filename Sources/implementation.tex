@@ -1,12 +1,15 @@
 \chapter{Implementation Details}\label{chp:implementation}
 
-\section{Sparse Polynomial multiplication with Heaps}
+\section{Sparse Polynomial multiplication}
 
-Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can convert the complexity bound to be in terms of the number of non-zero terms, rather than the maximum degree. As of now there is no deterministic algorithm which does this (TODO check). 
+Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree. 
 
-The problem arises in managing how the elements are stored in memory, since we can only add two coefficients together at a time, we need to keep track of all the terms we have calculated so far. Once we have multiplied two terms together we need to add them to the cumulative result we have calculated so far. Finding the terms to add it to is $O(n)$ is organised in an unsorted array. To achieve $O(1)$ lookup time we could look at something like a hashmap, but we often want the result to be sorted in the end. You can actually look at making it a hashmap all the time but certain operations such as addition are much slower.
+We might try to use the schoolbook method to achieve this, however a problem arises in coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far. 
+
+There are several methods we might look using to achieve this: a binary tree would provide $\log n$ lookup time and insertion, but uses expensive memory operations and is not memory efficient, a hashmap, though this would incur additional costs when hashing the elements and the elements would need to be sorted in the end. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end. 
 
 Let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote the cumulative result after $k$ steps as $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
+
 
 Using the formula
 \[
@@ -14,11 +17,11 @@ Using the formula
 \]
 When we calculate another term $a_ib_j x^{i + j}$ for some $1 \le i \le n$ and $1 \le j \le m$, we now need add this to the resulting polynomial we have calculated so far. To find the matching monomial in our result polynomial (or insert it if it doesn't exist) we will need to perform a binary search. However, if we have stored the result as an array, then inserting the monomial could cause an $\#c_k$ shift in elements. If we store is as a linked list then this is not very efficient due to the expensive memory read operations.
 
-Here I will present a technique for multiplying polynomials in $O(\# f \# g \log (\min\{\# f, \# g\})$. The idea is to compute the monomials in order (as much as possible), so the output is naturally sorted. On review this technique is similar to one by Johnson (TODO cite)
+Here I will present a technique for multiplying polynomials in $O(\# f \# g \log (\min\{\# f, \# g\})$. The main idea is to compute the monomials in order (as much as possible), so the output is naturally sorted. Later research found that this technique is similar to Johnson's sparse multiplication algorithm \cite{johnson-sparse-polynomial}.
 
 As a practical example, we know that the smallest terms will be the lowest term of $f$ multiplied by the lowest term of $g$. Then the next smallest term in the result is either the smallest term of $f$ multiplied by the second smallest term of $g$, or vice versa. So we must compare them and output the smallest. 
 
-In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ smallest monomial of $f$ multiplied by the $j^{\tx{th}}$ smallest monomial of $g$. Then $x_{ij} < x_{kj}$ when $k > i$ and $x_{ij} < x_{ik}$ when $k > j$. Thus we obtain a partial ordering (TODO is it actually a partial ordering?) on the collection $\{x_{ij}\}_{i, j=0}^{i=\# f, j = \#g}$. 
+In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ smallest monomial of $f$ multiplied by the $j^{\tx{th}}$ smallest monomial of $g$. Then $x_{ij} < x_{kj}$ when $k > i$ and $x_{ij} < x_{ik}$ when $k > j$. Thus before performing any calculations, we are able to deduce a partial ordering on the collection $\{x_{ij}\}_{i, j=0}^{i=\# f, j = \#g}$. The goal of the algorithm is to then resolve this into a total ordering in an efficient manner.
 
 \begin{figure}
     \center
@@ -50,21 +53,24 @@ Therefore the multiplication operation will be $O(\# f \# g \min\{\# f, \# g\})$
 
 % I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
 
-% \subsection{Runtimes}
+\section{Runtimes}
 
-% \begin{center}
-%     \begin{tabular}{|c| c c|}
-%         \# El. & FFT & STD\\
-%         8      & 191950 & 106140 \\
-%         16     & 277790 & 289350 \\
-%         64     & 934627 & 1859690 \\
-%         256    & 4282801 & 23703833 \\
-%         1024   & 17969459 & 264139561 \\
-%         2048   & 33150304 & 188562822 \\
-%         4096   & 78430218 & 4340959519 \\
-%         8192   & 126315317 & 16,154233194 \\
-%     \end{tabular}
-% \end{center}
+nPoly is a library for polynomial arithmetic written in the Rust programming language. Rust is a modern systems programming language that has become increasingly popular in recent years for its ability to make highly-performant programs with clean code.
+One of the advantages of Rust is its support for generic programming which has enabled nPoly to implement its algorithms over all algebras the algorithms support. Currently, nPoly supports: polynomial addition/subtraction/evaluation, Schoolbook multiplication, Karatsuba multiplication, FFT multiplication, Kronecker substitution and limited support for Gr\"{o}bner bases.
+
+\begin{center}
+    \begin{tabular}{|c| c c|}
+        \# El. & FFT & STD\\
+        8      & 191950 & 106140 \\
+        16     & 277790 & 289350 \\
+        64     & 934627 & 1859690 \\
+        256    & 4282801 & 23703833 \\
+        1024   & 17969459 & 264139561 \\
+        2048   & 33150304 & 188562822 \\
+        4096   & 78430218 & 4340959519 \\
+        8192   & 126315317 & 16,154233194 \\
+    \end{tabular}
+\end{center}
 
 % \subsection{Sparse evaluation}
 
