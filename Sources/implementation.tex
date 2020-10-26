@@ -2,11 +2,11 @@
 
 \section{Sparse Polynomial multiplication}
 
-Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree. 
+Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree.
 
-We might try to use the schoolbook method to achieve this, however a problem arises in coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far. 
+We might try to use the schoolbook method to achieve this, however a problem arises in coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far.
 
-There are several methods we might look using to achieve this: a binary tree would provide $\log n$ lookup time and insertion, but uses expensive memory operations and is not memory efficient, a hashmap, though this would incur additional costs when hashing the elements and the elements would need to be sorted in the end. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end. 
+There are several methods we might look using to achieve this: a binary tree would provide $\log n$ lookup time and insertion, but uses expensive memory operations and is not memory efficient, a hashmap, though this would incur additional costs when hashing the elements and the elements would need to be sorted in the end. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end.
 
 Let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote the cumulative result after $k$ steps as $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
 
@@ -19,7 +19,7 @@ When we calculate another term $a_ib_j x^{i + j}$ for some $1 \le i \le n$ and $
 
 Here I will present a technique for multiplying polynomials in $O(\# f \# g \log (\min\{\# f, \# g\})$. The main idea is to compute the monomials in order (as much as possible), so the output is naturally sorted. Later research found that this technique is similar to Johnson's sparse multiplication algorithm \cite{johnson-sparse-polynomial}.
 
-As a practical example, we know that the smallest terms will be the lowest term of $f$ multiplied by the lowest term of $g$. Then the next smallest term in the result is either the smallest term of $f$ multiplied by the second smallest term of $g$, or vice versa. So we must compare them and output the smallest. 
+As a practical example, we know that the smallest terms will be the lowest term of $f$ multiplied by the lowest term of $g$. Then the next smallest term in the result is either the smallest term of $f$ multiplied by the second smallest term of $g$, or vice versa. So we must compare them and output the smallest.
 
 In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ smallest monomial of $f$ multiplied by the $j^{\tx{th}}$ smallest monomial of $g$. Then $x_{ij} < x_{kj}$ when $k > i$ and $x_{ij} < x_{ik}$ when $k > j$. Thus before performing any calculations, we are able to deduce a partial ordering on the collection $\{x_{ij}\}_{i, j=0}^{i=\# f, j = \#g}$. The goal of the algorithm is to then resolve this into a total ordering in an efficient manner.
 
@@ -34,7 +34,7 @@ In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ small
                     x_{\# f 1} \arrow[rd] & & \cdots \arrow[ld] \arrow[rd] & & \cdots \arrow[ld] \arrow[rd] & & x_{1 \# g} \arrow[ld] \\
                                           & \cdots \arrow[rd] & & x_{22} \arrow[rd] \arrow[ld] & & \cdots \arrow[ld] & \\
                                           & & x_{21} \arrow[rd] & & x_{12} \arrow[ld] & & \\
-                                          & & & x_{11} & & & 
+                                          & & & x_{11} & & &
                 \end{tikzcd}
             };
     \end{tikzpicture}

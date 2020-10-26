@@ -1,19 +1,18 @@
 % My study of Basis mostly came from https://arxiv.org/ftp/arxiv/papers/1304/1304.0420.pdf
 \chapter{Integer Rings}\label{chp:integer-rings}
 
-(TODO Mention that the transformation from convolution to multiplication is Bluestein's chirp transform, and the transformation from multiplication to convolution is the FFT)
 
-In this section, we will look at performing polynomial multiplication over integer rings. One of the first things that we will show is that some integer rings support FFTs, though only with certain transform lengths. A large portion of this chapter will be devoted to understanding when such a ring admits roots of unity of high order to enable such transformations.
+In this section, we will look at polynomial multiplication over integer rings. We will formalise the notion of discrete convolutions and establish important theoretical results for the existence of roots of unity in integer rings of certain order. A large portion of this chapter will be devoted to understanding when such a ring admits roots of unity of high order to enable such transformations. As such, the algorithms in this chapter will not present any new theoretical bound on multiplication; the aim to create algorithms that a practically efficient for moderate input sizes.
 
-There are several common use cases for the use of polynomial multiplication in integer rings; each puts different constraints of the types of rings we use to it is important to understand the difference. Branching off the work in previous chapters we can use integer rings to avoiding the loss of precision that comes from considering $\Z[x]$ as a subring of $\C[x]$ and performing a complex FFT. Here we use the Chinese Remainder theorem to map the polynomials in $\Z[x]$ into several polynomials with coefficients in integer rings to which we can then apply the FFT algorithm. 
+% There are several common use cases for the use of polynomial multiplication in integer rings; each puts different constraints of the types of rings we use to it is important to understand the difference. Branching off the work in previous chapters we can use integer rings to avoiding the loss of precision that comes from considering $\Z[x]$ as a subring of $\C[x]$ and performing a complex FFT. Here we use the Chinese Remainder theorem to map the polynomials in $\Z[x]$ into several polynomials with coefficients in integer rings to which we can then apply the FFT algorithm. 
 
-This is also often used to control the size of the coefficients throughout the process, we can multiply the polynomials via an FFT in several finite fields of relatively small characteristic, and then reconstruct the result in $\Z[x]$ through the Chinese Remainder Theorem (CRT). This is a very popular choice for large parallel computing as it is easily implemented on a Graphics Processes Unit (GPU) \cite{gpu-mult} \cite{crt-parallel-mult} \cite{gpu-kepler-architecture}.
+Integer rings are commonly used to control the size of the coefficients throughout the multiplication process for polynomials in $\Z[x]$. We can first transform the polynomials in $\Z[x]$ in several polynomials in integer rings that admit fast FFTs, and then reconstruct the result in $\Z[x]$ through the Chinese Remainder Theorem (CRT). This is a very popular choice for large parallel computing as it is easily implemented on a Graphics Processes Unit (GPU) \cite{gpu-mult} \cite{crt-parallel-mul} \cite{gpu-kepler-architecture}.
 
-Computer hardware optimisations and creating \emph{trapdoor functions} for cryptographic proposes. This case offers the most flexibility over the choice of the divisor $N$, allowing us to choose divisors which are very efficient to perform arithmetic in using a computer.
+Another areas were such rings are found are in cryptography and signal processing. These cases offer the most flexibility over the choice of the divisor $N$, allowing us to choose divisors which are very efficient to perform arithmetic in. 
 
-It is important to differentiate the use cases as each imposes a different set of restrictions on the divisor, and subsequently, the optimisations we can apply. The most favourable to choose are those that offer efficient arithmetic in common computer architecture. Namely, divisors $N$ whose binary representation has few ones. Though throughout all these we can also use Barret Reduction \cite{barret} to improve the efficiency of divisions in the integers rings by replacing them with multiplications. This is often much more efficient since the regular division operation in most modern CPUs is not particularly efficient as multiplications \cite{instruction-times}.
+It is important to differentiate the use cases as each imposes a different set of restrictions on the divisor, and subsequently, the optimisations we can apply. The most favourable to choose are those that offer efficient arithmetic in common computer architecture. Namely, divisors $N$ whose binary representation has few ones. Though throughout all these we can also use Barret Reduction \cite{barret} to improve the efficiency of divisions in the integers rings by replacing them with multiplications. This is often much more efficient since the regular division operation in most modern CPUs is not as efficient as multiplications \cite{instruction-times}.
 
-Remember that one can still use the Karatsuba/Toom-Cook algorithms here as well as the Sch\"{o}nage-Strassen algorithm if we use Kronecker substitution to transform the inputs from $\Z/N[x]$ to a problem in $\Z[x]$. However, it is often more efficient to perform calculations directly in $\Z/N$ since the elements are always bounded and so arithmetic operations as executed in a time proportional to $N$.
+Remember that one can still use the algorithms from Chapter \ref{chp:classical} and Chapter \ref{chp:eval-interp} if we first use Kronecker substitution to transform the inputs from $\Z/N[x]$ to a problem in $\Z[x]$. However, it is often more efficient to perform calculations directly in $\Z/N$ since the elements are always bounded and so arithmetic operations as executed in a time proportional to $N$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% Finished: N %%%%%%%%%%%%%%%%%%%%%
@@ -21,14 +20,12 @@ Remember that one can still use the Karatsuba/Toom-Cook algorithms here as well 
 
 \subsection{Convolutions}
 
-(TODO Reword this)
-
-Convolutions are important in the field Fourier analysis as the DFT is the unique function that has the \emph{convolution property} that allows for efficient computations (TODO cite). We will introduce this property and show how polynomial multiplication can viewed as a convolution, thus giving a second intuition as to how the FFT can be used to multiply polynomials. The language of convolutions is often more apt in the context of signal processing and finite automata where the techniques in this section are commonly applied.
+Convolutions are fundamental in the field Fourier analysis as the DFT is the unique function that has the \emph{convolution property}. We will introduce this property and show how polynomial multiplication can viewed as a convolution as a second intuition as to how the FFT can be used to multiply polynomials. Though we will show polynomial multiplication and convolutions to be equivalent problems, the language of convolutions is often more apt in the context of signal processing and finite automata where the techniques in this section are commonly applied.
 
 \begin{definition}[Discrete Convolution]
     Let $(x_i)_{i=0}^{n-1}, (y_i)_{i=0}^{n-1} \in K^n$ be two sequences in a ring $K$. The convolution of $x$ and $y$ is defined as
     \[
-        (x \ast y)_k = \sum^{n-1}_{i=0} x_i y_{k-i} \in K^n
+        (x \ast y)_k = \sum^{n-1}_{i=0} x_i y_{k-i} \in K^n,
     \]
     where $y_{k-i}$ is understood to mean $y_{k-i \mod n}$.
 \end{definition}
@@ -36,36 +33,36 @@ Convolutions are important in the field Fourier analysis as the DFT is the uniqu
 \begin{proposition}
     Let $K$ be a commutative ring. Then for any $n \in \N$, we have the isomorphism of rings
     \[
-        (\frac{K[x]}{x^n - 1}, \cdot) \cong (K^n, \ast)
+        \bb{\frac{K[x]}{x^n - 1}, \times} \cong (K^n, \ast).
     \]
 \end{proposition}
 
 \begin{proof}
     The map $K[x]/(x^n - 1) \to K^n$ is given by associating the coefficients of a polynomial with its corresponding vector. That is
     \[
-        \sum_{i=0}^{n-1} f_i x^i \mapsto (f_0, \ldots, f_{n-1})
+        \sum_{i=0}^{n-1} f_i x^i \mapsto (f_0, \ldots, f_{n-1}).
     \]
     This is clearly a bijection. 
 
     To see that this is an isomorphism, consider two polynomials $f, g \in K[x]/(x^n - 1)$, given by $f(x) = \sum_{i=0}^{n-1} f_i x^i$ and $g(x) = \sum_{i=0}^{n-1} g_i x^i$. Then 
-    \[
-        f(x)g(x) = \sum^{2n}_{k=0} \bb{\sum_{i + j = k}f_ig_j} x^k = \sum^n_{k=0} \bb{\sum_{i + j = k \mod n}f_jg_i} x^k = \sum^n_{k=0} \bb{\sum_j f_jg_{k-j}} x^k \mod (x^n - 2)
-    \]
-    Hence the coefficients of the polynomial are exactly the those given by the convolution of $f$ and $g$.
+    \begin{align*}
+        f(x)g(x) = \sum^{2n}_{k=0} \bb{\sum_{i + j = k}f_ig_j} x^k 
+        &= \sum^n_{k=0} \bb{\sum_{i + j = k \mod n}f_jg_i} x^k\\
+        &= \sum^n_{k=0} \bb{\sum_j f_jg_{k-j}} x^k \mod (x^n - 2)
+    \end{align*}
+    Hence the coefficients of the polynomial are exactly the those given by the convolution of $f$ and $g$, thus the two rings are isomorphic.
 \end{proof}
 
 % TODO could I maybe not word this as a corollary
-\begin{corollary}
+\begin{corollary}\label{cor:eqiv-poly-conv}
     Polynomial multiplication in $K[x]$ and convolutions in $K^n$ for any $n \in \N$ are equivalent problems.
 \end{corollary}
 
 \begin{proof}
-    To multiply polynomials using a convolution, let $f, g \in K[x]$ and $n = \deg f + \deg g + 1$. Then since $(K[x]/(x^n - 1), \cdot) \cong (K^n, \ast)$, we can use a convolution to evaluate $h = fg \in K[x]/(x^n -1)$. Since $\deg f, \deg g, \deg h < n$, we can recover the true answer $h \in K[x]$.
+    To multiply polynomials using a convolution, let $f, g \in K[x]$ and $n = \deg f + \deg g + 1$. Then since $(K[x]/(x^n - 1), \times) \cong (K^n, \ast)$, we can use a convolution to evaluate $h = fg \in K[x]/(x^n -1)$. Since $\deg f, \deg g, \deg h < n$, we can recover the true answer $h \in K[x]$.
 
-    To use multiplication to solve convolutions, we make convert the sequences $f^\prime, g^\prime \in K^n$ into polynomials $f, g \in K[x]$. Then multiply as usual and apply the substitution $x^n = 1$. This then requires $\M{O}(n)$ additions.
+    To use multiplication to solve convolutions, we make convert the sequences $f^\prime, g^\prime \in K^n$ into polynomials $f, g \in K[x]$. Then multiply as usual and apply the substitution $x^n = 1$. This requires $\M{O}(n)$ ring operations.
 \end{proof}
-
-The convolution property can then be stated as
 
 \begin{definition}[Convolution Property]\label{def:convolution-property}
     Let $x$ and $y$ be two sequences of length $n$ in a ring $K$. Then let $\tx{DFT}$ and $\tx{DFT}^{-1}$ denote the discrete Fourier transform and its inverse. Then
@@ -74,6 +71,9 @@ The convolution property can then be stated as
     \]
     where $\cdot$ represented element-wise multiplication of the two sequences.
 \end{definition}
+
+% Did I actually give that in that chapter?
+This can be proof by applying Corollary \ref{cor:equiv-poly-conv} and the analogous result for polynomials in Chapter \ref{chp:eval-interp}
 
 
 \begin{proposition}[Bluestein's Algorithm]
@@ -93,30 +93,14 @@ The convolution property can then be stated as
     \]
     If we then take $f = (a_n \omega_N^{j^2/2})_{j=0}^{N-1}$ and $g = (\omega_N^{j^2/2})_{j=0}^{N-1}$ we have the formula
     \[
-        X_k = g_k \cdot (\sum^{N-1}_{j=0} f_j g_{k-j} = g_k \cdot (f \ast g)_k
+        X_k = g_k \cdot \bb{\sum^{N-1}_{j=0} f_j g_{k-j}} = g_k \cdot (f \ast g)_k
     \]
     Thus we can use the convolution to evaluate the DFT.
 \end{proof}
 
-This may seem useless as we would then simply use the DFT to evaluate the convolution. However, the fundamental difference is that when choosing to evaluate a convolution, we may choose an DFT of any transform length greater than $N - 1$. However we cannot simply pad the original DFT with zeros as that would change the signal. Thus we can use Bluestein's algorithm\cite{bluestein} to use more efficient FFT algorithms for specific transform sizes e.g. highly composite (FFT), prime (Rader's Transform, Definition \ref{thm:rader-transform}).
-
-% TODO fix this 
-
-In the previous chapter, we saw this exact procedure but under the evaluation-interpolation label, where the two inner DFTs are the evaluations and the final $\tx{DFT}^{-1}$ is the interpolation.
-
 Therefore since element-wise multiplications is $O(n)$, we can see that the problem of calculating convolutions has the same complexity as computing the DFT (TODO the inverse DFT has the same complexity as the DFT, don't know if I really need to explain that).
 
-Before we can give an overview of the main algorithm, we first need to explain how to transform a multiplication problem in $\Z[x]$ into a convolution in $\otimes_{i=1}^{d} \C^{s_i}$.\\
-Note the isomorphism between the two rings arises by associating each element in the left hand side with its coefficient vector, this gives
-\begin{equation}\label{eq:mult-to-convolution}
-    \bb{\frac{\C[x_1, \ldots, x_d]}{x_1^{s_1} - 1, \ldots, x_d^{s_d} - 1}, \times} \cong (\otimes_{i=1}^d \C^{s_i}, \ast).
-\end{equation}
-We begin by proving a lemma to allow us to transform a DFT into a multidimensional DFT.
-
-
-
-
-
+This may seem useless as we would then simply use the DFT to evaluate the convolution. However, the fundamental difference is that when choosing to evaluate a convolution, we may choose an DFT of any transform length greater than $N - 1$. However we cannot simply pad the original DFT with zeros as that would change the signal. Thus we can use Bluestein's algorithm\cite{bluestein} to use more efficient FFT algorithms for specific transform sizes e.g. highly composite (FFT), prime (Rader's Transform, Definition \ref{thm:rader-transform}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% Finished: N %%%%%%%%%%%%%%%%%%%%%

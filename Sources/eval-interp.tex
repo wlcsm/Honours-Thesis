@@ -201,24 +201,26 @@ The following lemma which formalises this intuition and the general algorithm fo
         \label{fig:butterflies}
     \end{figure}
 
-    Computing each of the two smaller DFTs takes $2\M{C}(N/2)$ and computing the $N/2$ butterflies takes takes $pN$ time for some positive constant $p > 0$.
+    Computing each of the two smaller DFTs takes $2\M{C}(N/2)$ and computing the $N/2$ butterflies takes takes $\M{O}(n)$ ring operations.
 
     Altogether this gives
     \[
-        \M{C}(N) \le 2 \M{C}(N/2) + pN
+        \M{C}(N) \le 2 \M{C}(N/2) + \M{O}(n)
     \]
 \end{proof}
-
+% TODO need to mention that we need to precompute the twiddle factors
 
 \begin{proof}[Proof of Theorem \ref{thm:fft}]
-    Using the recursive formula in Lemma \ref{lem:fft-recursion}, we will show by induction that $\M{C}(N) \le pN\log_2 N$ for all $N$ a power of two.
+    Using the recursive formula in Lemma \ref{lem:fft-recursion}, we replace the $\M{O}(n)$ term by $kN$ for $k> 0$ a positive constant.
 
-    We know this is true for $N = 1$, because in that case the DFT is simply the identity so $\M{C}(1) = 0 \le p1 \log_2 1$.
-    Suppose $\M{C}(M) \le pM\log_2 M$ holds for all $M$ a power of two less than $N$. Then
+    We will show by induction that $\M{C}_F(N) \le kN\log_2 N$ for all $N$ a power of two.
+
+    We know this is true for $N = 1$, because in that case the DFT is simply the identity so $\M{C}(1) = 0 \le k(1 \log_2 1)$.
+    Suppose $\M{C}(M) \le kM\log_2 M$ for all $M$ a power of two less than $N$. Then
     \begin{align*}
         \M{C}(N)
-        &= 2\M{C}(N/2) + pN\\
-        &= pN\log_2 (N/2) + pN\\
+        &\le 2\M{C}(N/2) + pN\\
+        &\le pN\log_2 (N/2) + pN\\
         &= pN\log_2 N - pN\log_2 2 + pN\\
         &= pN\log_2 N
     \end{align*}
@@ -228,54 +230,51 @@ The following lemma which formalises this intuition and the general algorithm fo
 
 \subsection{Mixed-radix FFT}
 
-In our previous formulation, we split the DFT into two smaller DFTs each time which is known as the radix-$2$. The FFT can be generalised to an arbitrary radix, though in practice this is often much less efficient than the radix-$2$ implementation. For signal processing purposes, padding the DFT with zeros will give incorrect results, however as we showed, when using the DFT to multiply polynomials, we have the advantage of being able to pad the input polynomials with zeros in order to achieve a transform with a power of two length. In this case the DFT can become twice as long in each of the inputs, but often a mixed radix-DFT with non-power of two lengths can be much more than double the time, as we don't have access to fast bit operations. Though this case is unavoidable when $2$ is not a unit in $K$.
+In our previous formulation, we recursively split the DFT into two smaller DFTs each time; this is known as the radix-$2$ FFT. The FFT can be generalised to an arbitrary radix, though in practice this is often much less efficient than the radix-$2$ implementation. For signal processing purposes, padding the DFT with zeros will give incorrect results, however as we showed, when using the DFT to multiply polynomials, we have the advantage of being able to pad the input polynomials with zeros in order to achieve a transform with a power of two length. In this case the DFT can become twice as long in each of the inputs, but in most implementations, a mixed radix-FFT with non-power of two lengths can be much more than double the time, as we don't have access to fast bit operations.
 
 Say we want to do the radix-$m$ DFT where $m$ divides $n$:\\
 Performing the same steps we obtain
-\[
-    F_n(k) = \sum^{n-1}_{i=0} a_0\omega_n^{-ik}.
-\]
-Instead of breaking $F_n(k)$ into two pieces, break it into $m$ pieces,
-% TODO make sure this is correct. 
-\begin{align*}
-    F_n(p_1\frac{n}{m} + p_2) 
-    &= \sum^{m-1}_{j=0} \sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-(mi + j)(p_1 \frac{n}{m} + p_2)}\\ 
-    &= \sum^{m-1}_{j=0} \bb{\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-mi p_2}} \omega_n^{-j(p_1\frac{n}{m} + p_2)}\\
-    &= \sum^{m-1}_{j=0} \bb{\omega_n^{-jp_2}\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-mi p_2}} (\omega_n^{-\frac{n}{m}})^{p_1 j}
-\end{align*}
 
-% TODO say what a twiddle factor is
+\begin{theorem}[Mixed Radix FFT]\label{thm:mixed-radix-fft}
+    Let $K$ be a commutative ring with roots of unity of order $N$. Then if $m \in \N$ divides $N$, we have
+    \[
+        \M{C}_F(N) \le m\M{C}_F(\frac{N}{m}) + \frac{N}{m}\M{C}(m) + \M{O}(n)
+    \]
+\end{theorem}
 
-Just as the original FFT first splits it into two sub-DFTs, one with all the coefficients at odd indices and the other the even indices. Each of the inner sums in the above expression correspond to a sub-DFT, and the $i^{\text{th}}$ one consist of all coefficients $a_r$ where $r = i \mod m$. The reason we split up the $\omega_n^{j(\frac{n}{m}p_1 + p_2)}$ in the last line is so that we can combine all of these sub-DFTs using a DFT of size $\frac{n}{m}$, we simply need to multiply each of the inner DFTs by $\omega_n^{jp_2}$.
+\begin{proof}
+    Instead of breaking $F_n(k)$ into two pieces, break it into $m$ pieces,
+    % TODO make sure this is correct. 
+    \begin{align}
+        F_n(p_1\frac{n}{m} + p_2) 
+        &= \sum^{m-1}_{j=0} \sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-(mi + j)(p_1 \frac{n}{m} + p_2)}\\ \nonumber
+        &= \sum^{m-1}_{j=0} \bb{\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-mi p_2}} \omega_n^{-j(p_1\frac{n}{m} + p_2)}\\\nonumber
+        &= \sum^{m-1}_{j=0} \bb{\omega_n^{-jp_2}\sum^{\frac{n}{m}-1}_{i=0} x_{mi + j}\omega_n^{-mi p_2}} (\omega_n^{-\frac{n}{m}})^{p_1 j} \label{eq:multi-radix-fft}
+    \end{align}
 
-Calculating all the sub-DFTs takes $F_{\frac{n}{m}}$ time since there are $m$ of size $\frac{n}{m}$. Multiplying the inner DFTs by a twiddle factor (plus computing the twiddle factors) is $O(n)$. Combining them together is equivalent to calculating $\frac{n}{m}$ sub-DFTs of size $m$, which contributes $\frac{n}{m}F_{m}$ time.\\
-In total this is
-\[
-    \M{C}(n) = m\M{C}(\frac{n}{m}) + \frac{n}{m}\M{C}(m) + O(n)
-\]
-time.
+    Just as the original FFT splits the sum into two sub-DFTs -- one with all the coefficients at odd indices and the other the even indices -- the $i^{\text{th}}$ sum in \eqref{eq:multi-radix-fft} consist of all coefficients $a_r$ where $r = i \mod m$. The reason we split up the $\omega_n^{j(\frac{n}{m}p_1 + p_2)}$ in the last line is so that we can combine all of these sub-DFTs using another DFT of size $\frac{n}{m}$; we simply need to multiply each of the inner DFTs by $\omega_n^{jp_2}$.
 
-Note that in a Turing machine, the $m$ inner sub-DFTs also require us to reorganise $x$ into $n_1$ consecutive vectors of size $\frac{n}{m}$ and vice versa. This can be achieved in $O(n \log( \min \{m, \frac{n}{m}\}\tx{bit}(R))$ time where $\tx{bit}(R)$ is the number of bits required to store an elements of $R$ \cite{ffnlogn}. We will revisit this fact in Section \ref{chp:asymptotic} where we will perform our computations in the Turing machine.
+    Calculating all the sub-DFTs takes $\C_F(\frac{n}{m})$ time since there are $m$ of size $\frac{n}{m}$. Multiplying the inner DFTs by a twiddle factor is $O(n)$. Combining them together is equivalent to calculating $\frac{n}{m}$ sub-DFTs of size $m$, which contributes $\frac{n}{m}\M{C}_F{m}$ time.
 
-From the above recursive formula we can see that changing $m$ does not change the asymptotic complexity; indeed, since we consider $m$ to be fixed we have $F_m$ is a constant, and so asymptotically this is equivalent to the recursive formula $mF_{\frac{n}{m}} + \M{O}(n)$ whose solution is $\M{O}(n \log n)$ as before. 
+    In total this is
+    \[
+        \M{C}(n) = m\M{C}(\frac{n}{m}) + \frac{n}{m}\M{C}(m) + O(n)
+    \]
+    time.
+\end{proof}
+
+Note that in the Turing machine, the $m$ inner sub-DFTs also require us to reorganise $x$ into $n_1$ consecutive vectors of size $\frac{n}{m}$ and vice versa. This can be achieved in $O(n \log( \min \{m, \frac{n}{m}\}\tx{bit}(R))$ time where $\tx{bit}(R)$ is the number of bits required to store an elements of $R$ \cite{ffnlogn}. We will revisit this fact in Section \ref{chp:asymptotic} where we will perform our computations in the Turing machine.
+
+From the above recursive formula we can see that changing $m$ does not change the asymptotic complexity; indeed, since we consider $m$ to be fixed we have $F_m$ is a constant, and so asymptotically this is equivalent to the recursive formula $mF_{\frac{n}{m}} + \M{O}(n)$ whose solution is $\M{O}(n \log n)$ as before; there is only a constant factor of different between different choices of $m$.
 
 \medskip
-(TODO polish this)
-\medskip
 
-So the main difference is a constant factor. Note however that it is much easier to structure a FFT with radix $2$ in memory since each recursive step requires us to combine two elements, so combining $m$ requires more jumping around in the memory. But Primarily because a computer does all computation in base two so it is much easier overall.
+Note however that it is much easier to structure a FFT with radix $2$ in memory since each recursive step requires us to combine two elements, so combining $m$ requires more jumping around in the memory. 
 
-For example when using a radix of 2, we can structure the elements in their \emph{reverse bit encoding} to perform all operations in place. The reverse bit encoding is often just one CPU instruction in modern CPUs but it is much more complicated to reorganise the elements if the radix is arbitrary.
 
 \begin{remark}
-    (TODO Reword this)
 
-    \medskip
-
-    Our formulation of the FFT is only valid for powers of two, so we may need to pad our inputs with zeros to satisfy this requirement. In order to avoid this padding as much as possible, we may consider constructing a mixed-radix FFTs that generalises the FFT to transform sizes that are not powers of two. However, we note that these tend to be much more difficult to implement efficiently and in typical cases, it is more efficient to pad the polynomials in order to use the standard FFT than it is to use a mixed-radix DFT. This is because modern computers can perform many operations much more efficiently when everything is in base 2, and forcing a different radix can cause operations to be several times slower.
-
-% TODO need to take into account the time to find the twiddle factors
-Note that this might not be the case in the Turing model, as we have used the assumption that addition and multiplication of elements in $K$ is a constant time operation. 
+    Our formulation of the FFT is only valid for powers of two, so we may need to pad our inputs with zeros to satisfy this requirement. In order to avoid this padding as much as possible, we may consider constructing a mixed-radix FFTs that generalises the FFT to transform sizes that are not powers of two. However, we note that these tend to be much more difficult to implement efficiently and in typical cases, it is more efficient to pad the polynomials in order to use the standard FFT than it is to use a mixed-radix DFT. This is because modern computers can perform many operations much more efficiently in base 2, and forcing a different radix can cause operations to be several times slower.
 
     One such optimisation in radix-$2$ is the \emph{reverse bit encoding}, where we can organise $X_1, \ldots, X_k$ in memory so that the entire FFT algorithm can be performed in-place (all data transformation happen inside the array the original data was passed in). This is done by putting $X_i$ at index $\tx{rev}(i, n)$, which is the function which reverses the order of the $n$-bit representation of $i$.
 
@@ -287,31 +286,22 @@ Note that this might not be the case in the Turing model, as we have used the as
 \section{Sch\"{o}nage and Strassen Integer Multiplication Algorithm}
 \label{sec:schon-strass}
 
-(TODO I have not taken into account the fact that n might not be square and we also need to round to the largest power of two)
+The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithm, rounding to the nearest integer to convert the result back into $\Z$. This is a popular approach for medium-sized inputs; however, if the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. If we were to use the algorithms defined in the previous section with enough precision to guarantee that we recover the correct result the complexity would no longer be $O(n \log n)$ as the number of the bits requires to store the ring elements is quite large in accordance to current error bounds on the complex DFT (Theorem 5.1 \cite{fft-error}).
 
-(TODO This is their second integer multiplication scheme)
-
-(TODO reword this)
-
-Throughout this section we will be assuming the bit model which no longer treats integers arithmetic as constant time operations.
-
-The problem with multiplying polynomials in $\Z$ is that $\Z$ does not have roots of unity. One can consider $\Z[x]$ as a subring of $\C[x]$ and then apply the FFT algorithm, rounding to the nearest integer to convert the result back into $\Z$. That is a popular approach for medium-sized inputs; however, often when we work in $\Z[x]$ we are interested in exact solutions whereas when we work in $\C$ we accept that there will be some error. If the error becomes too large then rounding to the nearest integer will yield the incorrect result, and so one must be able to guarantee the error is suitably controlled. If we were to use the algorithms defined in the previous section with enough precision to guarantee that we recover the correct result the complexity would no longer be $O(n \log n)$ as the number of the bits requires to store the ring elements is quite large in accordance to current error bounds on the complex DFT (Theorem 5.1 \cite{fft-error}).
-
-However, \cite{nlogn} presented an algorithm that achieves $\M{O}(n\log n)$ complexity in the Turing model by carefully choosing DFT transforms lengths and controlling the error. This algorithm is covered in Chapter \ref{chp:asymptotic}. For now, we will look at the most popular algorithm for multiplication of polynomials in $\Z[x]$ with large degree sizes, which is Sch\"{o}nage and Strassen's second integer multiplication. This can be generalised to polynomials easily via Kronecker substitution or modifying this algorithm. The reason this algorithm wasn't completely The algorithm was originally formulated for integer multiplication, but can generalised for polynomials polynomials in $\Z[x]$ using Kronecker substitution from Chapter \ref{chp:preliminaries}.
-
-\medskip
-
-(TODO Modern Comp Alg presents it were 2 needs to be a unit, but we could make a generalisation where 2 isn't a unit using the rpevious techniques right?)
-
-(TODO mention the Cantor Kaltofen one)
+In Chapter \ref{chp:asymptotic}, we will present and algorithm that achieve achieves $\M{O}(n\log n)$ complexity in the Turing model by carefully choosing DFT transforms lengths and controlling the error. For now, we will look at the most popular algorithm for multiplication of polynomials in $\Z[x]$ with large degree sizes, which is Sch\"{o}nage and Strassen's second integer multiplication. 
 
 Sch\"{o}nage and Strassen's originally formulated their algorithm for integers, however we will present a generalisation of the algorithm for commutative rings where $2$ is a unit based on the presentation in \cite{modern-comp-alg}.
 
+\medskip
+
+% (TODO Modern Comp Alg presents it were 2 needs to be a unit, but we could make a generalisation where 2 isn't a unit using the rpevious techniques right?)
+% (TODO mention the Cantor Kaltofen one)
+
 \begin{theorem}
-    Let $K$ be a commutative rings where $2$ is a unit. Then we may multiple polynomials $f, g \in \Z[x]$ with degree at most $n$, in $\M{O}(n \log \log n)$ ring operations.
+    Let $K$ be a commutative rings where $2$ is a unit. Then we may multiply polynomials $f, g \in \Z[x]$ with degree at most $n$, in $\M{O}(n \log n \log \log n)$ ring operations.
 \end{theorem}
 
-The Sch\"{o}nage and Strassen's Integer multiplication algorithm works by applying Kronecker substitution to transform polynomials in $\Z[x]$ into polynomials with coefficients in $\Z[x]/(x^n + 1)$, which admits a particularly efficient roots of unity, so-called \emph{synthetic roots}.
+The Sch\"{o}nage and Strassen integer multiplication algorithm works by applying Kronecker substitution to transform polynomials in $\Z[x]$ into polynomials with coefficients in $\Z[x]/(x^n + 1)$, which admits a particularly efficient roots of unity, called \emph{synthetic roots}.
 
 % Observe that $X$ is a $2n^{\tx{th}}$ root of unity in the ring $\Z[X] / (X^n + 1)$. To convert our original polynomial into one with coefficients in a ring of the above form, we can use Kronecker substitution to partition the polynomial into $m = 2^{\ceil{k/2}}$ pieces with the substitution $y = x^m$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(m\log m \times 2^{\floor{\frac{k}{2}}}) = \M{O}(n \log n)$ where the arithmetic on the $m$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 % \[
@@ -319,7 +309,7 @@ The Sch\"{o}nage and Strassen's Integer multiplication algorithm works by applyi
 % \]
 % This can be solved to obtain $\M{O}(n \log n \log \log n)$.
 
-Let $K$ be a ring such that $2$ is a unit in $K$, $n = 2^k$ for some $k \in \N$, and $D = K[X] / (X^n + 1)$. In general, D is not a field. However observe that $X$ is a primitive root of unity of order $2n$ since $X^{2n} = (-1)^2 = 1$. 
+Let $K$ be a ring such that $2$ is a unit in $K$, $n = 2^k$ for some $k \in \N$, and $D = K[X] / (X^n + 1)$. In general, D is not a field, however observe that $X$ is a primitive root of unity of order $2n$ since $X^{2n} = (-1)^2 = 1$. 
 Then consider the problem of multiplying polynomials $f, g \in K[x]$ to obtain $h = fg$. In previous sections we performed multiplications in $K[x]/(x^n - 1)$ for $\deg f + \deg g < n$. However in this algorithm we will multiply the polynomials in $K[x]/(x^n + 1)$ which is known as the \textit{negative wrapped convolution}. 
 
 Let $m = 2^{\floor{k / 2}}$ and $t = n/m = 2^{\ceil{k/2}}$. Apply Kronecker substitution with $y = x^m$ to obtain $f^\prime, g^\prime \in R[x][y]$, that is, we break up the polynomials into . Now it is sufficient to compute $f^\prime g^\prime \in R[x][y] /(y^t + 1)$ since
