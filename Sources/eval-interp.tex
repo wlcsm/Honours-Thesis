@@ -1,30 +1,28 @@
 \chapter{Evaluation and interpolation}\label{chp:eval-interp}
 
-The algorithms for polynomial multiplication that we have seen so far have been direct calculations of the multiplication formula \eqref{eq:poly-mult} we introduced in Chapter \ref{chp:preliminaries}. Soon after the rediscovery of the Fast Fourier Transform in 1965, the \textit{evaluation-interpolation strategy} became a more popular choice. Rather than evaluating the multiplication formula directly, this strategy involves sampling the input polynomials at several points and interpolating the result from the product of the samples. Though initially this would appear to take more time that than the direct approach, it is remarkably efficient in practice and allows us to use techniques from Fourier analysis to multiply polynomials in $\M{O}(n \log n)$ ring operations. In fact, we will revisit Karatsuba's algorithm from the previous chapter and show how it too can be interpreted as using the evaluation-interpolation strategy.
+The algorithms we have seen so far have been direct calculations of the multiplication formula \eqref{eq:poly-mult} introduced in Chapter \ref{chp:preliminaries}. Soon after the rediscovery of the Fast Fourier Transform in 1965, the \textit{evaluation-interpolation strategy} became a more popular choice for evaluating convolutions. Rather than evaluating the multiplication formula directly, in this strategy we sample the input polynomials at several points and interpolate the result from the product of the samples. Although initially this would appear to take more time that than the direct approach, it is remarkably efficient in practice and allows us to use techniques from Fourier analysis to multiply polynomials in $\M{O}(n \log n)$ ring operations. In fact, we will revisit Karatsuba's algorithm from the previous chapter and show how it too can be interpreted as using this framework.
 
-We will present an algebraic formulation of the Fast Fourier transform and visit Sch\"{o}nage and Strassen's integer multiplication algorithm generalised for polynomials which is currently used as part of the GMP Multiple Precision Arithmetic library for integers exceeding around $16000$ bits \cite{gmp-big-num}.
+We will present an algebraic formulation of the Fast Fourier transform and see how it can be used to evaluate convolutions. We will then see a more clever use of the technique in Sch\"{o}nage and Strassen's integer multiplication algorithm generalised for polynomials which is currently used as part of the GMP Multiple Precision Arithmetic library for integers exceeding around $16000$ bits \cite{gmp-big-num}.
 
 % TODO polish
-For an intuitive explanation of how it works, consider the multiplication $h = fg \in K[x]$. It follows that $h(\alpha) = f(\alpha)g(\alpha)$ for all $\alpha \in K$. Thus by evaluating the polynomials $f$ and $g$ at $\deg f + \deg g + 1$ distinct points, we can multiply the samples together and interpolate $h$. We can correctly recover $h$ since $\deg h \le \deg f + \deg g$ and any polynomial of degree $n$ can be interpolated from $n + 1$ distinct samples.
+For an intuitive explanation of how it works, consider the multiplication $h = fg \in K[x]$. Then it follows that $h(\alpha) = f(\alpha)g(\alpha)$ for all $\alpha \in K$. Thus by evaluating the polynomials $f$ and $g$ at $\deg f + \deg g + 1$ distinct points, we can multiply the samples together and interpolate $h$. We can correctly recover $h$ since $\deg h \le \deg f + \deg g$ and any polynomial of degree $n$ can be interpolated from $n + 1$ distinct samples.
 
-More formally, let $n = \deg f + \deg g$ and $f, g \in K[x]/(x^n - 1)$. We can consider the evaluation step as the map from 
+More formally, let $n = \deg f + \deg g$ and $f, g \in K[x]/(x^n - 1)$. Then evaluation and interpolation are the two directions of the isomorphism given by the Chines Remainder Theorem
 \[
     K[x]/(x^n - 1) \to K[x]/(x - \alpha_1) \times \cdots \times K[x]/(x - \alpha_n),
 \]
-and the interpolation step is its inverse. Correctness comes from the Chinese Remainder Theorem which asserts the two rings are isomorphic.
-
 The process of coercing $a$ and $b$ into $K[x]/ (x - \alpha_i)$ is called the \emph{evaluation} step. The step where we recover the original polynomial in $K[x]/f(x)$ is called the \emph{interpolation} step.
 
 \medskip
 
-Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal since we must perform some operation with each term in the polynomial at least once. However, applying this procedure to evaluate the polynomial at $n$ distinct points is therefore $\M{O}(n^2)$ time. Similarly, we may use Lagrange interpolation to interpolate a degree $n$ polynomial in $\M{O}(n^2)$ time. Neither of these methods provide any improvement over the standard schoolbook, so this chapter will present an asymptotically faster algorithm for both evaluation and interpolation.
+Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Rule and is asymptotically optimal\footnote{since we must perform some operation with each of the $n$ terms in the polynomial at least once, so it must at least be linear}. Thus evaluating each sample individually at $n$ distinct points is therefore $\M{O}(n^2)$ time. Similarly, we may use Lagrange interpolation to interpolate a degree $n$ polynomial in $\M{O}(n^2)$ time. Neither of these methods provide any improvement over the standard schoolbook method, so this chapter will present an asymptotically faster algorithm for both evaluation and interpolation.
 
 \section{Chinese Remainder Theorem}%
 \label{sec:crt}
 
-The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one form to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is significantly less than the cost of applying an algorithm to the original ring; the difficulty however, is in evaluating the isomorphism efficiently enough to justify such an approach.
+The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one form to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is significantly less than the cost of applying an algorithm to the original ring. The difficulty however, is in evaluating the isomorphism efficiently enough to justify such an approach.
 
-\begin{theorem}[Chinese remainder theorem]
+\begin{theorem}[Chinese Remainder Theorem]\label{thm:crt}
     Let $R$ be commutative ring and $I_1, \ldots, I_k \subseteq R$ mutually coprime ideals i.e. $I_i + I_j = R$.
 
     Then
@@ -36,7 +34,7 @@ The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of num
 \medskip
 % TODO wikipedia actualy has a good formulation of a reverse map for non-linear divisors
 
-We will be interested in the particular case where $R$ is a polynomial ring and $I_j$ are linear, hence $I_j = (x - \alpha_j)$ for some $\alpha_j \in K$. In this case we can evaluate the map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ by evaluating the polynomials at the points $\alpha_j$.
+We will be interested in the particular case where $R$ is a polynomial ring and $I_j$ are linear, i.e. $I_j = (x - \alpha_j)$ for some $\alpha_j \in K$. In this case we can evaluate the map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ by evaluating the polynomials at the points $\alpha_j$.
 
 By associating polynomials with their coefficient vectors, we can consider these evaluation operations as multiplication by the Vandemonde matrix
 \[
@@ -45,49 +43,58 @@ By associating polynomials with their coefficient vectors, we can consider these
       1 & \alpha_2 & \alpha_2^2 & \cdots & \alpha_2^n\\
       \vdots & \vdots & \ddots & \vdots\\
       1 & \alpha_n & \alpha_n^2 & \cdots & \alpha_n^n\\
-  \end{pmatrix}
+  \end{pmatrix}.
 \]
 
 The inverse map can be found by inverting the matrix or, more simply, via the Lagrange interpolation formula
 \[
-    f(x) = \sum_{i=0}^{n-1} L_i(x)x^i, \qquad \qquad L_i := \prod_{j \neq i} \frac{x - j}{x_i - x_j} 
+    f(x) = \sum_{i=0}^{n-1} L_i(x)x^i, \qquad \qquad L_i := \prod_{j \neq i} \frac{x - j}{x_i - x_j} ,
 \]
+where $(x_i)_{i=0}^{n-1}$ are the samples.
+
 Note however that each of these operations require $\M{O}(n^2)$ ring operations.
 
-In general, evaluating the isomorphism in either direction is a computationally expensive task. However, there are specific pairs of rings in which the isomorphisms can be efficiently evaluated in a divide-and-conquer approach to improve the theoretical complexity significantly.
+In general, evaluating the isomorphism in either direction is a computationally expensive task. However, there classes of rings in which the isomorphisms can be efficiently evaluated in a divide-and-conquer approach to improve the theoretical complexity significantly.
 
 \section{Karatsuba's Algorithm as Evaluation-Interpolation}%
 \label{sec:Karatsuba's Algorithms as Evaluation-Interpolation}
 
 % This section comes from the Summary-of-Multiplication-Algorithms
-Karatsuba's algorithm can be viewed as a method for evaluating the Chinese Remainder Theorem for the isomorphism
-\[
+Before introducing the DFT, we will first show how Karatsuba's algorithm may be viewed as a method for evaluating the Chinese Remainder Theorem for the isomorphism
+\begin{equation}{eq:crt-karatsuba-iso}
     \frac{K[x]}{x^2 - x} \cong \frac{K[x]}{x} \times \frac{K[x]}{x-1},
-\]
+\end{equation}
 along with an \emph{evaluation at infinity}\footnote{There are variations that use $x^2 + x$ as the divisor which may be more computationally efficient in certain circumstances. See Knuth, Art of Computer Programming Vol 2. \cite{knuthv2}}.\\
-However, in order to use this isomorphism we first need to use Kronecker substitution to express the input polynomials as elements of $K[x][y]/(y^2 - y)$. To do this, we introduce the variable $y = x^{\floor{n/2}}$ where $n$ is the degree of the polynomials
+
+Let $f, g \in K[x]$, both with degree $n$ and denote their product as $h = fg$. Then we will apply Kronecker substitution with $y = x^{\ceil{n/2}}$, to obtain the polynomials $f^\prime, g^\prime, h^\prime \in K[x][y]/(y^2 - y)$ and may write
 \[
     f(x)(y) = f_1(x)y + f_0(x), \qquad g(x)(y) = g_1(x)y + g_0(x).
 \]
-Evaluating at $y = 0$ and $y = 1$ gives
+for $f_0, f_1, g_0, g_1 \in K[x]$ with degree less than $\ceil{n/2}$.
+
+Compute the isomorphism \eqref{eq:crt-karatsuba-iso} by evaluating at the points $y = 0$ and $y = 1$
 \begin{align*}
-    f(x)(0) &= f_0(x), \qquad f(x)(1) = f_1(x) + f_0(x)\\
-    g(x)(0) &= g_0(x), \qquad g(x)(1) = g_1(x) + g_0(x)
+    f^\prime(x)(0) &= f^\prime_0(x), \qquad f^\prime(x)(1) = f^\prime_1(x) + f^\prime_0(x)\\
+    g^\prime(x)(0) &= g^\prime_0(x), \qquad g^\prime(x)(1) = g^\prime_1(x) + g^\prime_0(x)
 \end{align*}
-
-We can then apply the Chinese remainder theorem to evaluate the isomorphism and obtain
+We can then apply the Chinese remainder theorem to recover $h^\prime$
 \begin{equation}\label{eq:karatsuba-crt}
-    h(x) = f_0g_0 + ((f_0 + f_1)(g_0 + g_1) - f_0g_0)x \in K[x]/(x^2 - x).
+    h^\prime(y) = f^\prime_0g^\prime_0 + ((f^\prime_0 + f^\prime_1)(g^\prime_0 + g^\prime_1) - f^\prime_0g^\prime_0)y \in K[x][y]/(y^2 - y).
 \end{equation}
-The problem now is that our result is in $K[x][y]/(y^2 - y)$, however, the true result of the multiplication of $f(x)(y)$ and $g(x)(y)$ could have a $y^2$ term. Therefore we must recover this term by \emph{evaluating at infinity}. 
+The problem now is $h^\prime \in K[x][y]/(y^2 - y)$, however $h \in K[x]$ may have a non-zero $y^2$ term. Therefore we must recover this term by \emph{evaluating at infinity}. 
 
-Given that $h(y) = f(y)g(y) = (f_0 + f_1y)(g_0 + g_1 y)$, we know the greatest term in the result could be $y^2$, and that the coefficient of this term would be $f_1g_1$. Therefore if we were to coerce $h(y)$ into $K[y]/(x^2 - x)$ we would obtain $f_0g_0 + ((f_0 + f_1)(g_0 + g_1) + f_1g_1)x$. Thus to undo this operation in our result \eqref{eq:karatsuba-crt} we obtain $f_0g_0 + ((f_0 + f_1)(g_0 + g_1) - f_0g_0 - f_1g_1)x + f_1g_1x^2 \in K[x]$ which matches our original formulation of Karatsuba's algorithm.
+Since we know the coefficient of this term would be $f_1g_1$, if we were to coerce $h$ into $K[x][y]/(y^2 - y)$ we would obtain $f_0g_0 + ((f_0 + f_1)(g_0 + g_1) + f_1g_1)x$. Thus to undo this operation in our result \eqref{eq:karatsuba-crt} we obtain $f_0g_0 + ((f_0 + f_1)(g_0 + g_1) - f_0g_0 - f_1g_1)x + f_1g_1x^2 \in K[x]$ which matches our original formulation of Karatsuba's algorithm.
+
+As was mentioned before, the Toom-Cook algorithm is a generalisation of Karatsuba's algorithm; rather than mapping our polynomials using the isomorphism \eqref{eq:crt-karatsuba-iso}, we use the map\cite{summary-poly-mult}
+\[
+    \frac{K[x]}{(x - (k - 1))(x - (k - 2))\cdots (x + k - 1)} \cong \frac{K[x]}{x - (k - 1)} \times \frac{K[x]}{x - (k - 2) \times \cdots \times \frac{K[x]}{x + k - 1}
+\]
 
 \section{The Fast Fourier Transform}
 
 % TODO find out who originally posed this, I think maybe it was Stockham
 
-The Discrete Fourier Transform (DFT) is an powerful mathematical technique for performing Fourier analysis in a wide number of applications. Most notably, it is foundations in the field of signal processing when it can be used to transform data between sample space and the frequency domain. The Fast Fourier Transform (FFT) is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ ring operations. The na\"{i}ve algorithm for evaluating the DFT takes $\M{O}(n^2)$ operations, which renders it infeasible for many practical applications. Cooley and Tukey's landmark paper on FFT in 1965\cite{fft} spawned a flurry of development across many fields. One example is the development of FFT based algorithms for polynomial multiplication, which was the first $\M{O}(n \log n)$ algorithm for the problem.
+The Discrete Fourier Transform (DFT) is an powerful mathematical technique for performing Fourier analysis on a broad selection of applications. Most notably, it is foundational in the field of signal processing when it can be used to transform data between the sample space and the frequency domain. The Fast Fourier Transform (FFT) is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ ring operations. The na\"{i}ve algorithm for evaluating the DFT takes $\M{O}(n^2)$ operations, which renders it infeasible for many practical applications. Soon after Cooley and Tukey's landmark paper on FFT in 1965\cite{fft} spawned a flurry of development across many fields. One example is the development of FFT-based algorithms for polynomial multiplication, which was the first $\M{O}(n \log n)$ algorithm for the problem.
 
 
 The DFT is the evaluation of a function at \textit{roots of unity}, and its inverse is a means of recovering the original function from samples. Hence this can be seen as an instance of the evaluation-interpolation strategy. 
@@ -99,12 +106,14 @@ Let $R$ be a commutative ring. We are familiar with the complex roots of unity g
 
 % This definition obtained from the Algebraic Complexity theory book
 \begin{definition}[Roots of Unity]
-  Let $R$ be a commutative ring and let $N$ be an integer, then if an element $\alpha \in R$ is: 
+  Let $R$ be a commutative ring and let $N$ be an integer, an element $\alpha \in R$ is: 
   \begin{enumerate}
-      \item $\alpha^N = 1$; it is a \textit{root of unity}.
-      \item $\alpha^p - 1$ is not a zero divisor for all $1 \leq p < N$; it is a \textit{principal root of unity}
+      \item a \textit{root of unity}, if $\alpha^N = 1$, and is a 
+      \item \textit{principal root of unity}, if $\alpha^p - 1$ is not a zero divisor for all $1 \leq p < N$.
   \end{enumerate}
 \end{definition}
+
+It is clear that the complex roots of the equation $x^N - 1$ satisfy the above definitions. Though there are many other coefficient algebras that also have roots of unity for a particular $N$. A popular choice is the ring $K[x]/(x^n + 1)$ which has $x$ as a $2n^{\tx{th}}$ root of unity (also called a \textit{synthetic root of unity}). We will revisit this ring in Section \ref{sec:schon-strass} when discussing Sch\"{o}nage and Strassen's integer multiplication scheme for polynomial rings. Chapter \ref{chp:integer-rings} will establish results for the existence of roots of unity in integer rings as well as methods for finding them. 
 
 \begin{lemma}\label{lem:rou-results}
     Let $\omega$ be a principal $N^{\tx{th}}$ root of unity. Then 
@@ -118,42 +127,50 @@ Let $R$ be a commutative ring. We are familiar with the complex roots of unity g
         0 = \omega^{kN} - 1 = (\omega^k - 1)\sum^{N-1}_{i=0} \omega^{ik}
     \]
     Since $\omega^k - 1$ is not a zero divisor, it must be the case that $\sum^{N-1}_{i=0} \omega^{ik} = 0$.
-    Similarly, since $0 = \omega^N - 1 = (\omega^{N/2} - 1)(\omega^{N/2} + 1)$. Since $\omega^{N/2} - 1$ is not a zero divisor, we conclude $\omega^{N/2} = -1$.
+
+    Suppose $2$ divides $N$. Then since $0 = \omega^N - 1 = (\omega^{N/2} - 1)(\omega^{N/2} + 1)$ and $\omega^{N/2} - 1$ is not a zero divisor, we conclude $\omega^{N/2} = -1$.
 \end{proof}
 
-It is clear that the complex roots of the equation $x^N - 1$ satisfy the above definition. Though there are many other coefficient algebras that also have roots of unity for a particular $N$. A popular choice is the ring $K[x]/(x^n + 1)$ which has $x$ as a $2n^{\tx{th}}$ root of unity (also called a \textit{synthetic root of unity}). We will revisit this ring in Section \ref{sec:schon-strass} when discussing Sch\"{o}nage and Strassen's integer multiplication scheme for polynomial rings. Chapter \ref{chp:integer-rings} will establish results for the existence of roots of unity in integer rings as well as methods for finding them. 
 
 \begin{definition}[Discrete Fourier Transform]
-    Let $K$ be a commutative ring with a principal $N^{\tx{th}}$ root of unity $\omega \in K$.
-    The $k^{\tx{th}}$ Fourier coefficient of the Discrete Fourier Transform of samples $x_0, \ldots, x_{N-1}$ with roots of unity $(\omega_N^i)_{i=0}^{N-1}$ is given as
-    \begin{equation}\label{eq:forward-dft}
-        X_k = \sum^{N-1}_{i=0}x_i\omega_{N}^{-ik}
-    \end{equation}
-    for $0 \leq k \leq N-1$.
+    Let $K$ be a commutative ring with a principal $N^{\tx{th}}$ root of unity $\omega \in K$\footnote{The $\omega_N^k$ in the equation is commonly referred to as a \textit{twiddle factors}}, and let $u \in K^n$.
 
-    If $N$ is invertible in $K$, the transform has a well defined inverse given as 
-    \begin{equation}\label{eq:reverse-dft}
-        x_k = \frac{1}{N}\sum^{N-1}_{i=0}x_i\omega_{N}^{ik}
+    The Discrete Fourier Transform is the map $\M{F}_N : K^N \to K^N$ defined by
+    \begin{equation}\label{eq:forward-dft}
+        (\M{F}u)_k = \sum^{N-1}_{i=0}u_i\omega_{N}^{-ik}
     \end{equation}
-    The $\omega_N^k$ in the equation is commonly referred to as a \textit{twiddle factors}.
+
+    If $N$ is invertible in $K$, the inverse $\M{F}_N^{-1}$ is given by
+    \begin{equation}\label{eq:reverse-dft}
+        (\M{F}u)_k = \frac{1}{N}\sum^{N-1}_{i=0}u_i\omega_N^{ik}
+    \end{equation}
 \end{definition}
 
 Alternatively, we can interpret this as, given the samples $x_0, \ldots, x_{n-1}$, we can construct the polynomial $f(x) = \sum_{i=0}^{n-1} f_i x^i$. Then the DFT induces the isomorphism
-\[
+\begin{equation}\label{eq:fft-iso}
     \frac{K[x]}{x^n - 1} \; \cong \; \frac{K[x]}{x - 1} \times \frac{K[x]}{x - \omega} \cdots \times \frac{K[x]}{x - \omega^{n-1}}.
-\]
+\end{equation}
 which we know are isomorphic from the Chinese Remainder Theorem.
 Hence we can consider this forward DFT as the evaluation of the polynomial $f$ at the roots of unity, and the inverse as an interpolation.
 
 Note that when computed directly, each of the $N$ sums in the forward or inverse DFT take $\M{O}(N)$ ring operations. Hence computing one transform takes $\M{O}(N^2)$ ring operations, which is still no better than the schoolbook method.
 
+% TODO this is kind of out of place
+From \eqref{eq:fft-iso} we can deduce the following expression, known as the convolution property.
+
+\begin{equation}
+    u \ast v = \M{F}^{-1}(\M{F}u \cdot \M{F}v)
+\end{equation}
+
+
 \subsection{The Fast Fourier Transform Algorithm}
 
-The Fast Fourier Transform (FFT) is an algorithm for calculating the DFT with $N$ samples in $\M{O}(N \log N)$ ring operations. First developed by Gauss in 1805 \cite{gauss} and rediscovered by Cooley-Tukey in 1965, this algorithm has had a profound impact on the course of human computing. Due to its efficiency on modern computer hardware, it was able to make many previously incomputable problems in signal processing tractable.
-There are many variations of the Fast Fourier Transform, but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper \cite{fft}.
+% TODO reword the weird line here
+The Fast Fourier Transform (FFT) is an algorithm for calculating the DFT with $N$ samples in $\M{O}(N \log N)$ ring operations. First developed by Gauss in 1805 \cite{gauss} and rediscovered by Cooley-Tukey in 1965, this algorithm has had a profound impact on the course of human computing. Due to its efficiency on modern computer hardware, the FFT was able to make many previously incomputable problems in signal processing tractable.
+There are many variations of the Fast Fourier Transform, such as the Dutt-Rokhlin method for non-uniform FFTs\cite{dutt}\footnote{The algorithm in Chapter \ref{chp:asymptotic} is similar to a non-uniform FFT, though we will not go into the details there and instead refer the reader to Section 4.4.3 of \cite{nlogn} for a comparison of the two methods.}; but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper \cite{fft}.
 
 \begin{theorem}[Fast Fourier Transform]\label{thm:fft}
-    Let $K$ be a commutative ring that admits primitive roots of unity of order $N$ a power of two and $N$ is invertible. Let $\M{C}_F(n)$ be the number of ring operations requires to perform the DFT of $N$ samples in $K$. Then $\M{C}_F \in \M{O}(N\log N)$.
+    Let $K$ be a commutative ring that admits primitive roots of unity of order $N$ a power of two and $N$ is invertible. Let $\M{C}_F(N)$ be the number of ring operations requires to perform the DFT of $N$ samples in $K$. Then $\M{C}_F \in \M{O}(N\log N)$.
 \end{theorem}
 
 \begin{corollary}
@@ -172,27 +189,27 @@ The following lemma which formalises this intuition and the general algorithm fo
 \end{lemma}
 
 \begin{proof}
-    Throughout this proof we will write the Fourier coefficient $X_k$, with the understanding that $X_{k} = X_{k \mod N}$.
+    Let $u \in K^n$. Throughout this proof we will write $(\M{F}u)_k$ with the understanding that $X_{k} = X_{k \mod N}$.
 
-    The crucial step in the FFT, is to partition the sum into a sum of $x$ terms with even index and one with odd index. Beginning with the formula for $X_k$ \eqref{eq:forward-dft}, we get
+    The crucial step in the FFT, is to partition the sum into a sum of $x$ terms with even index and one with odd index. Beginning with the formula for $(\M{F}u)_k$ \eqref{eq:forward-dft}, we get
     \begin{align}
-        X_k
-        &= \sum^{N-1}_{j=0}x_j\omega_N^{\minus jk} \nonumber\\
-        &= \sum^{N/2-1}_{j=0}x_{2j}\omega_N^{\minus 2jk} \;+\; \sum^{N/2-1}_{j=0}x_{2j+1} \omega_N^{\minus (2j+1)k} \nonumber\\
-        &= \sum^{N/2-1}_{j=0}x_{2j}\omega_N^{\minus 2jk} \;+\; \omega_N^k \sum^{N/2-1}_{j=0}x_{2j+1}\omega_N^{\minus 2jk}\\
-        &= \sum^{N/2-1}_{j=0}x_{2j}\omega_{N/2}^{\minus jk} \;+\; \omega_N^k \sum^{N/2-1}_{j=0}x_{2j+1}\omega_{N/2}^{\minus jk} \label{eq:keystep}
+        (\M{F}u)_k
+        &= \sum^{N-1}_{j=0}u_j\omega_N^{\minus jk} \nonumber\\
+        &= \sum^{N/2-1}_{j=0}u_{2j}\omega_N^{\minus 2jk} \;+\; \sum^{N/2-1}_{j=0}u_{2j+1} \omega_N^{\minus (2j+1)k} \nonumber\\
+        &= \sum^{N/2-1}_{j=0}u_{2j}\omega_N^{\minus 2jk} \;+\; \omega_N^k \sum^{N/2-1}_{j=0}u_{2j+1}\omega_N^{\minus 2jk}\\
+        &= \sum^{N/2-1}_{j=0}u_{2j}\omega_{N/2}^{\minus jk} \;+\; \omega_N^k \sum^{N/2-1}_{j=0}u_{2j+1}\omega_{N/2}^{\minus jk} \label{eq:keystep}
     \end{align}
-    where the last line follows from the fact that $\omega_N^2$ is a primitive root of unity of order $N/2$, and so $\omega_N^2 = \omega_{N/2}$. Hence the two sums in \eqref{eq:keystep} are both DFTs of length $N/2$. 
+    where the last line follows from the fact that $\omega_N^2$ is a primitive root of unity of order $N/2$, and so $\omega_N^2 = \omega_{N/2}$. Hence the two sums in \eqref{eq:keystep} are both DFTs of length $N/2$ of the coefficient vectors $(u_0, u_2, \ldots, u_{N-2}), (u_1, u_3, \ldots, u_{N-1}) \in K^{N/2}$. 
 
-    Now lets apply this same trick to $X_{k + N/2}$
+    Now lets apply this same trick to $(\M{F}u)_{k + N/2}$
     \begin{align*}
-        X_{k + N/2}
-    &= \sum^{N/2-1}_{j=0}x_{2j}\omega_{N/2}^{\minus j(k + N/2)} \;+\; \omega_N^{k+ N/2} \sum^{N/2-1}_{j=0}x_{2j+1}\omega_{N/2}^{\minus j(k + N/2)}\\
-    &= \sum^{N/2-1}_{j=0}x_{2j}\omega_{N/2}^{\minus jk} \;-\; \omega_N^k \sum^{N/2-1}_{j=0}x_{2j+1}\omega_{N/2}^{\minus jk},
+        (\M{F}u)_{k + N/2}
+    &= \sum^{N/2-1}_{j=0}u_{2j}\omega_{N/2}^{\minus j(k + N/2)} \;+\; \omega_N^{k+ N/2} \sum^{N/2-1}_{j=0}u_{2j+1}\omega_{N/2}^{\minus j(k + N/2)}\\
+    &= \sum^{N/2-1}_{j=0}u_{2j}\omega_{N/2}^{\minus jk} \;-\; \omega_N^k \sum^{N/2-1}_{j=0}u_{2j+1}\omega_{N/2}^{\minus jk},
     \end{align*}
     since $\omega_{N/2}^{N/2} = 1$ and $\omega_N^{N/2} = -1$ from Lemma \ref{lem:rou-results}.
 
-    Observe that the sub-DFTs in $X_k$ are the same as the sub-DFTs in $X_{k + N/2}$, the only difference is that in $X_k$ they were added and in the case of $X_{k + N/2}$ they were subtracted. The combinations of the two sums for $X_k$ and $X_{k + N/2}$ is known as a \textit{butterfly}. Butterflies are the building blocks for the entire FFT algorithm which is illustrated in Figure \ref{fig:butterflies}. Each column of arrows denotes the butterflies for a certain recursion depth.
+    Observe that the sub-DFTs in $(\M{F}u)_k$ are the same as the sub-DFTs in $X_{k + N/2}$, the only difference is that in $(\M{F}u)_k$ they were added and in the case of $X_{k + N/2}$ they were subtracted. The combinations of the two sums for $(\M{F}u)_k$ and $X_{k + N/2}$ is known as a \textit{butterfly}. Butterflies are the building blocks for the entire FFT algorithm which is illustrated in Figure \ref{fig:butterflies}. Each column of arrows denotes the butterflies for a certain recursion depth.
     
     \begin{figure}[t]
         \centering

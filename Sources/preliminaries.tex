@@ -18,7 +18,7 @@ The machine starts at an initial internal state and position in the tape and rea
     \item Move the machine one place to the left or right along the tape, or remain in the same position.
     \item Assume a different internal state.
 \end{itemize}
-The multi-tape Turing model has access to multiple tapes at once. Though any algorithm on a multi-tape model can be emulated by single-tape model in quadratic time\cite{comp-compexity}.
+The multi-tape Turing model has access to multiple tapes at once. Though any algorithm on a multi-tape model can be emulated by single-tape model in quadratic time\cite{comp-complexity}.
 
 The Random Access Machine (RAM) model more closely emulates a modern computer for small-moderate input sizes. It contains a set of registers which can each hold an unbounded natural number. The machine operates by reading a list of instructions to manipulate the numbers stored inside the registers. We will consider two different machine types in this model, namely the standard type that operations on unbounded natural numbers which we will refer to as the ``bit oriented-model'', and another which operations on elements of a ring. The cost of addition and multiplication by powers of two in the bit model is linearly proportional to the size of the integers in bits. In the ``ring-oriented model'',  the goal is to minimise the number of ring operations required by the algorithm (we will still say an algorithm is ``faster'' than another, to indicate it uses fewer ring operations)
 
