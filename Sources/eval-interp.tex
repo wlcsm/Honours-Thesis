@@ -23,18 +23,18 @@ Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Ru
 The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one form to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is significantly less than the cost of applying an algorithm to the original ring. The difficulty however, is in evaluating the isomorphism efficiently enough to justify such an approach.
 
 \begin{theorem}[Chinese Remainder Theorem]\label{thm:crt}
-    Let $R$ be commutative ring and $I_1, \ldots, I_k \subseteq R$ mutually coprime ideals i.e. $I_i + I_j = R$.
+    Let $K$ be commutative ring and $I_1, \ldots, I_k \subseteq K$ mutually coprime ideals i.e. $I_i + I_j = K$.
 
     Then
     \[
-        \frac{R}{I_1\cdots I_k} \cong \frac{R}{I_1} \times \cdots \times \frac{R}{I_k}
+        \frac{K}{I_1\cdots I_k} \cong \frac{K}{I_1} \times \cdots \times \frac{K}{I_k}
     \]
 \end{theorem}
 
 \medskip
 % TODO wikipedia actualy has a good formulation of a reverse map for non-linear divisors
 
-We will be interested in the particular case where $R$ is a polynomial ring and $I_j$ are linear, i.e. $I_j = (x - \alpha_j)$ for some $\alpha_j \in K$. In this case we can evaluate the map $R/(I_1\ldots I_k) \to R/(I_1) \times \cdots \times R/(I_k)$ by evaluating the polynomials at the points $\alpha_j$.
+We will be interested in the particular case where $K$ is a polynomial ring and $I_j$ are linear, i.e. $I_j = (x - \alpha_j)$ for some $\alpha_j \in K$. In this case we can evaluate the map $K/(I_1\ldots I_k) \to K/(I_1) \times \cdots \times K/(I_k)$ by evaluating the polynomials at the points $\alpha_j$.
 
 By associating polynomials with their coefficient vectors, we can consider these evaluation operations as multiplication by the Vandemonde matrix
 \[
@@ -45,7 +45,6 @@ By associating polynomials with their coefficient vectors, we can consider these
       1 & \alpha_n & \alpha_n^2 & \cdots & \alpha_n^n\\
   \end{pmatrix}.
 \]
-
 The inverse map can be found by inverting the matrix or, more simply, via the Lagrange interpolation formula
 \[
     f(x) = \sum_{i=0}^{n-1} L_i(x)x^i, \qquad \qquad L_i := \prod_{j \neq i} \frac{x - j}{x_i - x_j} ,
@@ -87,7 +86,7 @@ Since we know the coefficient of this term would be $f_1g_1$, if we were to coer
 
 As was mentioned before, the Toom-Cook algorithm is a generalisation of Karatsuba's algorithm; rather than mapping our polynomials using the isomorphism \eqref{eq:crt-karatsuba-iso}, we use the map\cite{summary-poly-mult}
 \[
-    \frac{K[x]}{(x - (k - 1))(x - (k - 2))\cdots (x + k - 1)} \cong \frac{K[x]}{x - (k - 1)} \times \frac{K[x]}{x - (k - 2) \times \cdots \times \frac{K[x]}{x + k - 1}
+    \frac{K[x]}{(x - (k - 1))(x - (k - 2))\cdots (x + k - 1)} \cong \frac{K[x]}{x - (k - 1)} \times \frac{K[x]}{x - (k - 2)} \times \cdots \times \frac{K[x]}{x + k - 1}
 \]
 
 \section{The Fast Fourier Transform}
