@@ -1,75 +1,76 @@
 \chapter{Preliminaries}\label{chp:preliminaries}
 
-In order to formalise the analysis of algorithms, we first need to specify a \emph{computation model} to define the valid operations that can be performed on data and their associated computational costs. In this thesis, we will be using the Random Access Machine (RAM) and Turing machine models.
+In order to formalise the analysis of algorithms, we first need to specify a \emph{computation model} to define the valid operations we can perform, and a broader memory model. In this thesis, we will be using the Turing machine model and Random Access Machine (RAM) model for commutative rings.
 
 There are numerous variations in this type of analysis that are of interest in the field of complexity theory, however, we will not consider them here as we are primarily focused on the mathematical techniques employed in the algorithms under study. For a rigorous formalisation of these variants, we refer the reader to Chapter 4 of \cite{burgisser}.
 
-\section{Complexity models}%
-\label{sec:Complexity models}
+\section{Computational Models}%
+\label{sec:computations-models}
 
-A \textit{computation model} is a framework which specifies the operations that can be performed on given data and their associated computational costs. The goal of computational complexity theory is to develop algorithms which can take a range of inputs and produce a desired result using only the operations permitted by the computation model such that the total computational cost is minimised.
+A \textit{computation model} is a framework which is comprised of a \textit{machine type} and a \textit{space measure}. The machine type specifies the operations that can be performed on given data and their associated computational costs e.g. Turing machine, counting machine. The space measure specifies how we may coordinate accessing data e.g. single-tape vs multi-tape. The goal of computational complexity theory is to develop algorithms that can take a range of inputs and produce a desired result using only the operations permitted by the computation model such that the total computational cost is minimised.
 
-The two most popular computation models are the \textit{Turing Machine}, and the \textit{Random Access Machine} (RAM). Either can emulate the other in polynomial time \cite{ram-model}, although the Turing machine's complexity is often larger as the machine can only operate locally on individual symbols from a predefined alphabet. This is in contrast to the Random Access Machine operates on unbounded natural numbers and is able to access data stored far away from the previous data that was processed in constant time (known as \textit{indirect addressing}). Hence, fundamental operations such as addition are executed in constant time in the RAM model\footnote{In Cook's original formulation of the RAM model, he described a function $l(X)$ (informally) as being the cost of storing a number $X$ into one of the machine's registers. From this he derived the cost of addition, subtraction, and indirection. At the time, Cook left the definition of $l$ unspecified, but suggested two obvious choices of $l$: either constant or $\log |X|$. Nowadays it is convention to take $l(X)$ to be constant.} whereas this is not the case in the Turing model.
+The two most popular computation models are the \textit{Turing Machine}, and the \textit{Random Access Machine} (RAM). Either can emulate the other in polynomial time \cite{ram-model}, although the Turing machine's complexity is often larger as the machine can only operate locally on individual symbols from a predefined alphabet. This is in contrast to the standard Random Access Machine, which operates on unbounded natural numbers and is able to access data stored far away from the previous data that was processed in constant time (known as \textit{indirect addressing})\footnote{In Cook's original formulation of the RAM model, he described a function $l(X)$ (informally) as being the cost of storing a number $X$ into one of the machine's registers. From this he derived the cost of addition, subtraction, and indirection. At the time, Cook left the definition of $l$ unspecified, but suggested two obvious choices of $l$: either constant or $\log |X|$. Nowadays it is convention to take $l(X)$ to be constant.} which is not the case in the Turing model.
 
-The Turing machine simulates a mechanical automaton operating on an infinite tape. The tape is divided into cells which can either be empty or contain a symbol from a predefined alphabet. The machine has a set of internal states, of which it can only be in one at any given time.\\
+The single-tape Turing machine simulates a mechanical automaton operating on an infinite tape. The tape is divided into cells which can either be empty or contain a symbol from a predefined alphabet. The machine has a set of internal states, of which it can only be in one at any given time.\\
 The machine starts at an initial internal state and position in the tape and reads the symbol from the cell directly beneath it. It contains a set of instructions which specify that depending on the symbol beneath it and its current state, it can choose to:
 \begin{itemize}
     \item Erase or write a symbol.
     \item Move the machine one place to the left or right along the tape, or remain in the same position.
     \item Assume a different internal state.
 \end{itemize}
+The multi-tape Turing model has access to multiple tapes at once. Though any algorithm on a multi-tape model can be emulated by single-tape model in quadratic time\cite{comp-compexity}.
 
-The Random Access Machine (RAM) model more closely emulates a modern computer for small-moderate input sizes. It contains a set of registers which can each hold an unbounded natural number. The machine operates by reading a list of instructions to manipulate the numbers stored inside the registers. The RAM model can perform operations on the unbounded integers such as addition and indirection in constant time.
+The Random Access Machine (RAM) model more closely emulates a modern computer for small-moderate input sizes. It contains a set of registers which can each hold an unbounded natural number. The machine operates by reading a list of instructions to manipulate the numbers stored inside the registers. We will consider two different machine types in this model, namely the standard type that operations on unbounded natural numbers which we will refer to as the ``bit oriented-model'', and another which operations on elements of a ring. The cost of addition and multiplication by powers of two in the bit model is linearly proportional to the size of the integers in bits. In the ``ring-oriented model'',  the goal is to minimise the number of ring operations required by the algorithm (we will still say an algorithm is ``faster'' than another, to indicate it uses fewer ring operations)
 
-The RAM model is adequate for most complexity analysis concerning practical algorithms, and so we will use this model to simplify our analysis of the classical algorithms and the algorithms for designed for improved practical efficiency. However, fundamental operations such as addition are not executed in constant time in modern computers and so as the intermediate expressions in the calculations become increasingly large, the RAM model becomes less realistic. Therefore when presenting algorithms designed for large input sizes, we will use the Turing model.
+The RAM model is adequate for most complexity analysis concerning practical algorithms, and so we will use this model to simplify our analysis of the classical algorithms and the algorithms for designed for improved practical efficiency. However, when calculations become increasingly large, the RAM model becomes less a realistic representation of how computers fundamentally operate. Therefore in Chapter \ref{chp:asymptotic} when we present algorithms for asymptotically superior integer multiplication, we will adopt the Turing model.
 
 \section{Practical and Theoretical Complexity}%
 \label{sec:Practical and Theoretical Complexity}
 
-Once we have defined the costs of the various operations, we can begin to analyse the complexity of our algorithms. The two main ways we evaluate the efficiency of algorithms is by studying their \emph{practical complexity} and their \emph{theoretical complexity}. In this thesis, the practical complexity of an algorithm refers to the actual number of computations performed in the computation model. The theoretical complexity refers to the asymptotic nature of the algorithm, and is used to study its behavior at large input sizes.
+Once we have defined the costs of the various operations, we can begin to analyse the complexity of our algorithms. There are two paradigms we use to evaluate the efficiency of algorithms in, namely their \emph{practical complexity} and their \emph{theoretical complexity}. In this thesis, the practical complexity of an algorithm refers to the precise number of computations performed in the computation model. The theoretical complexity refers to the asymptotic nature of the algorithm, and is used to study its behavior for large input sizes.
 
 We say that an algorithm has a good \textit{practical complexity} if it is the fastest for a specific range of input parameters and say that it has a good \textit{theoretical complexity} if it is the fastest asymptotically, i.e. for large enough inputs.
 
-% TODO Probably should get rid of this footnote
-An excellent example of this distinction is found between the Karatsuba, Schonage-Strassen (SS), and Harvey-van der Hoeven (H-vdH) integer multiplication algorithms\footnote{Though it is unclear now, Chapter \ref{chp:preliminaries} shows how this is directly applicable to polynomial multiplication}. Considering their asymptotic complexity with respect to the Turing model, H-vdH is the fastest, followed by SS, and then Karatsuba. However, SS only becomes faster than Karatsuba when the number of bits in the integers exceed $2^{15}$ \cite{magma-archive} and the H-vdH algorithm's base case is at $2^{1729^{12}}$ bits, which is the smallest size that the algorithm could beat the SS algorithm. Despite the H-vdH and SS algorithms having much better theoretical complexity, Karatsuba easily out-performs the them both in most practical use cases. For this reason, many computer algebra systems, (e.g. Maxima) only implement Karatsuba's algorithm \cite{maxima}.
+An excellent example of this distinction is found between the Karatsuba, Schonage-Strassen (SS), and Harvey-van der Hoeven (H-vdH) integer multiplication algorithms\footnote{Though it is unclear now, Chapter \ref{chp:preliminaries} shows how this is directly applicable to polynomial multiplication}. Considering their asymptotic complexity with respect to the multi-tape Turing model, H-vdH is the fastest, followed by SS, and then Karatsuba. However, SS only becomes faster than Karatsuba when the number of bits in the integers exceed $2^{15}$ \cite{magma-archive}. H-vdH algorithm's base case is at $2^{1729^{12}}$ bits, and so it is the smallest size that the algorithm could possibly beat the SS algorithm. Despite the H-vdH and SS algorithms having much better theoretical complexity, Karatsuba easily out-performs the them both in almost all practical use cases. For this reason, many computer algebra systems, (e.g. Maxima) only implement Karatsuba's algorithm \cite{maxima-karatsuba}.
 
 \begin{definition}[Big-O Notation]
-    For a non-negative functions $g: \R_{\ge 0} \to \R_{\ge 0}$, let $\M{O}(g)$ denote the set of all $f: \R_{\ge 0} \to \R_{\ge 0}$ where there exists an $n_0 \ge 0$ and $c > 0$ such that
+    For a non-negative functions $g: \R_{\ge 0} \to \R_{\ge 0}$, we write $\M{O}(g)$ to denote the set of all $f: \R_{\ge 0} \to \R_{\ge 0}$ where there exists an $n_0 \ge 0$ and $c > 0$ such that
     \begin{equation}\label{eq:big-o}
         f(n) \le cg(n) \qquad \forall n \ge n_0
     \end{equation}
 \end{definition}
-Which is to say that for all $n$ large enough, $g$ is a constant factor away from dominating $f$. Informally this means that $g$ grows asymptotically faster than or at the same rate as $f$. The requirement of the existence of $n_0 \ge 0$ is necessary to ignore the behaviour of the algorithms for small inputs.
+Hence for all $n$ large enough, $g$ is a constant factor away from dominating $f$. Informally this means that $g$ grows asymptotically faster than or at the same rate as $f$. The requirement: $n_0 \ge 0$, is necessary to ignore the behaviour of the algorithms for small inputs.
 
 If we let $\M{C}(n)$ denote the computational cost of an algorithm, then it is a common problem when analysing algorithms to find the slowest growing function $g$ such that $\M{C} \in \M{O}(g)$, thus obtaining the tightest bound on its complexity.
 
-It is convention that when $\M{O}(f)$ for some $f: \R_{\ge 0} \to \R_{\ge 0}$ is used in an expression, $\M{O}(f)$ can be replaced by any representative in the class. This is commonly seen in recursive formulations of the computation cost of algorithms using the divide-and-conquer strategy. For instance, suppose that we are given a problem of size $n$, and recursively call the algorithm on two subproblems of size $n/2$ and combine the results of the subproblems in linear time. Rather than introducing another function to denote the recombination step we may write
+It is convention that when $\M{O}(f)$ is used in an expression, $\M{O}(f)$ can be replaced by any representative in the class. This is commonly seen in recursive formulations of the computation cost of algorithms using the divide-and-conquer strategy. For instance, suppose that we are given a problem of size $n$, and the algorithm recursively calls itself on two subproblems of size $n/2$ and combines the results of the subproblems in linear time. Rather than introducing another function to denote the recombination step we may simply write
 \[
-    \M{C}(n) = 2\M{C}(n/2) + \M{O}(n)
+    \M{C}(n) = 2\M{C}(n/2) + \M{O}(n),
 \]
+with the understanding that $\M{O}(n)$ may be replaces by $pN$ for any positive constant $p > 0$.
 
-Though the definition of big-O notation is formulated for functions, it is more common in this kind of analysis to classify functions in a set standard asymptotic complexity classes. In these situations we will abuse notation and write statements such as $f \in \M{O}(n^2)$ to denote the fact that $f$ grows at the same rate or slower than the function $g(n) = n^2$. This convention is used to avoid unnecessarily naming functions\footnote{It computer science it is convention to write the statement $f \in \M{O}(g)$ as $f(n) = \M{O}(g(n))$. Our abuse of notation is quite tame in comparison.}.
+Though big-O notation is defined for functions, it is more common in this kind of analysis to classify functions in a set standard asymptotic complexity classes. In these situations we will abuse notation and write statements such as $f \in \M{O}(n^2)$ to denote the fact that $f$ grows at the same rate or slower than the function $g(n) = n^2$. This convention is used to avoid unnecessarily naming functions\footnote{It computer science it is convention to write the statement $f \in \M{O}(g)$ as $f(n) = \M{O}(g(n))$. Our abuse of notation is quite tame in comparison.}.
 
-One of the most important results that is easily derived from the definition of big-O notation is that $\log n \in \M{O}(n^\epsilon)$ for all $\epsilon > 0$; hence any polynomial function with a positive exponent grows faster than any logarithmic function. From this we can then derive the statement that $n^k \in O(b^n)$ for any constants $k \in \R$ and $b > 1$. We often not write an explicit base for logarithms as logarithms with different bases are a constant multiple of the other and constants are ignored in asymptotic notation.
+An immediate consequence of the definition of big-O notation is $f \in \M{O}(g + h)$ whenever $f \in \M{O}(g)$ and $h$ does not grow asymptotically faster than $f$, for example $n^2 \in \M{O}(n^2 + n)$. Another fact that is easily derived is: $\log n \in \M{O}(n^\epsilon)$ for all $\epsilon > 0$; hence any polynomial function with a positive exponent grows faster than any logarithmic function. From this we can then derive the statement that $n^k \in O(b^n)$ for any constants $k \in \R$ and $b > 1$. We often do not write an explicit base for logarithms as logarithms with different bases are a constant multiple of the other and thus are in the same asymptotic complexity class.
 
 \section{Polynomial Representations}
 
-The representations of polynomials inside a program can significantly affect both the practical and theoretical complexity of different algorithms. This section is not essential for chapters up to Chapter \ref{chp:implementation}, though it is useful for understanding the impact that sparsity and the number of indeterminates can have on the performance of an algorithm.
+The representations of polynomials inside a program can significantly affect both the practical and theoretical complexity of algorithms. This section is not essential for chapters up to Chapter \ref{chp:implementation}, though it is useful for understanding the impact that sparsity and the number of indeterminates can have on the performance of an algorithm.
 
-In computer algebra systems, there are three commonly used representations of polynomials: 
+In computer algebra systems, there are three commonly used representations of polynomials:
 \begin{description}
-    \item[Coefficient vectors] Stores only the coefficients of the (expanded) polynomial. For instance, $2 + x + 3x^3 + x^5$ is stored as $(2\; 1\; 0\; 1\; 0\; 1)$.
+    \item[Coefficient vectors] Stores only the coefficients of the (expanded) polynomial. For instance, $2 + x + 3x^3 + x^5$ is stored as $(X) (2\; 1\; 0\; 1\; 0\; 1)$.
 
-        We can also store multivariate polynomials such as $2xy - x^2 + 3y$ by taking the maximum degree of the two variables, which is $2$ for $x$ and $1$ for $y$ and expanding over all possibilities as 
+        We can also store multivariate polynomials such as $2xy - x^2 + 3y$ by taking the maximum degree of the two variables, which is $2$ for $x$ and $1$ for $y$ and expanding over all possibilities as
         \[
             2xy - x^2 + 3y = \;0 + 3y + 0x + 2xy + \minus x^2 + 0x^2y
         \]
-        is stored as  $(0\; 3\; 0\; 2\; \minus 1\; 0)$.
-    \item[Sparse vectors] Stores a vector of tuples containing the coefficients and the monomial of the vector. As an example we could store $2xy^2 - x^2 + 2x + 5y^2 + 17x^2 y$ as a sparse vector, where the term $c x^\alpha y^\beta$ is stored as $(c\; \alpha \; \beta)$ and terms are store contiguously
-        \[  
+        is stored as  $(X Y) (0\; 3\; 0\; 2\; \minus 1\; 0)$.
+    \item[Sparse vectors] Stores a vector of tuples containing the coefficients and the monomials of the polynomials. As an example, we could store $2xy^2 - x^2 + 2x + 5y^2 + 17x^2 y$ as a sparse vector,
+        \[
             (X\; Y)\; (2\; 1\; 2)\; (\minus 1\; 2\; 0)\; (2\; 1\; 0)\; (5\; 0\; 2)\; (17\; 2\; 1).
         \]
-        We have a header $(X Y)$ to denote the two variables.
+        where the term $c x^\alpha y^\beta$ is stored as $(c\; \alpha \; \beta)$ and terms are store contiguously.
 
     \item[Canonical Rational Expression (CRE)] Here we use the isomorphism $R[x, y] \cong R[x][y]$ to represent polynomials recursively by using one of the other techniques above to represent a multivariate polynomial as a univariate polynomial whose coefficients are also polynomials. For example, the polynomial $2xy^2 - x^2 + 2x + 5y^2 + 17x^2 y$ can be reorganised as
         \[
@@ -77,45 +78,20 @@ In computer algebra systems, there are three commonly used representations of po
         \]
         and can then be encoded as
         \[
-            X ( Y (\minus 1 0) (17 1) ) ( Y (2 0) (2 2) ) ( Y (5 2) ) 
+            X; (; Y; (\minus; 1; 0); (17; 1); ); (; Y; (2; 0); (2; 2); ); (; Y; (5; 2); );
         \]
 \end{description}
 
-Note that this is an idealised form and that in practice different algebra systems will vary the representations to suit their purposes. 
+Note that this is an idealised form and that in practice different algebra systems will vary the representations to suit their purposes.
+
+Throughout this paper we will assume that polynomial are stored in their coefficient vector format, as we will be proving the worse case complexity for these algorithms which occurs when the polynomials are dense.
 
 \medskip
 
-Though the recursive approach may seem like the canonical solution due to its simplicity and ability to recursively apply algorithms for univariate polynomials to multivariate polynomials, it is not very efficient in practice due to the large number of expensive memory operations that need to be performed to access its elements. Since the information of each monomial is distributed over multiple parts of memory, certain operations unnecessarily costly, such as extracting the lead term of the polynomial. Furthermore, it enforces a lex monomial ordering onto the terms of the polynomial, which can cause conflicts with Gr\"{o}bner basis calculations that involve other monomial orderings. Modern computer algebra systems such as Maple, now tend to prefer the sparse term representation \cite{maple-new-poly-structure}.
+CREs may see like the canonical representation due to its simplicity and ability to recursively apply algorithms for univariate polynomials to multivariate polynomials. However, it is not very efficient in practice due to the large number of expensive memory operations that need to be performed to access its elements. Since the information of each monomial is distributed over multiple locations in memory, certain operations are unnecessarily costly, such as extracting the lead term of the polynomial. Furthermore, it enforces a lex monomial ordering onto the terms of the polynomial, which can cause conflicts with Gr\"{o}bner basis calculations that involve other monomial orderings. Modern computer algebra systems such as Maple, now tend to prefer the sparse term representation \cite{maple-new-poly-structure}.
 
-It is worth mentioning there is another representation where the monomials are stored in a hash map. However since the monomials are not stored in any kind of order, its applications are more limited. It is primarily used when multiplying sparse polynomials as we don't need to be as careful when managing our memory and we can completely bypass the more complicated algorithm for sparse multiplication in Chapter \ref{chp:implementation}, at the cost of memory efficiency.
+It is worth mentioning there is another representation where the monomials are stored in a hash map. It is primarily used when multiplying sparse polynomials as we don't need to be as careful when managing our memory and we can completely bypass the more complicated algorithm for sparse multiplication in Chapter \ref{chp:implementation}, at the cost of memory efficiency. However since the monomials are not stored in any kind of order, its applications are more limited.
 
-% TODO Martin has a comment here. I think it might be good to say how to convert from sparse to dense representation then it might be more clear
-The \emph{sparsity} of a polynomial refers to the number of non-zero terms with respect to the polynomial's degree in each variable. Many algorithms require zero-padding to ensure both input polynomials have the same number of terms and are fully expanded into the coefficient vector representation, which can cause them to be terrifically inefficient. This is the case for a popular class of algorithms we will introduce in Chapter \ref{chp:eval-interp} known as Fast Fourier Transform-based algorithms (see Chapter \ref{chp:eval-interp}). This is often worse for multivariate polynomials as they are almost always sparse in practice. For example, consider multiplying the polynomial $x^2y + y^6z^4$ by $xyz + x^3z^5$ with the FFT. We can see that the maximum possible degree of the $x$ variable in the result would be $5$, and $7$ and $9$ for $y$ and $z$ respectively. We then need to round the numbers up to the nearest power of two to obtain $8$, $8$ and $16$. Therefore in order to use an FFT based algorithm, we would need to perform the FFT on $8 \times 8 \times 16 = 1024$ terms. Hence, FFT-based algorithms perform poorly for many moderate-sized multivariate polynomial multiplication problems. Hence we must design algorithms that can operate on highly sparse polynomials. We will look at some popular techniques in Chapter \ref{chp:implementation}.
+The \emph{sparsity} of a polynomial refers to the number of non-zero terms with respect to the polynomial's degree in each variable, or rather, the ratio of the number of zero terms to non-zero terms in its coefficient vector. The steps a program executes is often solely dependent on the maximum degrees of the input polynomials and so even if the inputs are sparse, it is often more efficient to store it in its coefficient vector representation and padded with zeros, which can cause them to be terrifically inefficient. This is the case for a popular class of algorithms we will introduce in Chapter \ref{chp:eval-interp} known as Fast Fourier Transform-based algorithms. This is often worse for multivariate polynomials as they are almost always sparse in practice. For example, consider multiplying the polynomial $x^2y + y^6z^4$ by $xyz + x^3z^5$ with the FFT. We can see that the maximum possible degrees of the $x$, $y$ and $z$ variables in the result  are $5$, $7$ and $9$ respectively. We also then need to round the numbers up to the nearest power of two to obtain $8$, $8$ and $16$. Therefore in order to use an FFT-based algorithm, we would need to perform the FFT on $8 \times 8 \times 16 = 1024$ terms. Hence, FFT-based algorithms perform poorly for many moderate-sized multivariate polynomial multiplication problems. In Chapter \ref{chp:implementation} we will present a technique that is dependent only on the number of non-zero terms in the inputs, which would be far more suitable for this situation.
 
-Since many algorithms require their inputs to be the same length, it is natural in our analysis to write the complexity as a function of the degrees of both input polynomials. For this reason, we often formulate the complexity of such algorithms in terms of the maximum of the degrees of the two inputs in each of the indeterminates. The exception to this, are algorithms for sparse polynomials which are optimised to avoid zero-padding, which aim to be a function of the maximum degree and the number of non-zero terms of the inputs.
-
-% \section{Recursive formulae}%
-% \label{sec:Recursive forumulae}
-
-% It is quite common to formulate algorithms recursively; not only do they tend to be easier to verify, but their complexities can often be written neatly as recursive expressions. 
-% For instance, in the following chapter we obtain the following recursive formula for Karatsuba's algorithm
-% \[
-%     \M{C}(n) = 3C\bb{\frac{n}{2}} + \M{O}(n), \qquad \M{C}(1) \le M
-% \]
-% where $M > 0$ is a constant.
-
-% We can use induction to show that $\M{C} \in \M{O}(n^{\log_2 3})$.
-
-% First we replace the $\M{O}(n)$ with $cn$ for some positive constant $c > 0$. Then we use induction to show that $\M{C}(n) \le Mn^{\log_2 3} - 2cn$ for $M = \M{C}(1) - 2c$.
-
-% When $n = 1$, we have $\M{C}(1) \le Mn^{\log_2 3} - 2cn$, therefore the base case holds.
-
-% Now assume that $\M{C}(k) \le Mk^{\log_2 3} - 2ck$ for all $k < n$. Then 
-% \begin{align*}
-%     \M{C}(n) &= 3C\bb{\frac{n}{2}} + \M{O}(n)\\
-%              &\le 3(M(\frac{n}{2})^{\log_2 3} - 2c\bb{\frac{n}{2}}) + cn\\
-%              &= Mn^{\log_2 3} - 3cn + cn\\
-%              &= Mn^{\log_2 3} - 2cn
-% \end{align*}
-
-% Thus $\M{C}(n) \le Mn^{\log_2 3} - 2cn \le n^{\log_2 3}$ for all $n \ge 1$, and therefore $\M{C}(n) \le Mn^{\log_2 3}$ for all $n \ge 1$. Therefore $\M{C} \in \M{O}(n^{\log_2 3}$.
+In light of this, we will only formulate the complexity of such algorithms as function of the maximum of the degrees of the two inputs in each of the indeterminates. The exception to this, are algorithms for sparse polynomials.

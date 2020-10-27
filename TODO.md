@@ -1,6 +1,8 @@
 # General
 * Just mention that we can do constant time bit operations
 
+* Change all the - in the exponents into \minus
+* Sometimes i've written O instead of \M{O}
 * Mention what "linear time" is in the preliminaries
 * Need to say that in the asymptotic analysis we have a normalised DFT
 * In the FFT stuff, make sure I put the negative in the exponent in the forward DFT

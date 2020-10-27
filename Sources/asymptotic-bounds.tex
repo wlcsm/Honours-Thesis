@@ -12,9 +12,9 @@ Along with their main paper, Harvey and van der Hoeven released a second paper \
 
 Both techniques take advantage of the fact that there exist multidimensional-DFTs in higher dimensions that are particularly efficient to compute. We first convert the integers multiplication problem into polynomial multiplication in the ring $\Z[x]$, and then into a convolution in $\otimes_{i=1}^d \C^{s_i}$ for suitably picked primes $s_1, \ldots, s_n$. Since the transform lengths in each dimension are prime, the conditional algorithm applies Rader's trick to evaluate the convolution using a multidimensional FFT. However the FFT is only efficient when $s_1 - 1, \ldots, s_d - 1$ have many small prime divisors; a guarantee that has not yet been proven. The unconditional algorithm avoids this situation by using a technique the authors call \emph{Gaussian Resampling}, to reduce the convolution of prime lengths, into a convolution in $\otimes_{i=1}^{t_i} \C^{t_i}$ where $t_i > s_i$ is the next power of two greater than $s_i$.
 
-This technique relies on the Archimedean property of the complex numbers, and hence there is not an obvious generalisation of this result of finite fields. The conditional algorithm, however, does not have this requirement, so it can be generalised. This contrasts the majority of previous attempts to improve the theoretical bound which kept the polynomials in $\Z[x]$ and used only discrete algebraic transformations to evaluate the multiplication to obtain an exact result at every step.
+This technique relies on the Archimedean property of the complex numbers, and so there is not an obvious generalisation of this result of finite fields. The conditional algorithm, however, does not have this requirement, so it can be easily generalised to commutative algebras. This contrasts the majority of previous attempts to improve the theoretical bound which kept the polynomials in $\Z[x]$ and used only discrete algebraic transformations to evaluate the multiplication to obtain an exact result at every step.
 
-Since most of the calculations will be performed in the coefficient ring $\C$, we must carefully track the loss of precision of our intermediate results. As discusses in a previous Chapter, using the standard FFT algorithm with enough precision to guarantee correctness, increases the complexity of the overall algorithm and is no longer $\M{O}(n \log n)$. In the Turing model, the complexity of fundamental operations such as addition and multiplication is directly proportional to the number of bits used to store the number. This means that as we increase the size of the size of our integers, simple arithmetic operations take longer, but in the end, we must keep the total error of the coefficients strictly less than $1/2$ so that rounding to nearest integer returns the correct result. 
+Since most of the calculations will be performed in the coefficient ring $\C$, we must carefully track the loss of precision in our intermediate results. As discussed in Chapter \ref{chp:eval-interp}, using the standard FFT algorithm with enough precision to guarantee correctness, increases the complexity of the overall algorithm past the $\M{O}(n \log n)$ bound. In the Turing model, the complexity of fundamental operations such as addition and multiplication is directly proportional to the number of bits used to store the number. This means that as we increase the size of the size of our integers, simple arithmetic operations take longer, but in the end, we must keep the total error of the coefficients strictly less than $1/2$ so that rounding to nearest integer returns the correct result. 
 
 % \medskip
 
@@ -34,6 +34,8 @@ Since most of the calculations will be performed in the coefficient ring $\C$, w
 This section will prove the following theorem
 
 \begin{theorem}[Theorem 1 \cite{nlogn}]\label{thm:main-theorem}
+    \smallskip
+
     Multiplication of integers of size $n$ can be calculated in time $\M{O}(n \log n)$ in the Turing model.
 \end{theorem}
 
@@ -56,34 +58,33 @@ First we will present a theorem which allows us to convert polynomial multiplica
     This extends naturally to an isomorphism between the two rings in \eqref{eq:multi-dft}.
 \end{proof}
 
-Note that we could formulate this map as Kronecker substitution, but from the theory we have developed so far that would not give us the isomorphism that is needed in the algorithm.
+Note that we could formulate this map as Kronecker substitution, but from the theory we have developed so far that would not give us the isomorphism needed for the algorithm.
 
 First we will introduce a high-level overview of the main algorithm.
 
-Let $a, b \in \Z$ be $n$-bit integers, to calculate the product $ab$:
+Let $a, b \in \Z$ be $n$-bit integers, to calculate the product $c = ab$:
 
 \begin{enumerate}
     \item  Choose distinct primes $s_1, \ldots, s_d \approx n^{1/d}$ and $s_1\cdots s_d \ge n/\ceil{\log_2 n}$ (subject to certain conditions we will explain later).
 
-        Convert the $a$ and $b$ into polynomials in $\Z[x]/(x^{s_1\cdots s_d} - 1)$ via Kronecker substitution allowing each coefficient to have $\ceil{\log_2 n}$ bits (pad with zeros if necessary), then into multivariate polynomials in $d$ indeterminates via Lemma \ref{eq:uni-to-multi}.
-    \item By viewing $\Z$ as a subring of $\C$, convert the multiplication of the multivariate polynomials into a $d$-dimensional convolution over $\mathbb{C}$.\\
-        This is done by identifying polynomials in $\C[x]/(x_i^{s_i} - 1)$ by their coefficient vector in $\C^{s_i}$. This can be summarised by the isomorphism \ref{eq:mult-to-convolution}.
+        Convert the $a$ and $b$ into polynomials in $\Z[x]/(x^{s_1\cdots s_d} - 1)$ via Kronecker substitution allowing each coefficient to have $\ceil{\log_2 n}$ bits (pad with zeros if necessary). Then convert it multivariate polynomials in $d$ indeterminates via Lemma \ref{eq:uni-to-multi}.
+    \item By viewing $\Z$ as a subring of $\C$, convert the multiplication of the multivariate polynomials into a $d$-dimensional convolution over $\mathbb{C}$ via the Proposition \ref{prop:poly-conv-iso}
     \item Use \emph{Gaussian Resampling} to approximate the convolution in $\otimes_{i=1}^d \C^{s_i}$ by a convolution $\otimes_{i=1}^d \C^{t_i}$ where $t_i$ is the next power of two greater than $s_i$.
     \item Efficiently evaluate the convolution in $\otimes_{i=1}^d \C^{t_i}$ and convert the convolution back into $\otimes_{i=1}^d \C^{s_i}$.
-    \item Convert the result back into $\Z[x]$, and then $\Z$.
+    \item Convert the result back into $\Z[x]$, and finally recover the solution in $\Z$.
 \end{enumerate}
 
-Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapter. In this section we will cover all aspects of the proof except the details of the Gaussian Resampling technique used in Step 3, or certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding in Fourier analysis and number theory that is beyond the material presented here. Section \ref{sec:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sec:transfoms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sec:proof-of-theorem} will present the final proof.
+Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapters. In this section we will cover all aspects of the proof except the details of the Gaussian Resampling technique used in Step 3, and certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding in Fourier analysis and number theory that is beyond the material presented here. Section \ref{sec:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sec:transfoms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sec:proof-of-theorem} will prove Theorem \ref{thm:main-theorem}.
 
 \section{Notation}%
 \label{sec:notation}
 
-We fix a precision of $p$ bits.
+Fix a precision of $p$ bits.
 
-The main two coefficient algebras we use throughout this chapter are $\C$ and $\mathscr{R} = \C[y]/(y^r + 1)$ where $r < 2^{p-1}$ is a power of two. Note that this is the same algebra as in the Sch\"{o}nage-Strassen integer multiplication algorithm and is used a similar way. Observe the isomorphism
-\[
-    (\otimes^d_{i=1}\C^{t_i}, \ast) \to (\otimes_{i=1}^{d-1} \mathscr{R}^{t_i}, \ast).
-\]
+The main two coefficient algebras we use throughout this chapter are $\C$ and $\mathscr{R} = \C[y]/(y^r + 1)$ where $r < 2^{p-1}$ is a power of two. Note that this is the same algebra as in the Sch\"{o}nage-Strassen integer multiplication algorithm and is used a similar way.
+% \[
+%     (\otimes^d_{i=1}\C^{t_i}, \ast) \to (\otimes_{i=1}^{d-1} \mathscr{R}^{t_i}, \ast).
+% \]
 We will preference performing FFTs in the $\mathscr{R}$ coefficient ring as $x$ is a primitive rout of unity and so multiplications simply amounts to a cyclic permutation of the coefficients. Therefore it is more computationally efficient than the case for $\C$, and incurs no loss of precision.
 
 We write $\tilde{\C}$ to denote the space of elements in $\C$ with a fixed precision of $p$. Let $\C_\circ$ for the unit ball in $\C$, and $V_\circ$ the unit ball in $V$.
@@ -92,39 +93,38 @@ If $V$ is an $m$-dimensional vector space and $v = (v_1, \ldots, v_m) \in V$ wit
 \[
     \|v\| = \max_j \|v_i\|.
 \]
-this is useful later on since if we can show that $\|h - \tilde{h}\| < \frac{1}{2}$, then we can conclude that rounding the results to the nearest integer will produce the correct answer.
+this is useful since if we make an approximation $\tilde{h}$ for $h = ab$, and we can show that $\|h - \tilde{h}\| < \frac{1}{2}$, then we can conclude that rounding the results to the nearest integer will produce the correct answer.
 
 Now define $\varepsilon$ as the error function that measures the error of an approximation. More formally, for an approximation $\tilde{w} \in \tilde{V}_\circ$ of $w \in V_\circ$ we express the error associated with $\tilde{w}$ as
 \[
     \varepsilon(\tilde{w}) = 2^p \|\tilde{w} - w\|,
 \]
-Notice that the error is measured in multiples of $2^p$. So if the approximation is incorrect by one bit, then the difference between the approximation and the exact solution is $2^{-p}$ and the error gain by $\varepsilon$ is one.
-
-As we can see, in order to keep all results inside the $p$ bits of precision, we perform normalised calculations, similarly, we will also perform a normalised DFT.
-
+Notice that the error is measured in multiples of $2^p$. So if the approximation is incorrect by one bit, then the difference between the approximation and the exact solution is $2^{-p}$ and the error given by $\varepsilon$ is one.
 
 Using this definition, we can derive several fundamental properties of $\varepsilon$ under arithmetic operations which we will state without proof. For a more formal explanation, see \cite{nlogn}. Notice that all the operation are normalised to keep the norm of the results less than $1$, so we can keep the result it in $p$ bits. Indeed, we will need to restructure some algorithms previously presented in this paper to accommodate for normalised intermediate expressions.
 
 % TODO the notation here is not the best for F_n
-Note that in the standard DFT of of $n$, elements $F_n$, we have $\|F_n\| \le n$. So we will perform the DFT as
+Note that in the standard DFT of length $n$, call it $F_n$, we have $\|F_n\| \le n$. So we will perform the normalised DFT, given by
 \[
-    X_k = \frac{1}{n} \sum^{n-1}_{j=0} a_j \omega_N^{-jk}
+    X_k = \frac{1}{n} \sum^{n-1}_{j=0} a_j \omega_N^{-jk}.
 \]
-and so the convolution formula then becomes
+The convolution formula then becomes
 \[
-    \frac{1}{n} (f \ast g) = NF_n^{-1} (F_n u \cdot F_n v)
+    \frac{1}{n} (f \ast g) = NF_n^{-1} (F_n u \cdot F_n v).
 \]
 This then generalises to the multi-dimensional case $F_{n_1, \ldots, n_d}$ as
 \[
-    X_k = \frac{1}{n_1\cdots n_d} \sum^{n_1-1}_{j_1=0} \cdots \sum^{n_d-1}_{j_d=0} a_{j_1, \ldots, j_d} \omega_{n_1}^{-jk} \omega_{n_d}^{-jk}
+    X_k = \frac{1}{n_1\cdots n_d} \sum^{n_1-1}_{j_1=0} \cdots \sum^{n_d-1}_{j_d=0} a_{j_1, \ldots, j_d} \omega_{n_1}^{-j_1 k} \omega_{n_d}^{-j_d k}
 \]
 and
 \begin{equation}\label{eq:normalised-convolution}
-    \frac{1}{n_1 \cdots n_d} (f \ast g) = (n_1 \ast n_d)F_{n_1, \ldots, n_d}^{-1} (F_{n_1, \ldots, n_d} u \cdot F_{n_1, \ldots, n_d} v)
+    \frac{1}{n_1 \cdots n_d} (f \ast g) = (n_1 \ast \cdots \ast n_d)F_{n_1, \ldots, n_d}^{-1} (F_{n_1, \ldots, n_d} u \cdot F_{n_1, \ldots, n_d} v)
 \end{equation}
 
+\medskip
+
 \begin{proposition}
-    Let $V$ be a $m$-dimensional vector space. Assume we are given $u, v \in V_\circ$ and approximations $\tilde{u}, \tilde{v} \in \tilde{V}_\circ$, for $1 \le c \le 2^p$ we have
+    Let $V$ be a $m$-dimensional vector space. Assume we are given $u, v \in V_\circ$ and approximations $\tilde{u}, \tilde{v} \in \tilde{V}_\circ$, and $1 \le c \le 2^p$,we have
     \begin{enumerate}
         \item (E.1 Addition) We may compute an approximation $\tilde{w} \in \tilde{V}_\circ$ for $w = \tfrac{1}{2}(\tilde{u} \pm \tilde{v}) \in V_\circ$ such that $\varepsilon(\tilde{w}) < 1$ in time $O(mp)$.
         \item (E.2 Scaling) If $\|u\| \le c^{-1}$, and $w = cu \in V_\circ$, then we may compute and approximation $\tilde{w} \in \tilde{V}_\circ$ such that $\varepsilon(\tilde{w}) < 2c \cdot \varepsilon(\tilde{u}) + 3$ and in time $O(mp^{1 + \delta})$.
@@ -141,15 +141,15 @@ Let $\M{A}: V \to W$ be a $\C$-linear map between finite-dimensional vector spac
 \[
     \|A\| := \sup_{v \in V_\circ} \|\M{A}v\|,
 \]
-and then define the associated error of a linear map as
+and define the associated error of a linear map as
 \[
     \varepsilon(\tilde{\M{A}}) := 2^p \max_{v \in \tilde{V}_0} \|\tilde{\M{A}}v - \M{A}v\|.
 \]
 \begin{proposition}
-    Let $\M{A}: V \to W$, $\M{B}: V \to W$ be a $\C$-linear maps such that $\|\M{A}\|, \|\M{B}\| \le 1$ and let $v \in V_\circ$. Let $\tilde{\M{A}}: \tilde{V}_\circ \to \tilde{W}_\circ$, $\tilde{\M{B}}: \tilde{V}_\circ \to \tilde{W}_\circ$ be numerical approximations for $\M{A}$ and $\M{B}$. Then
+    Let $\M{A}: V \to W$ and $\M{B}: V \to W$ be $\C$-linear maps such that $\|\M{A}\|, \|\M{B}\| \le 1$ and let $v \in V_\circ$. Let $\tilde{\M{A}}: \tilde{V}_\circ \to \tilde{W}_\circ$, $\tilde{\M{B}}: \tilde{V}_\circ \to \tilde{W}_\circ$ be numerical approximations for $\M{A}$ and $\M{B}$. Then
 
     \begin{enumerate}
-        \item (E.5 Linear map) For $w \in \M{A}v \in W_\circ$ we may construct a numerical approximation $\tilde{w} = \M{A}v$ with $\varepsilon(\tilde{w}) \le \epsilon(\tilde{\M{A}}) + \varepsilon(\tilde{v})$.
+        \item (E.5 Linear map) For $w \in \M{A}v \in W_\circ$ we may construct a numerical approximation $\tilde{w} = \tilde{\M{A}}v$ with $\varepsilon(\tilde{w}) \le \epsilon(\tilde{\M{A}}) + \varepsilon(\tilde{v})$.
         \item (E.6 Composition) For $\M{C} := \M{B}\M{A}$ we may construct a numerical approximation $\tilde{\M{C}} = \tilde{\M{A}}\tilde{\M{B}}$ such that $\varepsilon(\tilde{\M{C}}) \le \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{\M{B}})$.
     \end{enumerate}
 \end{proposition}
@@ -196,8 +196,9 @@ Throughout this chapter let $r = t_d$ and $\M{R} = \C[y] / (y^r + 1)$.
     \]
 \end{theorem}
 
-The first term comes from the pointwise multiplications in $\tilde{\C}_\circ$, which are handled recursively. The $Tp \log T$ term comes from applying the FFT as in the convolution formula (Definition \ref{def:convolution-property}) after applying Bluestein's trick. The remaining $Tp^{1 + \delta}$ term comes from an additional scaling step we must perform at the end of evaluating the DFTs in order to normalise the result.
+The first term comes from the pointwise multiplications in $\tilde{\C}_\circ$, which are handled recursively. The $Tp \log T$ term comes from applying the FFT after applying Bluestein's trick. The remaining $Tp^{1 + \delta}$ term comes from an additional scaling step we must perform at the end of evaluating the DFTs in order to normalise the result.
 
+% TODO Are the indices in items 3 and 4 supposed to be t_i?
 The construction of the approximation in Theorem \ref{thm:main-3} is as follows:
 \begin{enumerate}
     \item Construct an approximation for a uni-dimensional FFT $\M{G}_i$.
@@ -217,17 +218,17 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 
 \begin{proof}
 
-    Let $t \in \{2, 4, \ldots, 2r\}$ and write $\omega = y^{2r/t}$ for the primitive root of unity of order $t$. 
+    Let $t \in \{2, 4, \ldots, 2r\}$ and write $\omega_t = y^{2r/t}$ for the primitive root of unity of order $t$. 
 
-    First we will need to evaluate the DFT in a way that is normalised. To do this, rather that partitioning the sum into even and odd sample, we will split it from its top and bottom half. 
+    First we will need to evaluate the DFT in a way that is normalised. To do this, rather that partitioning the sum into even and odd sample, we split the sum into its top and bottom half. 
     \begin{align*}
         (\M{G}_t u)_k 
-        &= \frac{1}{t}\sum^{t - 1}_{j=0} a_j \omega_t^{jk} + \frac{1}{t} \sum^{t/2 - 1}_{j=0} a_{j + t/2} \omega^{-j(k + t/2}\\
-        &= \frac{1}{t/2}\sum^{t - 1}_{j=0} \frac{1}{2}(a_j + (-1)^ja_{j + t/2})\omega_t^{jk} \\
+        &= \frac{1}{t}\sum^{t - 1}_{j=0} a_j \omega_t^{-jk} + \frac{1}{t} \sum^{t/2 - 1}_{j=0} a_{j + t/2} \omega^{-j(k + t/2}\\
+        &= \frac{1}{t/2}\sum^{t - 1}_{j=0} \frac{1}{2}(a_j + (-1)^ja_{j + t/2})\omega_t^{\minus jk} \\
     \end{align*}
     Thus we obtain
     \[
-        (\M{G}_t u)_{2p} = \frac{1}{t/2}\sum^{t - 1}_{j=0} \frac{1}{2}(a_j + a_{j + t/2})\omega_{t/2}^{pk}, \qquad (\M{G}_t u)_{2p + 1} = \frac{1}{t/2}\sum^{t - 1}_{j=0} (\frac{1}{2}(a_j - a_{j + t/2})\omega_t^j)\omega_{t/2}^{pk}
+        (\M{G}_t u)_{2p} = \frac{1}{t/2}\sum^{t - 1}_{j=0} \frac{1}{2}(a_j + a_{j + t/2})\omega_{t/2}^{\minus pk}, \qquad (\M{G}_t u)_{2p + 1} = \frac{1}{t/2}\sum^{t - 1}_{j=0} (\frac{1}{2}(a_j - a_{j + t/2})\omega_t^j)\omega_{t/2}^{pk}
     \]
     Thus we broken the problem into two sub-DFTs, one with samples $f = (a_j + a_{j + t/2})_{j=0}^{t/2}$ and the other with samples $g = (\frac{1}{2}(a_j - a_{j + t/2})\omega_t^j)_{j=0}^{t/2}$
 
@@ -235,19 +236,19 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
     The complexity analysis is the same as in previous sections and gives $\M{C}(\tilde{\M{G}}_t) = \M{O}(trp \log t)$.
 \end{proof}
 
-\begin{proposition}[Prop 3.3 in nlogn]
+\begin{proposition}[Prop 3.3 in nlogn]\label{prop:multi-synth}
     Let $t_1, \ldots, t_d$ and $T$ be as in Theorem 3.1. We may construct a numerical approximation $\M{G}_{t_1, \ldots, t_{d-1}}: \otimes_i \tilde{\mathscr{R}}^{t_i} \to \otimes_i \tilde{\mathscr{R}}^{t_i}$ for $\M{G}_{t_1, \ldots, t_{d-1}}$ such that $\epsilon(\tilde{\M{G}}_{t_1, \ldots, t_{d-1}}) < \log_2 T$ and $\M{C}(\tilde{\M{G}}_{t_1, \ldots, t_{d-1}}) \in \M{O}(Tp \log T)$.
 \end{proposition}
 
 \begin{proof}
-    We can view $\M{G}_{t_1, \ldots, t_{d-1}}$ as a multi-linear map. Lemma \ref{lem:tensor-products} our previous discussion on evaluating multi-linear maps \eqref{lem:multi-dim-dft}; set $M = t_1\cdots t_{d-1} = T/r$, we have
+    We can view $\M{G}_{t_1, \ldots, t_{d-1}}$ as a multi-linear map. Using Lemma \ref{lem:tensor-products} with $M = t_1\cdots t_{d-1} = T/r$, we have
     \begin{align*}
         \M{C}(\tilde{G}_{t_1, \cdots, t_{d-1}}) &\leq \frac{T}{r} \sum^{d-1}_{i=1} \frac{\M{C}(\tilde{\M{G}}_{t_i})}{t_i} + \M{O}(\bb{\tfrac{T}{r}}rp\log \bb{\tfrac{T}{r}})\\
                                                 &= \frac{T}{r}\sum^{d-1}_{i=1}\M{O}(rp\log 2t_i) + \M{O}(Tp \log T)\\
                                                 &= \M{O}(Tp \sum_i^{d-1}\log 2t_i) + \M{O}(Tp \log T)\\
                                                 &= \M{O}(Tp \log T).
     \end{align*}
-    By Lemma \ref{lem:tensor-products} the error associated with $\varepsilon(\tilde{\M{G}}_{t_1, \ldots, t_{d-1}}) \le \sum_{i=1}^{d-1}\tilde{\M{G}}_{t_i} = \sum_{i=1}^{d-1} \log_2 t_i$.
+    Lemma \ref{lem:tensor-products} also gives the bound the error associated with $\varepsilon(\tilde{\M{G}}_{t_1, \ldots, t_{d-1}}) \le \sum_{i=1}^{d-1}\tilde{\M{G}}_{t_i} = \sum_{i=1}^{d-1} \log_2 t_i$.
 \end{proof}
 
 \begin{proposition}[Prop 3.4 in nlogn]
@@ -263,25 +264,24 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
         \frac{1}{t_1 \cdots t_{d-1}}u \ast v = (t_1 \cdots t_{d-1})\M{G}^{-1}_{t_1, \ldots, t_{d-1}}((\M{G_{t_1, \ldots, t_{d-1}}}u)\cdot (\M{G_{t_1, \ldots, t_{d-1}}} v))).
     \]
     We need to ensure that the intermediate calculations have norm at most $1$ to fit inside the $p$ bits of precision. However, if computed as in previous chapters, the result of the pointwise multiplications of the two forward transforms may have norm $r > 1$. To remedy this we divide both sides by $r$ to obtain $w = (T/r)w^\prime$
-    \[
+    \begin{equation}\label{eq:idk}
         w^\prime = \M{G}^{-1}_{t_1, \ldots, t_{d-1}}(\tfrac{1}{r}(\M{G}_{t_1, \ldots, t_{d-1}}u) \cdot (\M{G}_{t_1, \ldots, t_{d-1}}v)).
-    \]
-    As we showed before in the previous theorem, each of the DFTs takes $\M{O}(Tp\log T)$.
+    \end{equation}
+    We use Proposition \ref{prop:multi-synth} to compute approximations $u^\prime = \tilde{\M{G}}_{t_1, \ldots, t_{d-1}} u \in \otimes_i \tilde{\mathscr{R}}^{t_i}$ and $v^\prime = \tilde{\mathscr{G}}_{t_1, \ldots, t_{d-1}} v \in \otimes_i \M{R}^{t_i}$. The cost of this step is $\M{O}(Tp \log T)$.
 
-    We use the previous proposition to compute approximations $u^\prime = \tilde{\M{G}}_{t_1, \ldots, t_{d-1}} u \in \otimes_i \tilde{\mathscr{R}}^{t_i}$ and $v^\prime = \tilde{\mathscr{G}}_{t_1, \ldots, t_{d-1}} v \in \otimes_i \M{R}^{t_i}$. The cost of this step is $\M{O}(Tp \log T)$.
-
-    Next we must handle the pointwise multiplications between the two transforms. The multiplication map $\M{A}: \mathscr{R} \times \mathscr{R} \to \mathscr{R}$ given by $\M{A}(a, b) = ab/r$ is a bilinear map with $\|\M{A}\| \le 1$ and so we may compute an approximation $\tilde{\M{A}}$ by Lemma \ref{lem:bilinear-map} such that $\varepsilon(\tilde{\M{A}}) < 2$ and $\tilde{v} = \tilde{\M{A}}(\tilde{u}, \tilde{v})$ has $\varepsilon(\tilde{v}) = \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{u}) + \varepsilon(\tilde{v}) = 2\log_2 T + 2$. The combined complexity of these steps is
+    Next we must handle the pointwise multiplications between the two transforms. The multiplication map $\M{A}: \mathscr{R} \times \mathscr{R} \to \mathscr{R}$ given by $\M{A}(a, b) = ab/r$ is a bilinear map with $\|\M{A}\| \le 1$ and so we may compute an approximation $\tilde{\M{A}}$ by Lemma \ref{lem:err-bilinear-map} such that $\varepsilon(\tilde{\M{A}}) < 2$ and $\tilde{v} = \tilde{\M{A}}(\tilde{u}, \tilde{v})$ has $\varepsilon(\tilde{v}) = \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{u}) + \varepsilon(\tilde{v}) = 2\log_2 T + 2$. The combined complexity of these steps is
     \[
         \frac{T}{r}(4M(3rp) + \M{O}(rp)) = \frac{4T}{r} M(3rp) + O(Tp)
     \]
     The inverse transform follows in the same way with the same complexity and error bounds as the forward transforms.
 
-    The final step we must perform is to scale by $T/r$, since we know that $\|w\| \le 1$ we can apply the approximation Lemma E.2 to obtain $w = (T/r)w^\prime$ such that $\varepsilon(\tilde{w}) < 2(T/r)\varepsilon(\tilde{w}^\prime) + 3 \le T(3 \log_2 T + 2) + 3 = 3T\log_2 T + 5$ in time $\M{O}(Tp^{1 + \delta})$.
-
-    (Note: Here is the main place we use the assumption that $t_d \ge 2$.)
+    Finally, we must scale by $T/r$, since we know that $\|w\| \le 1$ we can apply the approximation Lemma E.2 to obtain $w = (T/r)w^\prime$ such that $\varepsilon(\tilde{w}) < 2(T/r)\varepsilon(\tilde{w}^\prime) + 3 \le T(3 \log_2 T + 2) + 3 = 3T\log_2 T + 5$ in time $\M{O}(Tp^{1 + \delta})$.
 \end{proof}
 
-\begin{proposition}
+% TODO say why
+% (Note: Here is the main place we use the assumption that $t_d \ge 2$.)
+
+\begin{proposition}\label{prop:final}
     Let $t_1, \ldots, t_d$ be as in Theorem 3.1. We may construct a numerical approximation $\tilde{\M{M}}_\C: \otimes_i \tilde{\C}^{t_i}_\circ \times \tilde{\C}^{t_i}_\circ \to \tilde{\C}^{t_i}_\circ$ for $\M{M}_\C$ such that $\varepsilon(\tilde{\M{M}}_\C) < 3 T \log_2 T + 2 T + 15$ and
     \[
         C(\tilde{\M{M}}_\C) < \frac{4T}{r} M(3rp) + \M{O}(Tp \log T + Tp^{1 + \delta}).
@@ -298,11 +298,11 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
     \[
         \M{T}: \frac{\C[x_1, \ldots, x_d]}{x_1^{t_1} - 1, \ldots, x_d^{t_d} - 1} \to \frac{\mathscr{R}[x_1, \ldots, x_{d-1}]}{x_1^{t_1} - 1, \ldots, x_d^{t_{d-1}} - 1}
     \]
-    given by the map $\M{T}u((x_1, \ldots, x_d)) \to u(x_1, \ldots, x_{d-1}, \omega y)$ where $\omega$ is a $2r$-root of unity in $\C$. This isomorphism 
+    given by the map $\M{T}u((x_1, \ldots, x_d)) \to u(x_1, \ldots, x_{d-1}, \omega y)$ where $\omega$ is a $2r$-root of unity in $\C$. This induces the isomorphism 
     \[
         \M{M}_\C(u, v) = \M{T}^{-1}(\M{M}_{\mathscr{R}}(\M{T}u, \M{T}v)) \qquad u, v \in \otimes_i \C^{t_i}.
     \]
-    Now we construct numerical approximations for $\M{T}$ and $\M{T}^{-1}$. Let $\M{S}: \C^r_\circ \to \mathscr{R}_\circ$ denote the map that sends $x_d \mapsto \omega y$. Then we may construct an approximation $\tilde{\omega}_j$ for each $\omega_j = e^{\pi i j / r} \in \C_\circ$ and then using Corollary !! we compute an approximation $\tilde{v}_j$ for $v_j = \omega_j u_j$. We obtained $\varepsilon(\tilde{\omega}_j) < 2$ and so $\varepsilon(\tilde{v}_j) < \varepsilon(\tilde{\omega}_j) + 2 < 4$. Hence $\varepsilon(\M{S}) < 4$ and $C(\tilde{\M{S}}) = O(r p^{1 + \delta})$. So applying $\tilde{\M{S}}$ separately to the coefficient of each $x_1^{j_1} \cdots x_{d-1}^{j_{d-1}}$ we obtain an approximation $\tilde{\M{T}}: \otimes_{i=1}^d \tilde{\C}^{t_i}_\circ \to \otimes^{d-1}_{i=1} \tilde{\mathscr{R}}_\circ^{t_i}$ such that $\varepsilon(\tilde{\M{T}}) < 4$ and $C(\tilde{\M{T}}) = \M{O}(Tp^{1 + \delta})$. The inverse is computed similarly with the same complexity and error bound.
+    Now we construct numerical approximations for $\M{T}$ and $\M{T}^{-1}$. Let $\M{S}: \C^r_\circ \to \mathscr{R}_\circ$ denote the map that sends $x_d \mapsto \omega y$. Then we may construct an approximation $\tilde{\omega}_j$ for each $\omega_j = e^{\pi i j / r} \in \C_\circ$ and then using Lemma E.2 we compute an approximation $\tilde{v}_j$ for $v_j = \omega_j u_j$. We obtained $\varepsilon(\tilde{\omega}_j) < 2$ and so $\varepsilon(\tilde{v}_j) < \varepsilon(\tilde{\omega}_j) + 2 < 4$. Hence $\varepsilon(\M{S}) < 4$ and $C(\tilde{\M{S}}) = O(r p^{1 + \delta})$. So by applying $\tilde{\M{S}}$ separately to the coefficient of each $x_1^{j_1} \cdots x_{d-1}^{j_{d-1}}$ we obtain an approximation $\tilde{\M{T}}: \otimes_{i=1}^d \tilde{\C}^{t_i}_\circ \to \otimes^{d-1}_{i=1} \tilde{\mathscr{R}}_\circ^{t_i}$ such that $\varepsilon(\tilde{\M{T}}) < 4$ and $C(\tilde{\M{T}}) = \M{O}(Tp^{1 + \delta})$. The inverse is computed similarly with the same complexity and error bound.
 
     Thus we have
     \[
@@ -310,7 +310,7 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
     \]
 \end{proof}
 
-Finally, we may prove the theorem.
+Finally, we may prove the main theorem.
 
 \begin{proof}[Proof of Theorem \eqref{thm:main-3}]
     This proof uses Bluestein's trick to convert the DFT into a convolution problem. Rewriting Bluestein's algorithm for DFTs in terms of the normalised DFT gives
@@ -324,13 +324,15 @@ Finally, we may prove the theorem.
     \[
         \eta_{j_1, \ldots, j_d} = r\bb{\frac{j_1^2}{t_1} + \cdots + \frac{j_d^2}{t_d}} \mod 2r.
     \]
-    We evaluate $\eta_{j_1, \ldots, j_d}$ separately so as to keep the intermediate expressions normalised. We can then compute $\eta$ in lexicographical order in $\M{O}(T \log r) = \M{O}(T p)$ time. Here for fixed $j_1, \ldots, j_{d-1}$ we compute, $j_1^2/t_1 + \cdots + j_{d-1}^2/t_{d-1}$. Then we compute $j_d^2/t_d$ for all $1 \le j_d \le t_d$ and add that to the sum. This will take $\M{O}(\log r)$ time if we store the results of $\frac{r}{2}(j_1^2/t_1 + \cdots + j^2_{t_{\floor{d/2}}}), \frac{r}{4}(j_{t_{\floor{d/2}+1}}^2 + \cdots + j^2_{t_{\floor{d/4}+1}})$. Then to recompute those partial sums will take $O(r)$ each and there are $\M{O}(T/r)$ of them. Hence they will take $\M{O}(T)$ time in total to compute. Thus computing all the sums in the table will take $\M{O}(T \log r)$ time. 
+    We evaluate $\eta_{j_1, \ldots, j_d}$ separately so as to keep the intermediate expressions normalised. We can then compute $\eta$ in lexicographical order in $\M{O}(T \log r) = \M{O}(T p)$ time. 
+
+    To get an idea of how this is done: for fixed $j_1, \ldots, j_{d-1}$ we compute, $j_1^2/t_1 + \cdots + j_{d-1}^2/t_{d-1}$. Then we compute $j_d^2/t_d$ for all $1 \le j_d \le t_d$ and add that to the sum. This will take $\M{O}(\log r)$ time if we store the results of $\frac{r}{2}(j_1^2/t_1 + \cdots + j^2_{t_{\floor{d/2}}}), \frac{r}{4}(j_{t_{\floor{d/2}+1}}^2 + \cdots + j^2_{t_{\floor{d/4}+1}})$. Once we have computed all of the $j_d$ values, we must recompute the prefix of the sum with the next value of $j_1, \ldots, j_{d-1}$. These partial sums will take $O(r)$ each and there are $\M{O}(T/r)$ of them. Hence they will take $\M{O}(T)$ time in total to compute. Thus computing all the sums in the table will take $\M{O}(T \log r)$ time. 
 
     We then apply the approximation lemmas (E.8 Real Exponential) to compute an approximation $\tilde{a}_{j_1, \ldots, j_d} \in \tilde{\C}_\circ$ such that $\varepsilon(\tilde{a}_{j_1, \ldots, j_d}) < 2$ in time $\M{O}(p^{1 + \delta})$.
 
     Now we compute the approximation $\tilde{b} \in \otimes_i \tilde{\C}^{t_i}_\circ$ for $b = \bar{a} \cdot u$ with $\varepsilon(\tilde{b}) < \varepsilon(\tilde{a}) + 2 < 4$ in time $\M{O}(T p^{1 + \delta})$.
 
-    Apply the previous proposition to compute an approximation $\tilde{c} \in \otimes_i \tilde{\C}^{t_i}_\circ$ for $c = \tfrac{1}{T} a \ast b$. This requires time $(4T/r)M(3rp) + \M{O}(Tp\log T + Tp^{1 + \delta})$ and by the approximation lemma for bilinear functions (TODO reference) we know
+    Apply Proposition \ref{prop:final} to compute an approximation $\tilde{c} \in \otimes_i \tilde{\C}^{t_i}_\circ$ for $c = \tfrac{1}{T} a \ast b$. This requires time $(4T/r)M(3rp) + \M{O}(Tp\log T + Tp^{1 + \delta})$ and by the approximation lemma for bilinear functions (Lemma \ref{lem:err-bilinear-map}), we have
     \[
         \varepsilon(\tilde{c}) \le \varepsilon(\tilde{\M{M}}_\C) + \varepsilon(\tilde{a}) + \varepsilon(\tilde{b}) < 3T\log_2 T + 2T + 21.
     \]
@@ -347,9 +349,9 @@ We note that the contents of this section do not make any major changes from the
 \section{Proof of Theorem}%
 \label{sec:proof-of-theorem}
 
-In order to prove Theorem \ref{thm:main-theorem}, we first need to present the main result of Harvey and van der Hoeven's \emph{Gaussian Resampling} technique to convert a DFT or order $s_1 \times \cdots \times s_d$ where $s_i$ are prime, to one of order $t_1 \times \cdots \times t_d$, where $t_i > s_i$ is the next power of two greater than $s_i$. This is the main point of divergence between the conditional and unconditional algorithms. Where the unconditional algorithm using Gaussian Resampling to make this conversion, the conditional algorithm uses Rader's transform.
+In order to prove Theorem \ref{thm:main-theorem}, we first need to present the main result of Harvey and van der Hoeven's \emph{Gaussian Resampling} technique to convert a DFT or order $s_1 \times \cdots \times s_d$ where $s_i$ are prime, to one of order $t_1 \times \cdots \times t_d$, where $t_i > s_i$ is the next power of two greater than $s_i$, to allow us to apply Theorem \ref{thm:main-theorem}. This is the main point of divergence between the conditional and unconditional algorithms. Where the unconditional algorithm using Gaussian Resampling to make this conversion, the conditional algorithm uses Rader's transform.
 
-\begin{theorem}[Theorem 4.1 in nlogn]
+\begin{theorem}[Theorem 4.1 in nlogn]\label{thm:gaussian}
     Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Let $\alpha$ be an integer in the interval $2 \leq \alpha < p^{\frac{1}{2}}$. For each $i$ let $\theta_i = t_i / s_i - 1$, and assume that $\theta_i \geq p/\alpha^4$. Then there exists linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
     \[
         \M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{B} \M{F}_{t_1, \ldots, t_d} \M{A} \qquad \gamma := 2d\alpha^2.
@@ -362,20 +364,20 @@ In order to prove Theorem \ref{thm:main-theorem}, we first need to present the m
 
 \medskip
 
-Now we set the parameters to prove the theorem. (TODO Reword)
+Now set the parameters to prove the theorem.
 
 Let $b = \lceil \log_2 n\rceil \geq d^{12} \geq 4096$ be the size of the coefficients after applying Kronecker substitution to convert the integers into polynomials in $\Z[x]$. Fix the working precision to be $p = 6b$, and define $\alpha = \lceil (12d^2 b)^{1/4}\rceil$.
 
-% Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
+Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
 
-% \begin{equation}
-%     \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
-% \end{equation}
+\begin{equation}
+    \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
+\end{equation}
 
-% TODO Why is this line necessary?
+TODO Why is this line necessary?
 
-% Just as in Theorem 4.1, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
-% TODO In words, what is gamma?
+Just as in Theorem 4.1, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
+TODO In words, what is gamma?
 
 Let $T$ be the unique power of two in the interval
 \begin{equation}
@@ -393,7 +395,7 @@ Let $r$ be the unique power of two in the interval,
 %     r \geq (4n/b)^{1/d} \geq n^{1/2d} \geq 2^{d^{10}}
 % \]
 
-(TODO This seems to be unclear to Martin in Chapter-6-Comments.pdf)
+% (TODO This seems to be unclear to Martin in Chapter-6-Comments.pdf)
 
 Now we construct a factorisation $T = t_1 \cdots t_d$ that satisfies the hypotheses of Theorem 3.1. Let $d^\prime := \log_2(r^d / T)$. As $T \leq r^d < 2^d T$ we have $1 \leq r^d / T < 2^d$ and hence $0 \leq d^\prime < d$. Define
 \[
@@ -403,11 +405,14 @@ Then $t_d \geq \cdots \geq t_1 \geq 2$ and $t_1\cdots t_d = T$.
 
 \medskip
 
-(TODO I know I don't need to prove the Lemma but I need to simplify their description of $s_1, \ldots, s_d$ which is not simple)
+% (TODO I know I don't need to prove the Lemma but I need to simplify their description of $s_1, \ldots, s_d$ which is not simple)
+
 \medskip
+
+(Still need to give an intuitive explanation for this part)
 We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly smaller than the corresponding $t_1, \ldots, t_d$. This is a number-theoretic fact that is proved in Lemma $5.1$ in \cite{nlogn}. It is also shown that we can find the primes in $\M{O}(n)$ time.
 
-\begin{proposition}[Proposition 5.2 in nlogn]
+\begin{proposition}[Proposition 5.2 in \cite{nlogn}]
     We may construct a numerical approximation $\tilde{\M{F}}_{s_1, \ldots, s_d}: \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{F}_{s_1, \ldots, s_d}$ such that $\epsilon(\tilde{F}_{s_1, \ldots, s_d}) < 2^{\gamma + 5} T \log_2 T$ and
     \[
         \M{C}(\tilde{\M{F}}_{s_1, \ldots, s_d}) < \frac{4T}{r} M(3rp) + \M{O}(n \log n).
@@ -415,13 +420,13 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
 \end{proposition}
 
 \begin{proof}
-    Theorem 2 gives us maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes \C^{s_i}$ such that $\M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{A}\M{F}_{t_1, \ldots, t_d} \M{B}$ and approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$. We then apply Theorem 1 to obtain an approximation $\tilde{\M{F}}_{t_1, \ldots, t_d}$ for $\M{F_{t_1, \ldots, t_d}}$.
+    Theorem \ref{thm:gaussian} gives us maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes \C^{s_i}$ such that $\M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{A}\M{F}_{t_1, \ldots, t_d} \M{B}$ and approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$. We then apply Theorem \ref{thm:main-theorem} to obtain an approximation $\tilde{\M{F}}_{t_1, \ldots, t_d}$ for $\M{F_{t_1, \ldots, t_d}}$.
 
     Now consider the scaled transform
     \[
         \M{F}^\prime_{s_1, \ldots, s_d} = 2^{-\gamma} \M{F}_{s_1, \ldots, s_d} = \M{A}\M{F}_{t_1, \ldots, t_d}\M{B}.
     \]
-    We then may compute an approximation $\tilde{\M{F}}^\prime_{s_1, \ldots, s_d} = \tilde{\M{A}}\tilde{\M{F}}_{t_1, \ldots, t_d}\tilde{\M{B}}$. By the approximate function composition lemma we have
+    We then may compute an approximation $\tilde{\M{F}}^\prime_{s_1, \ldots, s_d} = \tilde{\M{A}}\tilde{\M{F}}_{t_1, \ldots, t_d}\tilde{\M{B}}$. By Lemma E.6 we have
     \[
         \varepsilon(\tilde{\M{F}}^\prime_{s_1, \ldots, s_d}) \le \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}) + \varepsilon(\tilde{B}) < 2dp^2 + 8T\log_2 T.
     \]
@@ -472,7 +477,7 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
 \end{proof}
 
 
-(TODO Redo this bit here and polish)
+% (TODO Redo this bit here and polish)
 
 All that remains now is to convert the integer multiplication problem into a convolution problem in $\otimes_{i=1}^d \C^{s_i}$ which we showed could be done (TODO though I didn't step through the complexity at each step so I might need to do that). Apply the previous proposition to evaluate the convolution and coerce the result back into $\Z[x]$ by rounding to the nearest integer.
 

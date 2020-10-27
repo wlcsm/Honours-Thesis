@@ -30,7 +30,7 @@ Convolutions are fundamental in the field Fourier analysis as the DFT is the uni
     where $y_{k-i}$ is understood to mean $y_{k-i \mod n}$.
 \end{definition}
 
-\begin{proposition}
+\begin{proposition}\label{prop:poly-conv-iso}
     Let $K$ be a commutative ring. Then for any $n \in \N$, we have the isomorphism of rings
     \[
         \bb{\frac{K[x]}{x^n - 1}, \times} \cong (K^n, \ast).
@@ -54,7 +54,7 @@ Convolutions are fundamental in the field Fourier analysis as the DFT is the uni
 \end{proof}
 
 % TODO could I maybe not word this as a corollary
-\begin{corollary}\label{cor:eqiv-poly-conv}
+\begin{corollary}\label{cor:equiv-poly-conv}
     Polynomial multiplication in $K[x]$ and convolutions in $K^n$ for any $n \in \N$ are equivalent problems.
 \end{corollary}
 
@@ -117,9 +117,9 @@ The Number Theoretic Transform (NTT) is a generalisation of the Fast Fourier Tra
 \label{subsec:rt}
 
 % TODO polish this
-Rader's algorithm is a method to evaluate the DFT of prime size $N$ be expressing it as a cyclic convolution of size $N - 1$. This is different to Bluestein's algorithm which expresses it as a transform of length $N$. This is not as efficient for arbitrary finite fields, but in many applications such as cryptography, we may choose the fields to work in. Hence we will choose a fields with prime characteristic and where $N - 1$ is highly composite to enable an FFT. FFTW is an industry implementation of the FFT which uses Rader's algorithm to gain a $2$x speedup in certain cases \cite{fftw}.
+Rader's algorithm is a method to evaluate the DFT of prime size $N$ by expressing it as a cyclic convolution of size $N - 1$. This is different to Bluestein's algorithm which expresses it as a transform of length $N$. This is not as efficient for arbitrary finite fields, but in many applications such as cryptography, we may choose the fields to work in. Hence we will choose a prime field $\F_N$, where $N - 1$ is highly composite to enable an FFT. FFTW is an industry implementation of the FFT which uses Rader's algorithm to gain a $2$x speedup in certain cases \cite{fftw}.
 
-\begin{definition}\label{thm:rader-transform}
+\begin{definition}[Rader's Algorthm]\label{thm:rader-transform}
     Let $n$ be prime, then there exists a primitive element of $\Z/n$, that is, a $g \in GF(N)$ such that $\{g^i\}_{i=1}^{N-1}$ is a permutation of $1, \ldots, N-1$. Then the DFT under this permutation as can be realised as a convolution of the two sequences $\{a_{g^i}\}_{i=1}^{n-1}$ and $\omega_N^{g^i}$.
     \begin{align*}
         A_k - a_0 = \sum^{n-1}_{i=1} a_i \omega_N^{ik} \qquad &\mapsto \qquad A_{g^k} - a_0 = \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}}\\
@@ -127,7 +127,7 @@ Rader's algorithm is a method to evaluate the DFT of prime size $N$ be expressin
     \end{align*}
 \end{definition}
 
-If $N - 1$ is highly composite, we can apply the standard FFT algorithms to evaluate the sum efficiently. Therefore the ideal case is when $N = 2^n + 1$ for some $n$ and where $N$ is prime. In the special case that $n$ is also a power of two, these are known as \emph{Fermat numbers}. We will revisit these in Section \ref{sec:hardware-efficient-ntt} as they are especially convenient when performing arithmetic operations.
+If $N - 1$ is highly composite, we can apply the standard FFT algorithms to evaluate the sum efficiently. Therefore the ideal case is when $N = 2^k + 1$ for some $k$ and where $N$ is prime. In the special case that $n$ is also a power of two, these are known as \emph{Fermat numbers}. We will revisit these in Section \ref{sec:hardware-efficient-ntt} as they are especially convenient when performing arithmetic operations.
 
 \subsection{Existence of NTT}%
 \label{sub:Existence of NTT}
@@ -139,7 +139,9 @@ In this section we will primarily follow the treatment in \cite{intro-to-fmt}.
 \end{theorem}
 
 \begin{proof}
-    If there exists an element $\alpha$ of order $n$ in $\Z/N$, then it follows from the Chinese Remainder Theorem that there exists elements of order $N$ in the fields $\Z/p_1^{\alpha_1}, \cdots, \Z/p_k^{\alpha_k}$. (TODO doesn't only require that there exists an element whose order merely divides $N$ in these fields?).\\
+    (I haven't figured out this first step yet, we have some justification as to why $N$ must divide the totient function)
+    % If there exists an element $\alpha$ of order $n$ in $\Z/N$, then it follows from the Chinese Remainder Theorem that there exists elements of order $N$ in the fields $\Z/p_1^{\alpha_1}, \cdots, \Z/p_k^{\alpha_k}$.
+
     Therefore this implies that $n$ must divide the Euler totient function $\varphi(p_i^{\alpha_i}) = p_i^{\alpha_i}(p_i - 1)$. Since $n$ and $N$ are relatively prime, $n \nmid p_i^{\alpha_i}$ therefore $n \mid p_i - 1$ for all $1 \le i \le k$. Thus $n | \gcd\{p_1 - 1, \ldots, p_k - 1\}$.
 
     \medskip
@@ -153,7 +155,7 @@ In this section we will primarily follow the treatment in \cite{intro-to-fmt}.
 
 (TODO mention the standard techniques for finding roots of unity in these rings)
 
-Notice that the transforms in the subfields can use Rader's Algorithm if the exponent of the prime divisor is one.
+Notice that the transforms in the subfields can recursively apply Rader's Algorithm if the exponent of the prime divisor is one.
 
 
 \section{Hardware Efficient NTTs}%
@@ -171,8 +173,9 @@ Taking $N$ to be a power of two would be the canonical choice as it admits the f
 
 The next case we consider numbers of the form $2^k + 1$. When $k$ itself is a power of two, it has less small divisors, e.g. if $k$ is odd then $3$ divides $2^k + 1$, hence the maximum transform length is $2$. Numbers of the form $2^{2^\ell} + 1$ for $l \in \N$ are known as Fermat Numbers, and their corresponding transforms are Fermat Number Transforms (FMT).
 
-The Fermat Numbers up to $\ell = 4$ are all primes, and therefore can be calculated very efficiently using the Rader Transform (Theorem \ref{thm:rader-transform}). It can then be shown (TODO cite) that all the factors of Fermat numbers are of the form $c2^{\ell + 2} + 1$ for $c \in \N$. Therefore by Theorem \ref{thm:fmt-transform-length} the maximum transform length is $2^{\ell + 2}$. It can also be shown that a root of such order is $2^{2^{t-2}}(2^{2^{t-1}} - 1)$. 
+The Fermat Numbers up to $\ell = 4$ are all primes, and therefore can be calculated very efficiently using the Rader Transform (Theorem \ref{thm:rader-transform}). It can then be shown \cite{intro-to-fmt} that all the factors of Fermat numbers are of the form $c2^{\ell + 2} + 1$ for $c \in \N$. Therefore by Theorem \ref{thm:fmt-transform-length} the maximum transform length is $2^{\ell + 2}$. It can also be shown that a root of such order is $2^{2^{t-2}}(2^{2^{t-1}} - 1)$. 
+(I am going to include a small section here proving this)
 
 \medskip
 
-When these field was first pioneered in the 1970s, a significant drawback of Fermat Numbers is that they are not as memory efficient as some other choices, as they hold $2^k + 1$ values and so require $k + 1$ bits of memory each. However this is not a real concern for modern computers. Agarwal and Burrus (Section VI \cite{intro-to-fmt}) suggested allowing the last number to overflow and rounding it to a $-1$, $0$ or $-2$ because there is a low probability ($2^{-k}$ chance) that the forgotten number will arise. This technique was originally suggested in the context of Fourier Transforms for fast signal processing, and so such an error is likely to be insignificant in those contexts. However, it is unsuitable for our purposes where we require correct solutions.
+When these field was first pioneered in the 1970s, a significant drawback of Fermat Number Transforms is that they are not as memory efficient as some other choices, as they hold $2^k + 1$ values and so require $k + 1$ bits of memory each. However this is not a real concern for modern computers. Agarwal and Burrus (Section VI \cite{intro-to-fmt}) suggested allowing the last number to overflow and rounding it to a $-1$, $0$ or $-2$ because there is a low probability ($2^{-k}$ chance) that the forgotten number will arise. This technique was originally suggested in the context of Fourier Transforms for fast signal processing, and so such an error is likely to be insignificant in those contexts. However, it is unsuitable for our purposes where we require correct solutions.
