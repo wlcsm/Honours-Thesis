@@ -1,15 +1,25 @@
 \chapter{Implementation Details}\label{chp:implementation}
 
+Now we will look at some additional aspects of the practical implementations of the algorithms in previous chapters. Namely we will look at sparse multiplication and practical run time analysis of our nPoly library\cite{npoly}. Sparse multiplication is used when the number of non-zero terms in the polynomial proportion to the degree of the polynomial is low. The complexity of the algorithms we have covered so far have all been solely dependent on the degree of the polynomial and so these algorithms will perform poorly for sparse polynomials. Now we will look at a technique for sparse polynomial multiplication, this is also useful as it may be used as a base case for any of the algorithms we have covered here.
+
+For example if we were to use Karatsuba's algorithm on $1 + x^2 + x^{60} + x^{100}$, then the algorithm would need to recurse $8$ times to reach a base case of one. However, if we organise our polynomial into a sparse vector and set a base case at $\# f \le 2$, then we only need to recurse once. Thus by formulating our base case in terms of the number of non-zero term in conduction with this algorithm, we may achieve a nice speedup. This algorithm also has the advantage for working equally over multivariate polynomials as well, which tend to be sparse in practice.
+
+Note that this doesn't change the current complexity analysis from previous chapters as they were formulated to be independent of whether the coefficients were zero or non-zero, thus they used coefficient vector representations.
+
 \section{Sparse Polynomial multiplication}
 
 Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree.
 
-We might try to use the schoolbook method to achieve this, however a problem arises in coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far.
+It would seem reasonable to try to use the schoolbook method to achieve this, however a problem arises when coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far.
 
-There are several methods we might look using to achieve this: a binary tree would provide $\log n$ lookup time and insertion, but uses expensive memory operations and is not memory efficient, a hashmap, though this would incur additional costs when hashing the elements and the elements would need to be sorted in the end. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end.
+There are several methods we might look using to achieve this:
+\begin{itemize}
+    \item a coefficient vector. This requires potentially $\M{O}(n)$ time to shift data to allow the new term to be inserted,
+    \item a binary tree would provide $\log n$ insertion times, but uses expensive memory operations and is not memory efficient, 
+    \item a hashmap would provide $\M{O}(1)$ insertion time, but incurs additional costs when hashing the elements. Furthermore, since element in a hashmap are not store in any particular order, the elements would need to be sorted in the end, and so the complexity would be $m \log m$ where $m$ is the number of elements in the hashmap. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end.
+\end{itemize}
 
 Let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote the cumulative result after $k$ steps as $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
-
 
 Using the formula
 \[
@@ -38,6 +48,7 @@ In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ small
                 \end{tikzcd}
             };
     \end{tikzpicture}
+    \caption{The partial order that is known a priori}
 \end{figure}
 
 The idea is that we start with $x_{ij}$ then we compute $x_{(i+1)j}$ and $x_{i(j+1)}$ and add them to the heap. We then take out the smallest and add it to the resulting vector. This is like starting from the $x_{11}$ and going up in the graph. In there is a path of arrows from one node to another, then that implies that node is definitely greater than it. It can then be seen from this graph that the most number of node that you can have in the heap at any time, occurs as a straight horizontal line across, which is $\min\{\# f, \# g\}$.
