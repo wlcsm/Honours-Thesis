@@ -20,7 +20,7 @@ Evaluation at a single point can be performed in $\M{O}(n)$ time via Horner's Ru
 \section{Chinese Remainder Theorem}%
 \label{sec:crt}
 
-The Chinese Remainder Theorem (CRT) is a fundamental theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one form to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is significantly less than the cost of applying an algorithm to the original ring. The difficulty however, is in evaluating the isomorphism efficiently enough to justify such an approach.
+The Chinese Remainder Theorem (CRT) is a classical theorem in the field of number theory. Where Kronecker substitution reorganises polynomials of one form to another, we will use the CRT to convert multiplications in one ring to multiplications in a collection of smaller rings to reduce the overall complexity. Since all current multiplication algorithms are super-linear in nature, the collective cost of the multiplication in the smaller rings is significantly less than the cost of applying an algorithm to the original ring. The difficulty however, is in evaluating the isomorphism efficiently enough to justify such an approach.
 
 \begin{theorem}[Chinese Remainder Theorem]\label{thm:crt}
     Let $K$ be commutative ring and $I_1, \ldots, I_k \subseteq K$ mutually coprime ideals i.e. $I_i + I_j = K$.
@@ -47,7 +47,7 @@ By associating polynomials with their coefficient vectors, we can consider these
 \]
 The inverse map can be found by inverting the matrix or, more simply, via the Lagrange interpolation formula
 \[
-    f(x) = \sum_{i=0}^{n-1} L_i(x)x^i, \qquad \qquad L_i := \prod_{j \neq i} \frac{x - j}{x_i - x_j} ,
+    f(x) = \sum_{i=0}^{n-1} L_i(x)x^i, \qquad \qquad L_i := \prod_{j \neq i} \frac{x - j}{x_i - x_j},
 \]
 where $(x_i)_{i=0}^{n-1}$ are the samples.
 
@@ -74,7 +74,7 @@ for $f_0, f_1, g_0, g_1 \in K[x]$ with degree less than $\ceil{n/2}$.
 Compute the isomorphism \eqref{eq:crt-karatsuba-iso} by evaluating at the points $y = 0$ and $y = 1$
 \begin{align*}
     f^\prime(x)(0) &= f^\prime_0(x), \qquad f^\prime(x)(1) = f^\prime_1(x) + f^\prime_0(x)\\
-    g^\prime(x)(0) &= g^\prime_0(x), \qquad g^\prime(x)(1) = g^\prime_1(x) + g^\prime_0(x)
+    g^\prime(x)(0) &= g^\prime_0(x), \qquad g^\prime(x)(1) = g^\prime_1(x) + g^\prime_0(x).
 \end{align*}
 We can then apply the Chinese remainder theorem to recover $h^\prime$
 \begin{equation}\label{eq:karatsuba-crt}
@@ -93,7 +93,7 @@ As was mentioned before, the Toom-Cook algorithm is a generalisation of Karatsub
 
 % TODO find out who originally posed this, I think maybe it was Stockham
 
-The Discrete Fourier Transform (DFT) is an powerful mathematical technique for performing Fourier analysis on a broad selection of applications. Most notably, it is foundational in the field of signal processing when it can be used to transform data between the sample space and the frequency domain. The Fast Fourier Transform (FFT) is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ ring operations. The na\"{i}ve algorithm for evaluating the DFT takes $\M{O}(n^2)$ operations, which renders it infeasible for many practical applications. Soon after Cooley and Tukey's landmark paper on FFT in 1965\cite{fft} spawned a flurry of development across many fields. One example is the development of FFT-based algorithms for polynomial multiplication, which was the first $\M{O}(n \log n)$ algorithm for the problem.
+The Discrete Fourier Transform (DFT) is an powerful mathematical technique for performing Fourier analysis on a broad selection of applications. Most notably, it is foundational in the field of signal processing when it can be used to transform data between the sample space and the frequency domain. The Fast Fourier Transform (FFT) is an algorithm for evaluating the DFT (and its inverse) in $\M{O}(n \log n)$ ring operations. The na\"{i}ve algorithm for evaluating the DFT takes $\M{O}(n^2)$ operations, which renders it infeasible for many practical applications. Soon after Cooley and Tukey's landmark paper on the FFT in 1965\cite{fft} spawned a flurry of development across many fields. One example is the development of FFT-based algorithms for polynomial multiplication, which was the first $\M{O}(n \log n)$ algorithm for the problem.
 
 
 The DFT is the evaluation of a function at \textit{roots of unity}, and its inverse is a means of recovering the original function from samples. Hence this can be seen as an instance of the evaluation-interpolation strategy. 
@@ -105,9 +105,9 @@ Let $R$ be a commutative ring. We are familiar with the complex roots of unity g
 
 % This definition obtained from the Algebraic Complexity theory book
 \begin{definition}[Roots of Unity]
-  Let $R$ be a commutative ring and let $N$ be an integer, an element $\alpha \in R$ is: 
+  Let $R$ be a commutative ring and let $N$ be an integer, an element $\alpha \in R$ is a: 
   \begin{enumerate}
-      \item a \textit{root of unity}, if $\alpha^N = 1$, and is a 
+      \item \textit{root of unity}, if $\alpha^N = 1$, and is a
       \item \textit{principal root of unity}, if $\alpha^p - 1$ is not a zero divisor for all $1 \leq p < N$.
   \end{enumerate}
 \end{definition}
@@ -115,7 +115,7 @@ Let $R$ be a commutative ring. We are familiar with the complex roots of unity g
 It is clear that the complex roots of the equation $x^N - 1$ satisfy the above definitions. Though there are many other coefficient algebras that also have roots of unity for a particular $N$. A popular choice is the ring $K[x]/(x^n + 1)$ which has $x$ as a $2n^{\tx{th}}$ root of unity (also called a \textit{synthetic root of unity}). We will revisit this ring in Section \ref{sec:schon-strass} when discussing Sch\"{o}nage and Strassen's integer multiplication scheme for polynomial rings. Chapter \ref{chp:integer-rings} will establish results for the existence of roots of unity in integer rings as well as methods for finding them. 
 
 \begin{lemma}\label{lem:rou-results}
-    Let $\omega$ be a principal $N^{\tx{th}}$ root of unity. Then 
+    Let $\omega$ be a principal $N^{\tx{th}}$ root of unity. Then:
     \begin{enumerate}
         \item $\omega^{N/2} = -1$
         \item If $N$ is divisible by two, then $\sum_{i = 0}^{N-1} \omega^{ik} = 0$.

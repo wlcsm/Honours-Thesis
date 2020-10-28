@@ -70,26 +70,54 @@ We have implemented several of the algorithms presented in this thesis as part o
 
 One of the advantages of Rust is its support for generic programming which has enabled nPoly to implement its algorithms over all algebras the algorithms support. Currently, nPoly supports: polynomial addition/subtraction/evaluation, Schoolbook multiplication, Karatsuba multiplication, FFT multiplication, Kronecker substitution and limited support for Gr\"{o}bner bases.
 
-% \begin{center}
-%     \begin{tabular}{|c| c c|}
-%         Degree & FFT & STD\\
-%         8      & 191950 & 106140 \\
-%         16     & 277790 & 289350 \\
-%         64     & 934627 & 1859690 \\
-%         256    & 4282801 & 23703833 \\
-%         1024   & 17969459 & 264139561 \\
-%         2048   & 33150304 & 188562822 \\
-%         4096   & 78430218 & 4340959519 \\
-%         8192   & 126315317 & 16,154233194 \\
-%     \end{tabular}
-% \end{center}
+Here we will look at several algorithms, namely: Schoolbook multiplication (with hash-maps), Karatsuba's algorithm, and the standard FFT-based multiplication algorithm. One of the goals of this thesis was to develop a heuristic for selecting the most appropriate algorithm for a given set of input polynomials, however we note that the times obtained here are not highly optimised implementations as we have implemented all parts of the algorithms (including the FFT) ourselves. To improve the runtimes we may look at using existing software libraries to perform such parts of the code such as FFTW for the Fourier transform. Thus we can only explain the heuristic that nPoly uses for selecting its algorithms.
+
+Beginning with the schoolbook method for multiplication, we have tested the algorithm by multiplying polynomials together with varying sparsity. We have also tested the runtime cost of increasing the number of indeterminates. As we can see, the number of indeterminates has a (roughly)-linear affect on the runtime performance, as we would expect since the only thing that would change is the hashing function used to hash the terms into the hash table. This hashing function is a source for potential optimisation as we have used the default function given by Rust, though since our monomials are vectors is $\Z^d$ (where $d$ is the number of indeterminates), it may be easy find more efficient hashing functions.
+
+We also included a test for an optimised version of the univariate case. This involved a simpler monomial that the monomial data type we used for the other versions and is a bout two as faster when compared to the univariate case where we use the monomial for multi-indices type.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=12cm]{images/schoolbook-plot.pdf}
+    \caption{Schoolbook Multiplication (hash-maps) on Sparse multivariate polynomials}
+    \label{fig:schoolbook}
+\end{figure}
 
 
-\begin{table}[h!]
+As we can see, the FFT algorithm exhibits an $\M{O}(n \log n)$ complexity. Note however that it is measured in terms of the degrees of the input polynomials rather than the number of non-zero terms as the algorithm will behave the same regardless of the sparsity.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=12cm]{images/fft-plot.pdf}
+    \caption{FFT-based polynomial multiplication algorithm on dense polynomials}
+    \label{fig:fft}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=12cm]{images/karatsuba-plot.pdf}
+    \caption{Karatsuba's Algorithm for polynomial multiplication}
+    \label{fig:karatsuba}
+\end{figure}
+
+
+We see here the runtime for a na\"{i}ve implementation of Kronecker substitution for converting multivariate polynomials to their univariate equivalent and back again. Note that this implementation creates new vectors each time and so it needs to dynamically allocate memory which may account for a significant proportion of the cost.
+
+As we can see, Kronecker substitution performs quite poorly and has a similar complexity as the Schoolbook method. Thus we propose the optimisation as suggested in Section \ref{sub:implementation-kronecker} where we simply take a different algebraic meaning to the multi-indices to see them as univariate indices in a mixed-radix representation. This will incur no runtime costs if the polynomials are sorted in the lex order, however, we may need to reorganise the array of terms otherwise. This will be $\M{O}(n \log n)$ in the number of terms and so is insignificant compared to the cost of multiplication.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=12cm]{images/kronecker-plot.pdf}
+    \caption{Na\"{i}ve Kronecker substitution on multivariate polynomials}
+    \label{fig:kronecker}
+\end{figure}
+
+
+\begin{table}[h]
 \centering
     \begin{tabular}{|c| c |}
         \hline
-        Degree & time(\mu)\\
+        Degree & time($\mu$s)\\
         \hline
         100 & 358\\
         1000 & 12516\\
@@ -101,24 +129,23 @@ One of the advantages of Rust is its support for generic programming which has e
     \caption{Karatsuba's Algorithm}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[h]
 \centering
     \begin{tabular}{|c| c |}
         \hline
-        FFT & time(nano)\\
+        FFT & time($\mu$s)\\
         \hline
-        100 & 92892\\
-        1000 & 544623\\
-        10000 & 7824356\\
-        100000 & 82067888\\
-        1000000 & 172875383\\
-        2000000 & 1233622640\\
+        100 & 92\\
+        1000 & 544\\
+        10000 & 7824\\
+        100000 & 82067\\
+        1000000 & 172875\\
         \hline
     \end{tabular}
     \caption{The FFT algorithm}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[h]
 \centering
     \begin{tabular}{|c| c c c|}
         \hline
@@ -136,7 +163,7 @@ One of the advantages of Rust is its support for generic programming which has e
     \caption{Na\"{i}ve Kronecker substitution}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[h]
 \centering
     \begin{tabular}{|c| c c c c|}
         \hline
@@ -154,11 +181,11 @@ One of the advantages of Rust is its support for generic programming which has e
     \caption{Schoolbook method with a hashmap}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[h]
 \centering
     \begin{tabular}{|c| c |}
         \hline
-        Schoolbook(optimised) & time(micro)\\
+        Schoolbook(optimised) & time($\mu$s)\\
         \hline
         100 & 1566 \\
         250 & 4906 \\

@@ -1,6 +1,6 @@
-\chapter{Classical Algorithms}\label{chp:classical}
+/chapter{Classical Algorithms}\label{chp:classical}
 
-Here we review the classical algorithms that were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite having poorer theoretical complexities compared to their modern counterparts, they often have a far greater practical complexity for smaller input sizes, whilst also having the advantage of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems.
+Here we review the classical algorithms that were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite having poorer theoretical complexities compared to their modern counterparts, they often have a far superior practical complexity for smaller input sizes, whilst also having the advantage of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems.
 
 Let $K$ be a commutative ring. Then let $f, g \in K[x]$ denote two polynomials
 \begin{align*}
@@ -24,7 +24,7 @@ In the schoolbook method of polynomial multiplication, we evaluate the expressio
 
 We can see the inner sum requires $\M{O}(m)$ ring operations. To evaluate the outer sum, we must compute the inner sum $n$ times; thus in total this algorithm requires at most $\M{O}(nm)$ ring operations.
 
-Though it has the worse theoretical complexity of all the algorithms in this paper, it is valid over any coefficient algebra, and most implementations out-perform other algorithms for inputs with degree less than $10$. In Chapter \ref{chp:implementation} we will present a multiplication algorithm for sparse polynomials which removes the dependency on the degrees of the polynomials and has complexity $\M{O}(\# f \# g \log(\min\{\# f, \# g\}))$ where $\# f$ and $\# g$ is the number of non-zero terms in polynomials $f$ and $g$ respectively.
+Though it has the worse theoretical complexity of all the algorithms in this paper, it is valid over any coefficient algebra, and most implementations out-perform other algorithms for inputs with degree less than $10$. In Chapter \ref{chp:implementation} we will present a multiplication algorithm for sparse polynomials which removes the dependency on the degrees of the polynomials and has complexity $\M{O}(\# f \# g \log(\min\{\# f, \# g\}))$ where $\# f$ and $\# g$ are the number of non-zero terms in polynomials $f$ and $g$ respectively.
 
 Notice that this is very similar to the schoolbook method for integer multiplication. Suppose we have an integer $a_n \cdots a_1$ where $a_i$ is the $i^\tx{th}$ digit in the decimal representation; in other words
 \[
@@ -41,7 +41,7 @@ However, there is a fundamental difference between integer and polynomial multip
 \section{Karatsuba's Algorithm}
 \label{sec:prelim-karatsuba}
 
-Karatsuba's algorithm was the first algorithm to surpass the $\M{O}(n^2)$ bound for input polynomials of degree $n$. Karatsuba (1960) showed his algorithm to Kolmogorov who then went on to present it at various events and even publish a paper crediting Karatsuba in 1962 \cite{karatsuba}. Later, Karatsuba would famously write that he only learnt of the paper's existence when it was in its reprints \cite{karatsuba1995}. The algorithm partitions each of the input polynomials into two smaller polynomials and calculates the product recursively; a technique now known as \emph{divide-and-conquer}.
+Karatsuba's algorithm was the first algorithm to surpass the $\M{O}(n^2)$ bound for input polynomials of degree $n$. Karatsuba (1960) showed his algorithm to Kolmogorov who then went on to present it at various events and even publish a paper crediting Karatsuba in 1962 \cite{karatsuba}. Later, Karatsuba would famously write that he only learnt of the paper's existence when it was in its reprints \cite{karatsuba1995}. The algorithm partitions each of the input polynomials into two smaller polynomials and calculates the product recursively by apply the same algorithm to multiply the smaller polynomials; a technique now known as \emph{divide-and-conquer}.
 
 Let $a, b \in K[x]$ be polynomials of degree $n$. Let $m = \ceil{n/2}$ and $a = a_1x^m + a_0$ and $b = b_1x^m + b_0$, where $a_0, a_1, b_0, b_1$ are polynomials of degree at most $m - 1$. Naturally we have
 \begin{equation}\label{eq:karatsuba-easy}
@@ -86,7 +86,7 @@ This is a desirable trade since computing addition is, in general, much faster t
 
 \medskip
 
-Karatsuba's algorithm remains one of the most practically efficient algorithms for moderate input sizes. Many of the algorithms we cover in this paper have a far better theoretical complexity, but in practice, they only begin to out-perform Karatsuba's algorithm for large inputs. This fact combined with Karatsuba's algorithm being straightforward to implement, means that it remains incredibly popular, and is used in many modern computer algebra software e.g. Maxima \cite{maxima-karatsuba}.
+Karatsuba's algorithm remains one of the most practically efficient algorithms for moderate input sizes. Many of the algorithms we cover in this paper have a far better theoretical complexity, but in practice, they only begin to out-perform Karatsuba's algorithm for large inputs. This fact combined with Karatsuba's algorithm being straightforward to implement, means that it remains incredibly popular, and is used in many modern computer algebra systems e.g. Maxima \cite{maxima-karatsuba}.
 
 The Toom-Cook algorithm for polynomial multiplication follows a similar method can be seen as a generalisation of Karatsuba's algorithm. The Toom-$k$ algorithm has complexity $n^{\log_k(2k - 1)}$ and so Karatsuba's algorithm is the special case when $k = 2$\footnote{The GNU Multiple Precision Arithmetic library performs Karatsuba's algorithm at as low as 10 machine words. It then uses variants of the Toom-Cook algorithm from around 80 to 3000 words \cite{gmp-big-num}}. We won't give a proper presentation of the algorithm but will briefly show the generalisation when we discussion the connection between Karatsuba's algorithm and the Chinese Remainder theorem in Section \ref{sec:crt}.
 
@@ -100,14 +100,14 @@ The typical way of performing Karatsuba's method is to recursively call the func
 \[
     c_2x^{2m} + (c_1 - c_0 - c_2) x^m + c_0.
 \]
-When evaluating this expression, one might try to first compute $(c_1 - c_0 - c_2)$, then perform the addition $(c_1 - c_0 - c_2)x^m + c_0$, then compute $c_2x^{2m}$ and finally $c_2x^{2m} + (c_1x^m + c_0)$. However, if we use a coefficient vector, these operations can be done in one pass of a vector of size $3m$, and naturally generalises itself to SIMD instructions to obtain more than a 2x speedup (which is done in nPoly).
+When evaluating this expression, one might try to first compute $(c_1 - c_0 - c_2)$, then perform the addition $(c_1 - c_0 - c_2)x^m + c_0$, then compute $c_2x^{2m}$ and finally $c_2x^{2m} + (c_1x^m + c_0)$. However, if we use a coefficient vector, these operations can be done in one pass of a vector of size $3m$, and naturally generalises itself to Single Instruction Multiple Data (SIMD) instructions to obtain more than a 2x speedup (which is done in our implementation of nPoly\cite{npoly}).
 
 \medskip
 
 \section{Kronecker Substitution}%
 \label{sub:kronecker_substitution}
 
-Kronecker substitution is a powerful tool for reducing polynomial multiplication problems to simpler multiplications that already admit efficient algorithms. It achieves this by grouping together or expanding certain parts of the input polynomials to emulate a polynomial with a different number of indeterminates or coefficient algebra. It is most commonly used to reduce multivariate polynomial multiplication to the univariate case, and univariate polynomial multiplication to the integer case, or vice-versa. In fact both Karatsuba's algorithm and the schoolbook integer multiplication algorithms use a form of Kronecker substitution. We will also show how we can use the $\Z[x]$ multiplication techniques to be applied to polynomials in finite fields.
+Kronecker substitution is a powerful tool for reducing polynomial multiplication problems to simpler multiplications that already admit efficient algorithms (and implementations). It achieves this by grouping together or expanding certain parts of the input polynomials to emulate a polynomial with a different number of indeterminates or coefficient algebra. It is most commonly used to reduce multivariate polynomial multiplication to the univariate case, and univariate polynomial multiplication to the integer case, or vice-versa. In fact both Karatsuba's algorithm and the schoolbook integer multiplication algorithms use a form of Kronecker substitution. We will also show how we can use the $\Z[x]$ multiplication techniques to be applied to polynomials in finite fields.
 
 Note that this transformation is not necessarily an isomorphism of rings. A simple counter example can be seen when we use elements in $\Z$ to multiply polynomials in $\Z[x]$.
 
@@ -118,11 +118,11 @@ Note that this transformation is not necessarily an isomorphism of rings. A simp
 Let $f(x_1, \ldots, x_n) = \sum^n_{I}a_{i_1, \ldots, i_n}x_1^{i_1}\cdots x_n^{i_n} \in K[x_1, \ldots, x_n]$ be a multivariate polynomial where $I$ is a multi-index set, and let $d(i)$ be a strict upper bound on the degree of the polynomial in the $x_i$ variable. Then we can transform $f$ into a univariate polynomial $f_u \in K[x]$ via the ring homomorphism
 \begin{align*}
     \phi_f: K[x_1, \ldots, x_n]/{x^{d(1)} - 1, \ldots, x^{d(n)} - 1} &\to \frac{K[x]}{x^{d(1) \cdots d(n)} - 1}\\
-    x_i &\mapsto x^{d(1) \cdots d(i-1)}
+    x_i &\mapsto x^{d(1) \cdots d(i-1)}.
 \end{align*}
 Notice that this depends on the order of the variables $\{x_1, \ldots, x_n\}$. This transformation is equivalent to computing the \emph{mixed radix representation} with respect to the base $[d(1), \ldots, d(n)]$. Note that $\phi_f$ is not isomorphism unless $d(1), \ldots, d(n)$ are coprime (Lemma \ref{eq:uni-to-multi}).
 
-We can show this is a bijection by constructing an inverse map. Suppose we have $x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ which we transform into $x^\alpha$ where $\alpha = \alpha_1 + \cdots + \alpha_n d(1) \cdots d(n-1)$. Then to recover the original monomial, we first divide $\alpha$ by $d(1)$ to return the remainder $r_1 = \alpha_1$ and quotient $q_1 = \alpha_2 + \alpha_3 d(2) + \ldots + \alpha_n d(2) \ldots d(n-1)$. We can then repeat this procedure until no quotient remains. The result is then $x_1^{r_1} \ldots x_n^{r_n} = x_1^{\alpha_1} \ldots x_n^{\alpha_n}$.
+We can show this is a bijection by constructing an inverse map. Suppose we have $x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ which we transform into $x^\alpha$ where $\alpha = \alpha_1 + \alpha_2 d(1) +  \cdots + \alpha_n d(1) \cdots d(n-1)$. Then to recover the original monomial, we first divide $\alpha$ by $d(1)$ to return the remainder $r_1 = \alpha_1$ and quotient $q_1 = \alpha_2 + \alpha_3 d(2) + \ldots + \alpha_n d(2) \ldots d(n-1)$. We can then repeat this procedure until no quotient remains. The result is then $x_1^{r_1} \ldots x_n^{r_n} = x_1^{\alpha_1} \ldots x_n^{\alpha_n}$.
 
 \begin{proposition}
     Let $f, g \in K[x_1, \ldots, x_n]$ and $h = fg$. Then let $d_f(i)$, $d_g(i)$ and $d_h(i)$ be the maximum degree of $x_i$ in $f$, $g$, and $h$ respectively, hence $d_h(i) = d_f(i) + d_g(i)$. Then using the map $\phi_h$
@@ -155,40 +155,34 @@ We can show this is a bijection by constructing an inverse map. Suppose we have 
 This map can be used to multiply multivariate polynomials using univariate multiplication. Let $M_K(n)$ denote the complexity of multiplying univariate polynomials in $K[x]$, and let $f, g \in K[x_1, \ldots, x_n]$ with $h = fg$. Then $M_K(\deg_h(1), \ldots, \deg_h(n)) = M_K(\deg_h(1) \cdots \deg_h (n)) + \M{O}(\deg_h(1) \cdots \deg_h(n)$. Where the first term accounts for the univariate multiplications, and the second term is for reorganising the polynomial data.
 
 
-\section{Implementation Remarks}
+\subsection{Implementation Remarks}
+\label{sub:implementation-kroncker}
 
-If the polynomial is not too sparse and we wish to have the smallest possible value for the $d(i)$, then instead of performing the conversion directly on each monomial, would be beneficial to subtract adjacent monomials and use this value to calculate the conversion more efficiently. We would then iterate through the list and add the difference to an accumulator variable, then output the accumulator variable at that step as the transformed value. This would reduce the number of operations need to compute the transform.
+If the polynomial is not too sparse and we wish to have the smallest possible value for the $d(i)$, then instead of performing the conversion directly on each monomial, it would be beneficial to subtract adjacent monomials and use this value to calculate the conversion more efficiently. We would then iterate through the list and add the difference to an accumulator variable, then output the accumulator variable at that step as the transformed value. This would reduce the number of operations need to compute the transform.
 
-We could use a sparse vector representation, in which case we have $\# f$ monomials in the output and so and the problem is reduced to multiplying univariate polynomials with $\# f$ non-zero terms. Note further that if we round each of the $d(i)$ up to the nearest power of two, then we do not need to transform the indices. This is because in polynomial multiplication we only need to multiply monomials together, hence computationally, we only need to add their degrees together. Suppose we have two multi-indices $(\alpha_1, \ldots, \alpha_n)$ and $(\beta_1, \ldots, \beta_n)$ stored in memory where the $i^{\text{th}}$ index uses $d_h(i)$ bits. Then we may perform word additions operation as usual on these arrays. We don't need to worry about each of the elements overflowing since $\alpha_i + \beta_i < d_h(i)$ for all $i \le n$. We can also compare these using a reverse lexicographical ordering to get the same monomial ordering as if we had transformed the monomials into univariate monomials. Thus there is no addition memory reorganisation cost when using coefficient vectors. The only drawback is that this will potentially use $n$ more bits of memory for each monomials; though this isn't usually a problem for modern computers. Since the division operation is typically computationally expensive on most computer architectures\cite{instruction-times} this would be quite a desirable optimisation.
+We could use a sparse vector representation, in which case we have $\# f$ monomials in the output and so and the problem is reduced to multiplying univariate polynomials with $\# f$ non-zero terms. Note further that if we round each of the $d(i)$ up to the nearest power of two, then we do not need to transform the indices. This is because in polynomial multiplication we only need to multiply monomials together, hence computationally, we only need to add their degrees together. Suppose we have two multi-indices $(\alpha_1, \ldots, \alpha_n)$ and $(\beta_1, \ldots, \beta_n)$ stored in memory where the $i^{\text{th}}$ index uses $d_h(i)$ bits. Then we may perform word additions operation as usual on these arrays. We don't need to worry about each of the elements overflowing since $\alpha_i + \beta_i < d_h(i)$ for all $i \le n$. We can also compare these using a reverse lexicographical ordering to get the same monomial ordering as if we had transformed the monomials into univariate monomials. Thus there is no addition memory reorganisation cost when using coefficient vectors. The only drawback is that this will potentially use $n$ more bits of memory for each monomial; though this isn't usually a problem for modern computers. Since the division operation is typically computationally expensive on most computer architectures \cite{instruction-times} this would be quite a desirable optimisation.
 
 \medskip
 
 \subsection{Using Integers to Multiply Polynomials}%
 \label{sub:integers-for-poly-mult}
 
-% TODO double check the magma things
-Kronecker substitution may also be used to multiply integer using polynomials in $\Z[x]$ and vice-versa. As mentioned in Section \ref{sec:prelim-schoolbook}, the carry operation makes it more difficult to multiply polynomials using integer multiplication than the converse. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs in the multiplication process. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication methods from the GNU Multiple Precision library GMP \cite{magma}.
+Kronecker substitution may also be used to multiply integer using polynomials in $\Z[x]$ and vice-versa. As mentioned in Section \ref{sec:prelim-schoolbook}, the carry operation makes it more difficult to multiply polynomials using integer multiplication than the converse. The trick is to evaluate the polynomials at a value large enough such that no carrying occurs in the multiplication process. This technique is used in the Magma computer algebra system to allow it is to use the optimised integer multiplication algorithm \cite{magma}.
 
 Suppose we have $f,g \in \Z[x]$ and for now lets assume $f$ and $g$ have positive coefficients. Then let $B$ be an absolute bound on the coefficients of the inputs and let $2^\ell$ be the smallest power of two greater $nB^2$. Then evaluating the polynomials at $2^\ell$ and multiplying the two resulting integers together gives
-% \[
-%     f(2^\ell) = \sum^n_{i = 0} a_i 2^{\ell i}.
-% \]
 \[
     f(2^\ell)g(2^\ell) = \sum^{n+m}_{i=0} \bb{\sum_{j + k = i} a_jb_k}2^{\ell i}.
 \]
 % TODO check that two-complement does actually work
 Since $\sum_{j + k = i}a_j b_k,\leq 2^{\ell}$ by our choice of $2^\ell$ no carries can occur; thus we can recover the solution by undoing the substitution $2^\ell = x$. For the case when the coefficients are negative, we may use a "balanced representation" for our coefficients where the number series goes from $-2^\ell, -2^\ell + 1, \cdots, -1, 0, 1, \ldots, 2^\ell - 1$. This is also known as the ``twos-complement'' representation. In this case we need to use one extra bit of space, though this does not affect the complexity of the calculations.
 
-% TODO Double check the complexity for M_\Z(n) in terms of I(). Maybe introduce M_\Z earlier
 Let $I(n)$ denote the cost of multiplying two integers with $n$ bits and $M_\Z(n)$ is the time for multiplication of polynomials in $\Z[x]$ of degree $n$. Then using the substitution method from Section \ref{sec:prelim-schoolbook}, we obtain $I(n) = \M{O}(M_\Z(n))$. For the converse, we obtain the bound $M_\Z(n) = \M{O}(I(n\log (nB^2)))$. In particular, if $\log n \in \M{O}(\log B)$, then this can be simplified to $\M{O}(I(n \log B)$.
 
 \subsection{Finite Fields}%
 \label{sub:finite-field}
 
-% TODO From ffnlogn need to reword
 We will now introduce a lemma to use Kronecker substitution to convert polynomial multiplication in a finite field $\F_{p^k}$ for prime $p$, and $k\in \N$ to multiplication in $\F_p [x]$. This is used by Shoup's NTL library for number theory \cite{ntl}.
 
-% Used the word "bit complexity" here
 \begin{lemma}
     Let $M_q(n)$ be the complexity of polynomial multiplication on the bit-oriented model over a finite field $\F_q$ with $q = p^k$ for some prime $p$. Then
     \[
@@ -197,12 +191,10 @@ We will now introduce a lemma to use Kronecker substitution to convert polynomia
     which reduces us the problem to the case where $k = 1$.
 \end{lemma}
 
-% TODO not 100\% this is correct, the source that I obtained this lemma from did not provide a proof
 \begin{proof}
-    Let $\F_q = \F_p[x] / f(x)$ for a polynomial $f(x) \in F_p[x]$ of degree $k$. Notice the result of multiplying two polynomials of degree $k$ has degree at most $2k$, we need to pad the elements of $\F_q$ with zeros to allow for polynomials of degree $2k$ in the result. Hence the newly expanded polynomial in $\F_p[x]$ has $2nk$ terms; thus multiplying them requires $M_p(2nk)$ ring operations. To transform the result back into a polynomial in $\F_q[x]$, we need to coerce the coefficients -- which are polynomials of length $2k$ -- back into $F_q[x]$, which we can achieve by dividing them by $f(x)$. Using Newton substitution (Theorem 9.6 \cite{modern-comp-alg}), polynomial division has the same asymptotic complexity as multiplication. Therefore coercing all the coefficients back into $\F_q[x]$ can be achieved in $\M{O}(n M_p(k))$ ring operations.
+    Let $\F_q = \F_p[x] / f(x)$ for a polynomial $f(x) \in F_p[x]$ of degree $k$. Notice the result of multiplying two polynomials of degree $k$ has degree at most $2k$; we need to pad the elements of $\F_q$ with zeros to allow for polynomials of degree $2k$ in the result. Hence the newly expanded polynomial in $\F_p[x]$ has $2nk$ terms; thus multiplying them requires $M_p(2nk)$ ring operations. To transform the result back into a polynomial in $\F_q[x]$, we need to coerce the coefficients -- which are polynomials of length $2k$ -- back into $F_q[x]$, which we can achieve by dividing them by $f(x)$. Using Newton substitution (Theorem 9.6 \cite{modern-comp-alg}), polynomial division has the same asymptotic complexity as multiplication. Therefore coercing all the coefficients back into $\F_q[x]$ can be achieved in $\M{O}(n M_p(k))$ ring operations.
 \end{proof}
 
-% TODO check this a bit more. This is the bit complexity
 We can also use the technique from the previous section to convert multiplication in any integer ring $\Z/N\Z[x]$ for $N \in \N$ into integer multiplication. We first coerce elements in $\Z/N\Z$ into $\Z$, via the isomorphism
 \[
     p + N \in \Z/N\Z \mapsto p \in \Z.
