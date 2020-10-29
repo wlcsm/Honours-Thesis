@@ -1,37 +1,35 @@
 \chapter{Implementation Details}\label{chp:implementation}
 
-Now we will look at some additional aspects of the practical implementations of the algorithms in previous chapters. Namely we will look at sparse multiplication and practical run time analysis of our nPoly library\cite{npoly}. Sparse multiplication is used when the number of non-zero terms in the polynomial proportion to the degree of the polynomial is low. The complexity of the algorithms we have covered so far have all been solely dependent on the degree of the polynomial and so these algorithms will perform poorly for sparse polynomials. Now we will look at a technique for sparse polynomial multiplication, this is also useful as it may be used as a base case for any of the algorithms we have covered here.
+In previous chapters we look at asymptotically fast algorithms for polynomial multiplication in a variety of different coefficient algebras. To conclude this thesis we will introduce a technique for sparse multiplication and an analysis of the performance of some of the algorithms covered so far in our nPoly library\cite{npoly}. 
+
+Sparse multiplication techniques are used when the number of non-zero terms in the polynomial proportion to the degree of the polynomial is low. The complexity of the algorithms we have covered so far have all been solely dependent on the degree of the polynomial and so these algorithms will perform poorly for sparse polynomials. Now we will look at a technique for sparse polynomial multiplication, this is also useful as it may be used as a base case for any of the algorithms we have covered here.
 
 For example if we were to use Karatsuba's algorithm on $1 + x^2 + x^{60} + x^{100}$, then the algorithm would need to recurse $8$ times to reach a base case of one. However, if we organise our polynomial into a sparse vector and set a base case at $\# f \le 2$, then we only need to recurse once. Thus by formulating our base case in terms of the number of non-zero term in conduction with this algorithm, we may achieve a nice speedup. This algorithm also has the advantage for working equally over multivariate polynomials as well, which tend to be sparse in practice.
 
-Note that this doesn't change the current complexity analysis from previous chapters as they were formulated to be independent of whether the coefficients were zero or non-zero, thus they used coefficient vector representations.
+Note that this doesn't change the current complexity analysis from previous chapters as they were formulated more towards dense coefficient vector representations since we are interesting in proving upper bounds for the algorithms. 
 
 \section{Sparse Polynomial multiplication}
 
-Previously in Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree.
+In Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree.
 
-It would seem reasonable to try to use the schoolbook method to achieve this, however a problem arises when coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far.
+It would seem reasonable to try to use a variation of the schoolbook method to achieve this, however a problem arises when coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far. Since we typically want the terms in our sparse polynomial vectors to be in sorted order\footnote{Otherwise this make other operations such as addition and finding the lead term more difficult to compute}, we will assume that whatever method we use, we must obtain a sorted list of monomials in the end.
 
-There are several methods we might look using to achieve this:
+There are several methods we might look at using to achieve this:
 \begin{itemize}
     \item a coefficient vector. This requires potentially $\M{O}(n)$ time to shift data to allow the new term to be inserted,
     \item a binary tree would provide $\log n$ insertion times, but uses expensive memory operations and is not memory efficient, 
-    \item a hashmap would provide $\M{O}(1)$ insertion time, but incurs additional costs when hashing the elements. Furthermore, since element in a hashmap are not store in any particular order, the elements would need to be sorted in the end, and so the complexity would be $m \log m$ where $m$ is the number of elements in the hashmap. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end.
+    \item a hashmap would provide $\M{O}(1)$ insertion time, but incurs additional costs when hashing the elements. Furthermore, since elements in a hashmap are not store in any particular order, the elements would need to be sorted in the end. Hence the total complexity of this method would be $m \log m$ where $m$ is the number of elements in the hashmap. This is more suitable in the case of multiplying many polynomials together as we then only need to sort the array once at the end.
 \end{itemize}
 
-Let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote the cumulative result after $k$ steps as $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
+The last two are valid options and achieve the same complexity, though they incur a high runtime. Our method avoids such costs by recognising a partial ordering on the resulting terms and resolving this partial order into a total order using a heap.
+% Let $\# g$ denote the number of non-zero terms in the polynomial $g$. Say we are part way through multiplying two polynomials $a, b \in K[x]$. Denote the cumulative result after $k$ steps as $c_k$ e.g. after $\# a \# b$ steps we will have calculated the entire result so $c_{\#f + \#g} = ab$.
 
-Using the formula
+To see this partial order, let $f, g \in K[x_1, \ldots, x_n]$ whose monomials have a lexicographical ordering\footnote{This holds for any monomial ordering however}, then we may general our formula for the product of $fg$ as
 \[
-    ab = \sum^{n + m}_{k=0} \bb{\sum_{i + j = k}a_ib_j} x^{i + j}.
+    fg = \sum_{\alpha, \beta} \bb{\sum_{\alpha + \beta = \gamma}f_\alpha g_\beta} x^{\gamma}.
 \]
-When we calculate another term $a_ib_j x^{i + j}$ for some $1 \le i \le n$ and $1 \le j \le m$, we now need add this to the resulting polynomial we have calculated so far. To find the matching monomial in our result polynomial (or insert it if it doesn't exist) we will need to perform a binary search. However, if we have stored the result as an array, then inserting the monomial could cause an $\#c_k$ shift in elements. If we store is as a linked list then this is not very efficient due to the expensive memory read operations.
+Consider the term with monomial $x^{\alpha + \beta}$. Then for all $ \alpha^\prime \le \alpha$ and $\beta^\prime \le \beta$ we have $x^{\alpha^\prime + \beta^\prime} \le x^{\alpha + \beta}$. Thus this forms a partial ordering which can be visualised in Figure \ref{fig:ordering}.
 
-Here I will present a technique for multiplying polynomials in $O(\# f \# g \log (\min\{\# f, \# g\})$. The main idea is to compute the monomials in order (as much as possible), so the output is naturally sorted. Later research found that this technique is similar to Johnson's sparse multiplication algorithm \cite{johnson-sparse-polynomial}.
-
-As a practical example, we know that the smallest terms will be the lowest term of $f$ multiplied by the lowest term of $g$. Then the next smallest term in the result is either the smallest term of $f$ multiplied by the second smallest term of $g$, or vice versa. So we must compare them and output the smallest.
-
-In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ smallest monomial of $f$ multiplied by the $j^{\tx{th}}$ smallest monomial of $g$. Then $x_{ij} < x_{kj}$ when $k > i$ and $x_{ij} < x_{ik}$ when $k > j$. Thus before performing any calculations, we are able to deduce a partial ordering on the collection $\{x_{ij}\}_{i, j=0}^{i=\# f, j = \#g}$. The goal of the algorithm is to then resolve this into a total ordering in an efficient manner.
 
 \begin{figure}
     \center
@@ -48,157 +46,94 @@ In general, fix a monomial order, then let $x_{ij}$ be the $i^{\text{th}}$ small
                 \end{tikzcd}
             };
     \end{tikzpicture}
-    \caption{The partial order that is known a priori}
+    \caption{The partial order on the monomials of the product $fg$}
+    \label{fig:ordering}
 \end{figure}
 
-The idea is that we start with $x_{ij}$ then we compute $x_{(i+1)j}$ and $x_{i(j+1)}$ and add them to the heap. We then take out the smallest and add it to the resulting vector. This is like starting from the $x_{11}$ and going up in the graph. In there is a path of arrows from one node to another, then that implies that node is definitely greater than it. It can then be seen from this graph that the most number of node that you can have in the heap at any time, occurs as a straight horizontal line across, which is $\min\{\# f, \# g\}$.
+A \textit{min-heap} is a data structure which has two operations: insert an element, extract the minimum element in the heap. We will use a min-heap to resolve the partial ordering that we know \textit{a priori} into a total ordering.
 
+\begin{theorem}
+    Let $f, g \in K[x_1, \ldots, x_n]$, with $f$ and $g$ stored in a sparse vector representation and sorted lexicographically.
+    Then we may calculate the product $fg$ using $\M{O}(\# f \# g)$ ring operations, and $\M{O}(\# f \# g \log ( \min \{\# f, \# g\}))$ monomial additions or comparisons. Thus $K = \Z$, then the total complexity is $\M{O}(\# f \# g \log ( \min \{\# f, \# g\})\M{C}(mon)$ for $\M{C}(mon)$ the complexity of monomial additions and comparisons.
+\end{theorem}
 
-Therefore the multiplication operation will be $O(\# f \# g \min\{\# f, \# g\})$.
+Later research showed that this technique is similar to Johnson's sparse multiplication algorithm \cite{johnson-sparse-polynomial}.
 
+\begin{proof}
+    We will evaluate the graph in Figure \ref{fig:ordering} by traversing the graph from the bottom up, computing each layer as we go. 
+    First multiply the smallest two terms of $f$ and $g$ and add it to the result vector. We know that there can not be any other terms smaller than this.
+In general, whenever $x^{\alpha_{i+1}} x^{\beta_j}$ and $x^{\alpha_i} x^{\beta_{j+1}}$ has been put into the resulting vector, compute $x^{\alpha_{i+1}}x^{\alpha_{j+1}}$ and insert it into the heap. After this, we then extract the minimum element from the heap and insert it into the result.
 
-% \subsection{Sparse polynomial (my way)}
+    This continues until there are no more elements in the heap. 
 
-% The idea is that we compress the polynomial (i.e. ignoring the zero terms), then do a fft in that compressed state, multiply, then expand back into full
-% e.g. Imagine $(x^{20} - 1)(x^{40} - 1)$, then I can replace the exponents with $n = 20$ and $m = 40$ and calculate $(x^n - 1)(x^m -1)$, which gives me $x^{n+m} - x^n - x^m + 1$, then I could have actually chosen $n = 1$ and $m = 2$, and calculated $(x - 1)(x^2 - 1)$ via the fft and gotten $x^3 - x^2 - x + 1$ and then expanded back into $x^{60} - x^{40} - x^{20} + 1$. Thats the basic premise
+    Since we calculate each of the resulting monomials once, this requires $\M{O}(\# f \# g)$ ring operations and $\M{O}(\# f \# g)$ monomial additions. Then note that in this partial order, there can only be a maximum of $\min(\# f, \# g)$ elements that can simultaneously not have an order relation on them. Therefore the heap can contain $\min(\# f, \# g)$ elements at any time. Therefore each of the heap operations requires at most $\log (\min(\# f, \# g))$ monomial comparisons.
 
-% I like the hybrid approach in the Fast Poly Mult paper. Also the mixed basis or small prime one
+    Therefore, this algorithm requires at most $\M{O}(\# f \# g)$ ring operations, and $\M{O}(\# f \# g \log ( \min \{\# f, \# g\}))$ monomial additions or comparisons.
+    
+\end{proof}
 
-\section{Runtimes}
+As mentioned previously the algorithms in previous chapter are solely dependent on the degree of the polynomials for their run time, and often it is not clear how to generalise them for sparse polynomials. Since the algorithms are recursively formulated, on way of generalising them would be to set the base case to occur based on the number of non-zero terms, rather than a degree. Then in the base case we may apply this algorithm to efficiently evaluate the solution.
+
+\section{nPoly Multiplication Benchmarks}
 
 We have implemented several of the algorithms presented in this thesis as part of the nPoly polynomial arithmetic library. Rust is a modern systems programming language that has become increasingly popular in recent years for its ability to make highly-performant, highly generic code.
 
 One of the advantages of Rust is its support for generic programming which has enabled nPoly to implement its algorithms over all algebras the algorithms support. Currently, nPoly supports: polynomial addition/subtraction/evaluation, Schoolbook multiplication, Karatsuba multiplication, FFT multiplication, Kronecker substitution and limited support for Gr\"{o}bner bases.
 
-Here we will look at several algorithms, namely: Schoolbook multiplication (with hash-maps), Karatsuba's algorithm, and the standard FFT-based multiplication algorithm. One of the goals of this thesis was to develop a heuristic for selecting the most appropriate algorithm for a given set of input polynomials, however we note that the times obtained here are not highly optimised implementations as we have implemented all parts of the algorithms (including the FFT) ourselves. To improve the runtimes we may look at using existing software libraries to perform such parts of the code such as FFTW for the Fourier transform. Thus we can only explain the heuristic that nPoly uses for selecting its algorithms.
+Here we will look at several algorithms, namely: Schoolbook multiplication (with hash-maps), Karatsuba's algorithm, and the standard FFT-based multiplication algorithm. One of the goals of this thesis was to develop a heuristic for selecting the most appropriate algorithm for a given set of input polynomials, however we note that the times obtained here are not highly optimised implementations as we have implemented all parts of the algorithms (including the FFT) ourselves. To improve the runtimes we may look at using existing software libraries to perform such parts of the code such as FFTW for the Fourier transform. Thus we can only explain the heuristic that nPoly uses for selecting its algorithms. All measurements in this section were obtained with a MacBook Air 2016 1.6 GHz Dual-Core Intel Core i5, with 8 GB of RAM. 
 
-Beginning with the schoolbook method for multiplication, we have tested the algorithm by multiplying polynomials together with varying sparsity. We have also tested the runtime cost of increasing the number of indeterminates. As we can see, the number of indeterminates has a (roughly)-linear affect on the runtime performance, as we would expect since the only thing that would change is the hashing function used to hash the terms into the hash table. This hashing function is a source for potential optimisation as we have used the default function given by Rust, though since our monomials are vectors is $\Z^d$ (where $d$ is the number of indeterminates), it may be easy find more efficient hashing functions.
+Beginning with the schoolbook method for multiplication, we have tested the algorithm by multiplying polynomials together with varying sparsity. We have also tested the runtime cost of increasing the number of indeterminates. From Figure \ref{fig:schoolbook} we can see that the number of indeterminates has a (roughly)-linear affect on the runtime performance, as we would expect since the only thing that would change is the hashing function used to hash the terms into the hash table. This hashing function is a source for potential optimisation as we have used the default function given by Rust, though since our monomials are vectors is $\Z^d$ (where $d$ is the number of indeterminates), it may be easy find more efficient hashing functions.
 
 We also included a test for an optimised version of the univariate case. This involved a simpler monomial that the monomial data type we used for the other versions and is a bout two as faster when compared to the univariate case where we use the monomial for multi-indices type.
 
-\begin{figure}[t]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=12cm]{images/schoolbook-plot.pdf}
     \caption{Schoolbook Multiplication (hash-maps) on Sparse multivariate polynomials}
     \label{fig:schoolbook}
 \end{figure}
 
+\medskip
 
-As we can see, the FFT algorithm exhibits an $\M{O}(n \log n)$ complexity. Note however that it is measured in terms of the degrees of the input polynomials rather than the number of non-zero terms as the algorithm will behave the same regardless of the sparsity.
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=12cm]{images/fft-plot.pdf}
-    \caption{FFT-based polynomial multiplication algorithm on dense polynomials}
-    \label{fig:fft}
-\end{figure}
+Karatsuba's algorithm performs reasonably well and is able to calculate polynomials with degree $10^5$ in around 2 seconds. Notice  in Figure \ref{fig:karatsuba} that the runtime for Karatsuba's algorithm has several plateaus, this is due to the recursive nature of the algorithm that all achieve a similar runtime due to the fact that the algorithm recurses the same number of times, and currently there is a very small base case of $n = 1$. This indicates that the algorithm performs particularly bad for some groups of polynomials that are only slightly greater than a power of two. One could experiment with large bases cases, or the method from the previous section to reduce this effect.
 
-\begin{figure}[t]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=12cm]{images/karatsuba-plot.pdf}
     \caption{Karatsuba's Algorithm for polynomial multiplication}
     \label{fig:karatsuba}
 \end{figure}
 
+As we can see in Figure \ref{fig:fft}, the FFT algorithm exhibits an $\M{O}(n \log n)$ complexity. Note however that it is measured in terms of the degrees of the input polynomials rather than the number of non-zero terms as the algorithm will behave the same regardless of the sparsity. As with Karatsuba's algorithm, the recursive nature of the FFT creates plateaus in the run time which can be seen in the graph.
 
-We see here the runtime for a na\"{i}ve implementation of Kronecker substitution for converting multivariate polynomials to their univariate equivalent and back again. Note that this implementation creates new vectors each time and so it needs to dynamically allocate memory which may account for a significant proportion of the cost.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=12cm]{images/fft-plot.pdf}
+    \caption{FFT-based polynomial multiplication algorithm on dense polynomials}
+    \label{fig:fft}
+\end{figure}
+
+\medskip
+
+\medskip
+
+Figure \ref{fig:kronecker} show the run time for a na\"{i}ve implementation of Kronecker substitution for converting multivariate polynomials to their univariate equivalent and back again. Note that this implementation creates new vectors each time and so it needs to dynamically allocate memory which may account for a significant proportion of the cost.
 
 As we can see, Kronecker substitution performs quite poorly and has a similar complexity as the Schoolbook method. Thus we propose the optimisation as suggested in Section \ref{sub:implementation-kronecker} where we simply take a different algebraic meaning to the multi-indices to see them as univariate indices in a mixed-radix representation. This will incur no runtime costs if the polynomials are sorted in the lex order, however, we may need to reorganise the array of terms otherwise. This will be $\M{O}(n \log n)$ in the number of terms and so is insignificant compared to the cost of multiplication.
 
-\begin{figure}[t]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=12cm]{images/kronecker-plot.pdf}
     \caption{Na\"{i}ve Kronecker substitution on multivariate polynomials}
     \label{fig:kronecker}
 \end{figure}
 
+\medskip
 
-\begin{table}[h]
-\centering
-    \begin{tabular}{|c| c |}
-        \hline
-        Degree & time($\mu$s)\\
-        \hline
-        100 & 358\\
-        1000 & 12516\\
-        10000 & 772279\\
-        100000 & 20829654\\
-        200000 & 64446486\\
-        \hline
-    \end{tabular}
-    \caption{Karatsuba's Algorithm}
-\end{table}
+From our tests we found that the FFT algorithm dominates schoolbook and Karatsuba's algorithm for almost all degree sizes. By inspecting the tabulated results in the Appendix, we can see that the FFT algorithm begins to dominate Karatsuba's when the degree of the polynomial is around 20. This is unexpectedly low, and is likely to be due to unnecessary overhead from function call, as our implementation of Karatsuba's algorithm uses a top-down approach whereas our implementations of the FFT uses a bottom-up approach.
 
-\begin{table}[h]
-\centering
-    \begin{tabular}{|c| c |}
-        \hline
-        FFT & time($\mu$s)\\
-        \hline
-        100 & 92\\
-        1000 & 544\\
-        10000 & 7824\\
-        100000 & 82067\\
-        1000000 & 172875\\
-        \hline
-    \end{tabular}
-    \caption{The FFT algorithm}
-\end{table}
-
-\begin{table}[h]
-\centering
-    \begin{tabular}{|c| c c c|}
-        \hline
-        Kronecker & 2 & 5 & 10\\
-        \hline
-        100 & 4153 & 5552 & 8891 \\
-        250 & 28008 & 44412 & 68947 \\
-        500 & 108576 & 177699 & 276068\\
-        750 & 257015 & 414361 & 668346\\ 
-        1000 & 419838 & 709191 & 1117284\\
-        2500 & 2284089 & 5064354 & 9442733\\
-        5000 & 6444083 & 19040990 & 65630087\\
-        \hline
-    \end{tabular}
-    \caption{Na\"{i}ve Kronecker substitution}
-\end{table}
-
-\begin{table}[h]
-\centering
-    \begin{tabular}{|c| c c c c|}
-        \hline
-        Schoolbook & 1 & 2 & 5 & 10\\
-        \hline
-        100 & 2744 & 3280 & 4804 & 9731\\
-        250 & 16879 & 32055 & 53999 & 75831\\
-        500 & 74315 & 126403 & 168269 & 295479\\
-        750 & 117782 & 268272 & 431288 & 730663\\
-        1000 & 184860 & 428177 & 780056 & 1437264\\
-        2500 & 1064871 & 2650782 & 5490774 & 10380380\\
-        5000 & 4551621 & 8260184 & 22343481 & 66544669\\
-        \hline
-    \end{tabular}
-    \caption{Schoolbook method with a hashmap}
-\end{table}
-
-\begin{table}[h]
-\centering
-    \begin{tabular}{|c| c |}
-        \hline
-        Schoolbook(optimised) & time($\mu$s)\\
-        \hline
-        100 & 1566 \\
-        250 & 4906 \\
-        500 & 14518 \\
-        750 & 33088 \\
-        1000 & 44487 \\
-        2500 & 224304 \\
-        5000 & 704417 \\
-        \hline
-    \end{tabular}
-    \caption{Schoolbook method for univariate polynomials with an optimised monomial representation}
-\end{table}
-
+The schoolbook algorithm doesn't out-perform Karatsuba's algorithm at any reasonable sizes which is likely due to the expensive hashing operations we uses. Note however that our tests for the schoolbook method were a function of the number of non-zero terms whereas Karatsuba's and the FFT were a function of the degrees of the polynomials. Hence, when selecting the algorithm to use to multiply polynomials, we can compare the cost of the schoolbook method using the number of non-zero terms in the polynomial and the cost of Karatsuba's algorithm (if the degree is less than $20$) or the FFT based algorithm as a function of the degree of the polynomials. We then select the algorithm that returns the smallest result.
 
 %%%%%%%%%%%%%%
 

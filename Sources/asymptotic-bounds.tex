@@ -1,10 +1,12 @@
 \chapter{Asymptotic Bounds}\label{chp:asymptotic}
 
+% TODO Apply this to polynomial multiplciation
+
 In this chapter, we will look at one of the most significant recent developments in the field of polynomial multiplication, namely the algorithms presented by Harvey and van der Hoevern (2019, \cite{nlogn}) for multiplication of $n$-bit integers in $\M{O}(n \log n)$ time in the Turing model. This has solved a long-standing problem in complexity theory and is conjectured by Sch\"{o}nage and Strassen to be asymptotically optimal \cite{sch-str-optimality-int-mult}.
 
 \medskip
 
-Along with their main paper, Harvey and van der Hoeven released a second paper \cite{ffnlogn} which presents another algorithm that achieves the same asymptotic bound but is conditional on an unproven hypothesis on the distribution of primes. However, it has the advantage of being simpler to understand and more easily generalised to finite fields than the first, so we will also present it here.
+Along with their main paper, Harvey and van der Hoeven released a second paper \cite{ffnlogn} which presents another algorithm that achieves the same asymptotic bound and is easier to understand, but is conditional on an unproven hypothesis on the distribution of primes. This conditional algorithm also has the advantage of being easily adapted for polynomial multiplication over more generail coefficient algebras \cite{ffnlogn}. The authors also claimed that the algorithm may be generalised to polynomial multiplication in a similar way as we generalised the Sch\"{o}nage and Strassen algorithm for commutative rings.
 
 \medskip
 
@@ -15,6 +17,12 @@ This technique relies heavily on the Archimedean property of the complex numbers
 
 Since most of the calculations will be performed in the coefficient ring $\C$, we must carefully track the loss of precision in our intermediate results. As discussed in Chapter \ref{chp:eval-interp}, using the standard FFT algorithm with enough precision to guarantee correctness, increases the complexity of the overall algorithm past the $\M{O}(n \log n)$ bound. In the Turing model, the complexity of fundamental operations such as addition and multiplication is directly proportional to the number of bits used to store the number. This means that as we increase the size of the size of our integers, simple arithmetic operations take longer, but in the end, we must keep the total error of the coefficients strictly less than $1/2$ so that rounding to nearest integer returns the correct result. 
 
+
+
+% Taken directly from the paper page 5
+Under the assumption of a suitable prime distribution, we chose primes $s_1, \ldots, s_d$ such that $s_i = 1 \;(\tx{mod } r)$, where $r$ is a power of two, and where the $s_i$ are not much larger than $r$. We then use a multi-dimensional generalisation of Rader's Algorithm to reduce the DFT of size $s_1 \times \cdots \times s_d$ to one of size $s_1-1 \times \cdots \times s_d-1$ and hence to a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$, where $s_i - 1 = q_i r$ where the $q_i$ are suitably small, we may then reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d] / (x_1^r - 1, \ldots, x_d^r - 1)$. \\
+
+% Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These, in turn, are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you do not need that if you are just doing polynomial multiplication).
 % \medskip
 
 % (TODO come back because I think I might have figured out a way to generalise some result to polynomial multiplication)
@@ -38,7 +46,7 @@ This section will prove the following theorem
     Multiplication of integers of size $n$ can be calculated in time $\M{O}(n \log n)$ in the Turing model.
 \end{theorem}
 
-First we will present a theorem which allows us to convert polynomial multiplication in a single variable into multiplication in multiple variables
+First we will present a lemma which allows us to convert polynomial multiplication in a single variable into multiplication in multiple variables.
 
 \begin{lemma}\label{eq:uni-to-multi}
     For distinct primes $s_1, \ldots, s_d$
@@ -71,7 +79,7 @@ Now we may introduce a high-level overview of the main algorithm. Let $a, b \in 
     \item Convert the result back into $\Z[x]$, and finally recover the solution in $\Z$.
 \end{enumerate}
 
-Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapters. In this section, we will cover all aspects of the proof presented by Harvey and van der Hoeven, excluding the details of the Gaussian Resampling technique used in Step 3, and certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding in Fourier analysis and number theory that is beyond the material presented in this thesis. Section \ref{sec:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sec:transfoms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sec:proof-of-theorem} will prove Theorem \ref{thm:main-theorem}.
+Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapters. In this section, we will cover all aspects of the proof presented by Harvey and van der Hoeven, excluding the details of the Gaussian Resampling technique used in Step 3, and certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding of Fourier analysis and number theory that is beyond the material presented in this thesis. Section \ref{sub:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sub:transfoms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sub:proof-of-main-theorem} will prove Theorem \ref{thm:main-theorem}.
 
 \subsection{Notation}%
 \label{sub:notation}
@@ -129,7 +137,7 @@ and
 Throughout this chapter we will be careful to ensure that the error at every step is small enough to guarantee a correct recovering of the final result. Thus we will frequently use the following Lemmas whose proofs may be found in Section 2 of \cite{nlogn}. 
 
 \begin{proposition}
-    Let $V$ be a $m$-dimensional vector space. Assume we are given $u, v \in V_\circ$ and approximations $\tilde{u}, \tilde{v} \in \tilde{V}_\circ$, and $1 \le c \le 2^p$,we have
+    Let $V$ be a $m$-dimensional vector space. Assume we are given $u, v \in V_\circ$ and approximations $\tilde{u}, \tilde{v} \in \tilde{V}_\circ$, and $1 \le c \le 2^p$, we have
     \begin{enumerate}
         \item (E.1 Addition) We may compute an approximation $\tilde{w} \in \tilde{V}_\circ$ for $w = \tfrac{1}{2}(\tilde{u} \pm \tilde{v}) \in V_\circ$ such that $\varepsilon(\tilde{w}) < 1$ in time $O(mp)$.
         \item (E.2 Scaling) If $\|u\| \le c^{-1}$, and $w = cu \in V_\circ$, then we may compute and approximation $\tilde{w} \in \tilde{V}_\circ$ such that $\varepsilon(\tilde{w}) < 2c \cdot \varepsilon(\tilde{u}) + 3$ and in time $O(mp^{1 + \delta})$.
@@ -225,7 +233,7 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 
     Let $t \in \{2, 4, \ldots, 2r\}$ and write $\omega_t = y^{2r/t}$ for the primitive root of unity of order $t \in \mathscr{R}$. 
 
-    First we will need to evaluate the DFT in a way that is normalised. Rather that partitioning the sum into even and odd sample, we split the sum into its top and bottom half\footnote{This is know as the \textit{decimation in frequency} FFT, our previous formulation in Chapter \ref{chp:eval-interp} is know as the \textit{decimation in time} FFT}
+    First we will need to evaluate the DFT in a way that is normalised. Rather that partitioning the sum into even and odd sample, we split the sum into its top and bottom half\footnote{This is know as the \textit{decimation in frequency} FFT, our previous formulation in Chapter \ref{chp:eval-interp} is know as the \textit{decimation in time} FFT}, this gives
     \begin{align*}
         (\M{G}_t u)_k 
         &= \frac{1}{t}\sum^{t - 1}_{j=0} a_j \omega_t^{-jk} + \frac{1}{t} \sum^{t/2 - 1}_{j=0} a_{j + t/2} \omega^{-j(k + t/2}\\
@@ -264,24 +272,25 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 \begin{proposition}[Proposition 3.4 \cite{nlogn}]
     Let $t_1, \ldots, t_d$ and $T$ be as in Theorem 3.1. Then we can construct a numerical approximation $\tilde{\M{M}_{\mathscr{R}}}: \otimes_i \tilde{\mathscr{R}^{t_i}} \otimes_i \tilde{\mathscr{R}^{t_i}} \to \otimes_i \tilde{\mathscr{R}^{t_i}}$ for the convolution function $\M{M}_{\mathscr{R}}$ such that $\epsilon(\tilde{\M{M}}_{\mathscr{R}}) < 3T \log_2 T + 2T + 3$ and
     \[
-        \M{C}(\tilde{\M{M}}_{\mathscr{R}}) < \frac{4T}{r}M(3rp) + \M{O}(Tp \log T + T p^{1 + \delta})
+        \M{C}(\tilde{\M{M}}_{\mathscr{R}}) < \frac{4T}{r}M(3rp) + \M{O}(Tp \log T + T p^{1 + \delta}).
     \]
 \end{proposition}
 
 \begin{proof}
     Using the formula for our normalised convolution \eqref{eq:normalised-convolution}
     \[
-        \frac{1}{t_1 \cdots t_{d-1}}u \ast v = (t_1 \cdots t_{d-1})\M{G}^{-1}_{t_1, \ldots, t_{d-1}}((\M{G_{t_1, \ldots, t_{d-1}}}u)\cdot (\M{G_{t_1, \ldots, t_{d-1}}} v))).
+        \frac{1}{t_1 \cdots t_{d-1}}u \ast v = (t_1 \cdots t_{d-1})\; \M{G}^{-1}_{t_1, \ldots, t_{d-1}}((\M{G_{t_1, \ldots, t_{d-1}}}u)\cdot (\M{G_{t_1, \ldots, t_{d-1}}} v))).
     \]
-    We need to ensure that the intermediate calculations have norm at most $1$ to fit inside the $p$ bits of precision. However, if computed as in previous chapters, the result of the pointwise multiplications of the two forward transforms may have norm $r > 1$. To remedy this we divide both sides by $r$ to obtain $w = (T/r)w^\prime$
+    We need to ensure that the intermediate calculations have norm at most $1$ to fit inside the $p$ bits of precision. However, if computed as in previous chapters, the result of the pointwise multiplications of the two forward transforms may have norm $r > 1$. To remedy this we divide both sides by $r$ to obtain $w = (T/r)w^\prime$, where
     \begin{equation}\label{eq:idk}
         w^\prime = \M{G}^{-1}_{t_1, \ldots, t_{d-1}}(\tfrac{1}{r}(\M{G}_{t_1, \ldots, t_{d-1}}u) \cdot (\M{G}_{t_1, \ldots, t_{d-1}}v)).
     \end{equation}
     We use Proposition \ref{prop:multi-synth} to compute approximations $u^\prime = \tilde{\M{G}}_{t_1, \ldots, t_{d-1}} u \in \otimes_i \tilde{\mathscr{R}}^{t_i}$ and $v^\prime = \tilde{\mathscr{G}}_{t_1, \ldots, t_{d-1}} v \in \otimes_i \mathscr{R}^{t_i}$. The cost of this step is $\M{O}(Tp \log T)$.
 
     Next we must handle the pointwise multiplications between the two transforms. The multiplication map $\M{A}: \mathscr{R} \times \mathscr{R} \to \mathscr{R}$ given by $\M{A}(a, b) = ab/r$ is a bilinear map with $\|\M{A}\| \le 1$ and so we may compute an approximation $\tilde{\M{A}}$ by Lemma \ref{lem:err-bilinear-map} such that $\varepsilon(\tilde{\M{A}}) < 2$ and $\tilde{v} = \tilde{\M{A}}(\tilde{u}, \tilde{v})$ has $\varepsilon(\tilde{v}) = \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{u}) + \varepsilon(\tilde{v}) = 2\log_2 T + 2$. The combined complexity of these steps is then
+    % TODO state where this is actually derived from. Martin had a comment about it
     \[
-        \frac{T}{r}(4M(3rp) + \M{O}(rp)) = \frac{4T}{r} M(3rp) + O(Tp)
+        \frac{T}{r}(4M(3rp) + \M{O}(rp)) = \frac{4T}{r} M(3rp) + O(Tp).
     \]
     The inverse transform follows in the same way with the same complexity and error bounds as the forward transforms.
 
@@ -335,9 +344,9 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 \end{proof}
 
 
-Finally, we may prove the main theorem.
+Finally, we may prove the main theorem of this section
 
-\begin{proof}[Proof of Theorem \eqref{thm:main-3}]
+\begin{proof}[Proof of Theorem \ref{thm:main-3}]
     Let $u \in \otimes_i \tilde{\C}_\circ^t$.
     % TODO i'm pretty sure this isn't the correct formula for Bluestein's algorithm
     Here we will apply Bluestein's trick for converting DFTs into convolutions. Adapting Bluestein's algorithm for normalised DFTs gives
@@ -376,35 +385,35 @@ We note that the contents of this section do not make any major changes from the
 \subsection{Proof of Main Theorem}%
 \label{sub:proof-of-main-theorem}
 
-In order to prove Theorem \ref{thm:main-theorem}, we first need to present the main result of Harvey and van der Hoeven's \emph{Gaussian Resampling} technique to convert a DFT of order $s_1 \times \cdots \times s_d$ where $s_i$ are prime, to one of order $t_1 \times \cdots \times t_d$, where $t_i > s_i$ is the next power of two greater than $s_i$, to allow us to apply Theorem \ref{thm:main-3}. This is the main point of divergence between the conditional and unconditional algorithms. Where the unconditional algorithm using Gaussian Resampling to make this conversion, the conditional algorithm uses Rader's transform.
+In order to prove Theorem \ref{thm:main-theorem}, we first need to present the main result of Harvey and van der Hoeven's \emph{Gaussian Resampling} technique to convert a DFT of order $s_1 \times \cdots \times s_d$ where $s_i$ are prime, to one of order $t_1 \times \cdots \times t_d$, where $t_i > s_i$ is the next power of two greater than $s_i$, to allow us to apply Theorem \ref{thm:main-3}. This is the main point of divergence between the conditional and unconditional algorithms. Where the unconditional algorithm using Gaussian Resampling to make this conversion, the conditional algorithm uses Rader's transform. Since we are not proving the theorem here, we will simplify it for the sake of clarity.
 
 \begin{theorem}[Theorem 4.1 in nlogn]\label{thm:gaussian}
-    Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Let $\alpha$ be an integer in the interval $2 \leq \alpha < p^{\frac{1}{2}}$. For each $i$ let $\theta_i = t_i / s_i - 1$, and assume that $\theta_i \geq p/\alpha^4$. Then there exists linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
+    Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Suppose $s_i/t_i - 1 > p^{-1}$ for all $i$. Then there exists a $\gamma < 2dp$ and linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
     \[
-        \M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{B} \M{F}_{t_1, \ldots, t_d} \M{A} \qquad \gamma := 2d\alpha^2.
+        \M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{B} \M{F}_{t_1, \ldots, t_d} \M{A}
     \]
     Moreover we can construct numerical numerical approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i}_0 \to \otimes_i \tilde{\C}^{t_i}_0$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{t_i}_0 \to \otimes_i \tilde{\C}^{s_i}_0$  such that $\epsilon(\tilde{\M{A}}), \epsilon(\tilde{\M{B}}) < dp^2$ and
     \[
-        C(\tilde{\M{A}}), C(\tilde{\M{B}}) = \M{O}(dTp^{{\frac{3}{2}} + \delta}\alpha + Tp\log T).
+        C(\tilde{\M{A}}), C(\tilde{\M{B}}) = \M{O}(dTp^{{\frac{3}{2}} + \delta}p^{1/2} + Tp\log T).
     \]
 \end{theorem}
 
 \medskip
 
+% TODO this is the important part to fix up
 Now we will set up the parameters to prove the theorem.
 
 Let $b = \lceil \log_2 n\rceil \geq d^{12} \geq 4096$ be the size of the coefficients after applying Kronecker substitution to convert the integers into polynomials in $\Z[x]$. Fix the working precision to be $p = 6b$, and define $\alpha = \lceil (12d^2 b)^{1/4}\rceil$.
 
 Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
 
-\begin{equation}
-    \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
-\end{equation}
+% \begin{equation}
+%     \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
+% \end{equation}
 
-TODO Why is this line necessary?
+% TODO Why is this line necessary?
 
 In order to satisfy the conditions of Theorem \ref{thm:gaussian}, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
-TODO In words, what is gamma?
 
 Let $T$ be the unique power of two in the interval
 \begin{equation}
@@ -436,8 +445,31 @@ Then $t_d \geq \cdots \geq t_1 \geq 2$ and $t_1\cdots t_d = T$.
 
 \medskip
 
-(Still need to give an intuitive explanation for this part)
-We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly smaller than the corresponding $t_1, \ldots, t_d$. This is a number-theoretic fact that is proved in Lemma $5.1$ in \cite{nlogn}. It is also shown that we can find the primes in $\M{O}(n)$ time.
+We will now present a number theoretic fact that ensure that from our choice of $t_1, \ldots t_d$ before, we may find primes $s_1, \ldots, s_d$ that satisfy the conditions of Theorem \ref{thm:gaussian}.
+
+\begin{lemma}[Lemma 5.1 \cite{nlogn}]\label{lem:primes}
+    Let $x \ge e^{8d}$, then there are at least $\frac{1}{8d}x \log x$ primes $s$ in the interval $(1 - \frac{1}{2d})x < s \le (1 - \frac{1}{4d})x$.
+\end{lemma}
+
+We note that from our choice of $r$ we have $r \ge (4n / b)^{\frac{1}{d}} \ge n^{\frac{1}{2d}}$ where the last inequality holds for any $d, n \ge 2$. Then using the fact that $\ceil{\log_2 n} \ge d^{12}$ and $\log_2 n \ge \ceil{\log_2 n} - 1$ we obtain
+% TODO the last inequality isn't correct
+\[
+    r \ge n^{\frac{1}{2d}} \ge 2^{\log(n^{\frac{1}{2d}})} \ge 2^{\frac{1}{2d} \log n} \ge 2^{\frac{1}{2d}(\ceil{\log_2 n} - 1)} \ge 2^{\frac{1}{2}(d^{11} - 1)} \ge 2^{d^{10}}
+\]
+where the last line follows from the fact that $d \ge 2$.
+Thus $r/2 \ge 2^{d^{10} - 1} \ge e^{8d}$, and so Lemma \ref{lem:primes} tells us that there exist
+% TODO change this
+\[
+    \frac{1}{8d} \cdot \frac{r/2}{\log(r/2)} \ge \frac{1}{16d} \cdot \frac{r}{\log r} \ge \frac{1}{16r} \cdot \frac{2^{d^{10}}}{\log(2^{d^{10}})} = \frac{2^{d^{10}}}{16 d^{11}\log 2} \ge d\ge d^\prime
+\]
+Therefore we may find the first $d^\prime$ primes $s_1, \ldots, s_{d^\prime}$ in this interval.
+
+Similarly, we may apply the lemma again but with $x = r$ to find $d \ge d - d^\prime$ primes in the interval $(1 - \frac{2}{d})r < q \le (1 - \frac{1}{4d})r$.
+
+We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
+
+%TODO ask martin if we can just do the r^{5/2} +\delta} method
+
 
 \begin{proposition}[Proposition 5.2 in \cite{nlogn}]
     We may construct a numerical approximation $\tilde{\M{F}}_{s_1, \ldots, s_d}: \otimes_i \tilde{\C}_\circ^{s_i} \to \otimes_i \tilde{\C}_\circ^{s_i}$ for $\M{F}_{s_1, \ldots, s_d}$ such that $\epsilon(\tilde{F}_{s_1, \ldots, s_d}) < 2^{\gamma + 5} T \log_2 T$ and
@@ -447,13 +479,19 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
 \end{proposition}
 
 \begin{proof}
-    Theorem \ref{thm:gaussian} gives us maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes \C^{s_i}$ such that $\M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{A}\M{F}_{t_1, \ldots, t_d} \M{B}$ and approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$. We then apply Theorem \ref{thm:main-theorem} to obtain an approximation $\tilde{\M{F}}_{t_1, \ldots, t_d}$ for $\M{F_{t_1, \ldots, t_d}}$.
+    First we verify the conditions of Theorem \ref{thm:gaussian}. For our choice of $t_1, \ldots, t_d$ and $s_1, \ldots, s_d$ above, we have
+    \[
+        \frac{t_i}{s_i} - 1 \ge \frac{1}{1 - \frac{1}{4d}} - 1 = \frac{1}{4d - 1} > \frac{1}{4d}
+    \]
+    and since $d \le \ceil{\log_2 n}^{\frac{1}{d}}$ and $p = 6\ceil{\log_2 n}$ we have $\frac{1}{4d} > p^{-1}$. Thus the conditions of the theorem hold.
+
+    Hence there exists a $\gamma < 2dp$ and maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes \C^{s_i}$ such that $\M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{A}\M{F}_{t_1, \ldots, t_d} \M{B}$ and approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{s_i} \to \otimes_i \tilde{\C}^{t_i}$. We then apply Theorem \ref{thm:main-theorem} to obtain an approximation $\tilde{\M{F}}_{t_1, \ldots, t_d}$ for $\M{F_{t_1, \ldots, t_d}}$.
 
     Now consider the scaled transform
     \[
         \M{F}^\prime_{s_1, \ldots, s_d} = 2^{-\gamma} \M{F}_{s_1, \ldots, s_d} = \M{A}\M{F}_{t_1, \ldots, t_d}\M{B}.
     \]
-    We then may compute an approximation $\tilde{\M{F}}^\prime_{s_1, \ldots, s_d} = \tilde{\M{A}}\tilde{\M{F}}_{t_1, \ldots, t_d}\tilde{\M{B}}$. By Lemma E.6 we have
+    We then may compute an approximation $\tilde{\M{F}}^\prime_{s_1, \ldots, s_d} = \tilde{\M{A}}\tilde{\M{F}}_{t_1, \ldots, t_d}\tilde{\M{B}}$. By Lemma (E.6 Function Composition) we have
     \[
         \varepsilon(\tilde{\M{F}}^\prime_{s_1, \ldots, s_d}) \le \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}) + \varepsilon(\tilde{B}) < 2dp^2 + 8T\log_2 T.
     \]
@@ -461,9 +499,10 @@ We now need to choose distinct primes $s_1, \ldots, s_d$ that are slightly small
     \begin{align*}
         \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}) &< 2^{\gamma + 1} \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}^\prime) + 3\\
                                                       &< 2^{\gamma + 2}(2dp^2 + 8T \log_2 T) + 3\\
-                                                      &< 2^{\gamma + 1}(3dp^2 + 8T\log_2 T),
+                                                      &< 2^{\gamma + 1}(3dp^2 + 8T\log_2 T).
     \end{align*}
-    as $3dp^2 < 8T \log_2 T$ (TODO fully show).
+    Since $d \le \ceil{\log_2 n}^{\frac{1}{12}}$ and $p = 6\ceil{\log_2 n}$ it follows that $3dp^2 < n / \ceil{\log_2 n}$, and thus $3dp^2 < n / \ceil{\log_2 n} = T < T \log _2 T$.
+
     So we may conclude $\varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}^\prime) < 2^{\gamma + 5}T\log_2 T$.
 
     The complexity is straightforward to compute
@@ -548,108 +587,102 @@ So we now get
 
 \newpage
 
-\section{Conditional Algorithm}
+% \section{Conditional Algorithm}
 
-It was shown by Harvey and van der Hoeven \cite{nlogn} that integer multiplication could be performed in $O(n\log n)$ time as we discussed in a previous section. They also presented a conditional algorithm which relied on a (strongly believed to be true but) unproven hypothesis, their original algorithm could not be easily adapted for the case of finite fields but this conditional one could be and they discuss in more in \cite{ffnlogn}.\\
-In this, multidimensional FFTs are used to achieve better complexity under the assumption of a suitable distribution of primes. This distribution is widely believed to hold but it remains unproven.
+% Here, multidimensional FFTs are used to achieve superior complexity under the assumption of a suitable distribution of primes. This distribution is widely believed to hold but it remains unproven. 
 
-The key step to converting the DFT to a multidimensional DFT is the following isomorphism given in the lemma in the previous section
-\begin{equation}\label{eq:here}
-    R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1), \qquad R := \C[y]/(y^r + 1)
-\end{equation}
+% The key step to converting the DFT to a multidimensional DFT is the following isomorphism given in the lemma in the previous section
+% \begin{equation}\label{eq:here}
+%     R[x_1, \ldots, x_{d-1}] / (x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1), \qquad R := \C[y]/(y^r + 1)
+% \end{equation}
 
-TODO The paper gives an overview of the integer multiplication scheme and then say "some modifications are made to generalise to the case of polynomial multiplication" but then do not precisely say what they are, they promise they make them in the proof of the main theorem later. So what follows is the overview for integer multiplication with small notes about some of the changes made at the end, I eventually need to rewrite this to explain the polynomial case directly.
-\medskip
+% \medskip
 
-% Taken directly from the paper page 5
-Under the assumption of a suitable prime distribution, we chose primes $s_1, \ldots, s_d$ such that $s_i = 1 \;(\tx{mod } r)$, where $r$ is a power of two, and where the $s_i$ are not much larger than $r$. We then use a multi-dimensional generalisation of Rader's Algorithm to reduce the DFT of size $s_1 \times \cdots \times s_d$ to one of size $s_1-1 \times \cdots \times s_d-1$ and hence to a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$, where $s_i - 1 = q_i r$ where the $q_i$ are suitably small, we may then reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d] / (x_1^r - 1, \ldots, x_d^r - 1)$. \\
-Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These, in turn, are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you do not need that if you are just doing polynomial multiplication).
-
-As one may have guessed, the trick is in obtaining the primes $s_1, \ldots, s_d$. To formalise this, take
-\[
-    P(a, m) := \min\{q > 0\;:\; q \tx{ is prime and } q = a \;(\tx{mod } m\}
-\]
-and let $P(m) := \max_a P(a, m)$. Then Linnik's theorem states that there exists an absolute constant $L > 1$ such that $P(m) = O(m^L)$. The current best value is $L = 5.18$ (reference here), and under the Generalised Riemann Hypothesis we can take any $L > 2$. It is shown \cite{ffnlogn} that if $L < 1 + 1/303$ and if $d \sim 10^6$, then the cost of the auxiliary DFTs can be controlled and one does obtain the $O(n \log n)$ bound. It is widely believed that this holds for any $L > 1$.
-
-% This is all taken from 1.2.1 of the n log n paper
-To establish the bounds for integer multiplication, we reduce integer multiplication to the computation of multivariate cyclic convolutions in a suitable algebra of the form
-\begin{align*}
-    \M{R} &= \mathbb{A}[x_1, \ldots, x_d] / (x_1^{p_1} - 1, \ldots, x_d^{p_d} - 1)\\
-    \mathbb{A} &= (\Z / m\Z)[u] / (u^s + 1)
-\end{align*}
-
-Where $s$ is a power of two and $p_1, \ldots, p_d$ are the first $d$ prime numbers in the arithmetic progression $\ell + 1, 3\ell + 1, 5\ell + 1, \ldots$ where $\ell$ is another power of two with $s^{1/3} \leq \ell \leq s^{2/3}$.  Setting $v = \lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)p_1\dots p_d$, we choose $m$ such that there exists a principal $v$-th root of unity in $\Z/m\Z$ that makes it possible to compute products in the algebra $\M{R}$ using FFT algorithms. It is shown that we may in fact take $d = O(1)$, although larger dimensions may allows for speed ups by a constant factor as long as $\lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)$ can be kept small.
-
-Using multivariate Rader transforms the DFTs in $\M{R}$ reduce to the computation of multivariate cyclic convolutions in the algebra.
-\[
-    \M{S} = \A[z_1, \ldots, _d] / (z_1^{p_1 - 1} - 1, \ldots, z_d^{p_d - 1} - 1).
-\]
-by construction we may factor $p_i - 1 = \ell q_i$, where $q_i$ is a small odd number by our choice of $s_i$. Since $q_i | v$ we have $\Z /mZ$ contains a primitive $q_i$-th root of unity. CRT transforms allow us to rewrite the algebra $\M{S}$ as
-
-\begin{align*}
-    \M{S} \cong \mathbb{B}[y_1, \ldots, y_d]/(y_1^\ell - 1, \ldots, y_d^\ell - 1)\\
-    \mathbb{B} = \mathbb{A}[v_1, \ldots, v_d] / (v_1^{q_1} - 1, \ldots, v_d^{q_d} - 1).
-\end{align*}
-(I think but am not certain this is) because $\gcd(q_1, \ldots, q_n)$ and $\ell$ are coprime.
-
-The most important observation is that $u$ is a "fast" principal $(2s)^{\tx{th}}$ root of unity in both $\A$ and $\mathbb{B}$. This means that the products in $\M{S}$ can be computed using multivariate Fourier multiplication with the special property that the discrete Fourier transforms become Nussbaumer polynomial transforms (TODO define this). Since $s$ is a power of two, these transforms can be computed in time $O(n \log n)$ via the FFT algorithm. For sufficient small Linnik constants $L$, the cost of the "inner multiplications" in $\mathbb{B}$ only marginally contributes to the overall cost. Notice that this is along the same lines as the Sch\"{o}nage Strassen integer multiplication scheme.
-
-There are then some modifications made to generalise this to the polynomial case. In previous arguments we showed that it is sufficient to consider the case $\F_p$ where $p$ is prime (rather than a power of a prime). In particular we define, $\A = \F_{p^k}[u] / (u^s + 1)$, with $k = \lcm(p_1 - 1, \ldots, p_d - 1)$, which ensures the existence of primitive ($p_1 \ldots p_d$)-th roots of unity in $\F_{p^k}$ and hence $\A$.
-
-However this creates further complications since, multiplications in $\F_{p^k}$ take exponentially longer than those in $\F_p$, for this reason we additionally require that $q_1, \ldots, q_d$ be pairwise coprime. This allows us to reduce multiplications in $\mathbb{B}$ to univariate multiplications in $\A[v]/(v^{q_1\cdots q_d} - 1)$. As is later shown, this comes at the addition cost of requiring $L < 1 + 2^{-1162}$ on $L$.
-
-\subsection{Multi-dimensional Variant of Rader's trick}%
-\label{sub:multi_dimensional_variant_of_rader_s_trick}
-
-First, we will show how to calculate multidimensional DFTs using a multivariate analogue to Rader's algorithm in the ring
-\[
-    \frac{R[x_1, \ldots, x_{d-1}]}{(x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1)}
-\]
-for $s_1, \ldots, s_{d-1}$ prime.
-
-% TODO Brief introduction of tensors takes almost word for word from the source (ffnlogn)
-
-% Let $R$ be a commutative ring and let $A$ and $B$ be two $R$-modules. Then the \emph{tensor product} $A \otimes B$ of $A$ and $B$ is an $R$-module together with a bilinear mapping $\otimes A \times B \to A \otimes B$ which satisfies the universal property where if there is a bilinear mapping $\phi: A \times B \to C$ for some $R$-module $C$, then there exists a unique linear map $\psi: A \otimes B \to C$ with $\phi = \psi \circ \otimes$.
-
-First we must show the complexity of evaluating the tensor product of two linear maps.\\
-Let $R$ be a commutative ring and suppose $A$ and $B$ are free $R$-modules of finite rank, say $A = R^a$ and $B = R^b$, and hence so is $A \otimes B$. Then let $M = R^m$ and $N = R^n$ and take linear maps $\phi: A \to M$ and $\psi : B \to N$.
-
-We compute the tensor product of two the linear maps $\phi \otimes \psi$ defined as the map $(a, b) \in A\times B \mapsto \phi(a) \otimes \psi(b)$, as follows. Given $x = (x_{i,j}) \in R^{a \times b} = A \otimes B$ we first apply $\psi$ to each of the rows $x_i \in B$. This yields a new array $y = (y_{i, j}) \in R^{a \times n} = A \otimes N$ with $y_i = \psi(x_i)$ for all $i$. We next apply $\phi$ to each of the columns $y_{i, j} \in A$. This yields an array $z = (z_{i, j} \in R^{m \times n} = M \otimes N$ with $z_{\cdot , j} = \phi(y_{\cdot, j})$ for all $j$. We claim that $z = (\phi \circ \psi)(x)$. Indeed, if $x = u \otimes v$, then $y = u \otimes \psi(v)$ and $z = \phi(u) \otimes \psi(v)$ where the claim follows by linearity.
-
-Given $x \in A \otimes B$ the above algorithm allows us to compute $(\phi \otimes \psi) (x)$ in time
-\begin{align*}
-    C(\phi \,\otimes\, \psi) \leq a&C(\psi) + nC(\phi)\\
-                                   &+ O(a n \log \min(a, n) \tx{bit}(R) + m n \log( \min (m, n)\tx{bit}(R))),
-\end{align*}
-where $\tx{bit}(R)$ is the number of bits required to represent an element of $R$ in memory and the final term comes from the memory rearranging we must do in the Turing model (TODO explain a bit more)
-
-The following lemma in obtained by recursively applying the previous result.
-
-\begin{lemma}\label{lem:multi-dim-dft}
-    Given $d$ linear maps $\phi_1: R^{a_1} \to R^{b_1}, \ldots, \phi_d: R^{a_d} \to R^{b_d}$ a similar analysis gives us
-    \[
-        C(\phi_1 \otimes \cdots \otimes \phi_d) \leq n_1\cdots n_d \sum^d_{i = 1} \frac{C(\phi_i)}{n_i} + O(n_1\cdots n_d \log (n_1 \cdots n_d) \tx{bit}(R)),
-    \]
-    where $n_i = \max(a_i, b_i)$ for $i = 1, \ldots, d$.
-\end{lemma}
-
-% \subsection{Multivariate Fourier Transforms}%
-% \label{sub:multivariate_fourier_transforms}
-
-% Continuing with $R$ a commutative ring, let $\mathbf{\omega} = (\omega_1, \ldots, \omega_d) \in R^d$ be such that each $\omega_i$ is a principal $n_i$-th root of unity. As in the univariate case, cyclic polynomials $A \in R[x_1, \ldots, x_d]^\circ/(x_1^{n_1} - 1, \ldots, x_d^{n_d} - 1)$ can be evaluated at point of the form ($\omega_1^{i_1}, \ldots, \omega_d^{i_d}$). The DFT of $A$ can then be formulated as
+% As one may have guessed, the trick is in obtaining the primes $s_1, \ldots, s_d$. To formalise this, take
 % \[
-%     \tx{DFT}_{\mathbf{\omega}}(A)_i := A(\omega_1^{i_1}, \ldots, \omega_d^{i_d}),
+%     P(a, m) := \min\{q > 0\;:\; q \tx{ is prime and } q = a \;(\tx{mod } m\}
 % \]
-% By the same reasoning in the univariate can we can show that there is an isomorphism between $A \in R[x_1, \ldots, x_d]^\circ/(x_1^{n_1} - 1, \ldots, x_d^{n_d} - 1)$ and $\otimes_i R^{n_i}$.
+% and let $P(m) := \max_a P(a, m)$. Then Linnik's theorem states that there exists an absolute constant $L > 1$ such that $P(m) = O(m^L)$. The current best value is $L = 5.18$ (reference here), and under the Generalised Riemann Hypothesis we can take any $L > 2$. It is shown \cite{ffnlogn} that if $L < 1 + 1/303$ and if $d \sim 10^6$, then the cost of the auxiliary DFTs can be controlled and one does obtain the $O(n \log n)$ bound. It is widely believed that this holds for any $L > 1$.
 
-% In fact, it follows quite naturally from the properties of tensor products that
+% % This is all taken from 1.2.1 of the n log n paper
+% To establish the bounds for integer multiplication, we reduce integer multiplication to the computation of multivariate cyclic convolutions in a suitable algebra of the form
+% \begin{align*}
+%     \M{R} &= \mathbb{A}[x_1, \ldots, x_d] / (x_1^{p_1} - 1, \ldots, x_d^{p_d} - 1)\\
+%     \mathbb{A} &= (\Z / m\Z)[u] / (u^s + 1)
+% \end{align*}
+
+% Where $s$ is a power of two and $p_1, \ldots, p_d$ are the first $d$ prime numbers in the arithmetic progression $\ell + 1, 3\ell + 1, 5\ell + 1, \ldots$ where $\ell$ is another power of two with $s^{1/3} \leq \ell \leq s^{2/3}$.  Setting $v = \lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)p_1\dots p_d$, we choose $m$ such that there exists a principal $v$-th root of unity in $\Z/m\Z$ that makes it possible to compute products in the algebra $\M{R}$ using FFT algorithms. It is shown that we may in fact take $d = O(1)$, although larger dimensions may allows for speed ups by a constant factor as long as $\lcm(\ell^3, p_1 - 1, \ldots, p_d - 1)$ can be kept small.
+
+% Using multivariate Rader transforms the DFTs in $\M{R}$ reduce to the computation of multivariate cyclic convolutions in the algebra.
 % \[
-%     \tx{DFT}_{\mathbf{\omega}} = \tx{DFT}_{\omega_1} \otimes \cdots \otimes \tx{DFT}_{\omega_d}
+%     \M{S} = \A[z_1, \ldots, _d] / (z_1^{p_1 - 1} - 1, \ldots, z_d^{p_d - 1} - 1).
 % \]
-% Furthermore it is clear that upon evaluation of a vector $a = a_1 \otimes \cdots \otimes a_d \in R^n$ with $a_i \in R^{n_i}$ we have
+% by construction we may factor $p_i - 1 = \ell q_i$, where $q_i$ is a small odd number by our choice of $s_i$. Since $q_i | v$ we have $\Z /mZ$ contains a primitive $q_i$-th root of unity. CRT transforms allow us to rewrite the algebra $\M{S}$ as
+
+% \begin{align*}
+%     \M{S} \cong \mathbb{B}[y_1, \ldots, y_d]/(y_1^\ell - 1, \ldots, y_d^\ell - 1)\\
+%     \mathbb{B} = \mathbb{A}[v_1, \ldots, v_d] / (v_1^{q_1} - 1, \ldots, v_d^{q_d} - 1).
+% \end{align*}
+% (I think but am not certain this is) because $\gcd(q_1, \ldots, q_n)$ and $\ell$ are coprime.
+
+% The most important observation is that $u$ is a "fast" principal $(2s)^{\tx{th}}$ root of unity in both $\A$ and $\mathbb{B}$. This means that the products in $\M{S}$ can be computed using multivariate Fourier multiplication with the special property that the discrete Fourier transforms become Nussbaumer polynomial transforms (TODO define this). Since $s$ is a power of two, these transforms can be computed in time $O(n \log n)$ via the FFT algorithm. For sufficient small Linnik constants $L$, the cost of the "inner multiplications" in $\mathbb{B}$ only marginally contributes to the overall cost. Notice that this is along the same lines as the Sch\"{o}nage Strassen integer multiplication scheme.
+
+% There are then some modifications made to generalise this to the polynomial case. In previous arguments we showed that it is sufficient to consider the case $\F_p$ where $p$ is prime (rather than a power of a prime). In particular we define, $\A = \F_{p^k}[u] / (u^s + 1)$, with $k = \lcm(p_1 - 1, \ldots, p_d - 1)$, which ensures the existence of primitive ($p_1 \ldots p_d$)-th roots of unity in $\F_{p^k}$ and hence $\A$.
+
+% However this creates further complications since, multiplications in $\F_{p^k}$ take exponentially longer than those in $\F_p$, for this reason we additionally require that $q_1, \ldots, q_d$ be pairwise coprime. This allows us to reduce multiplications in $\mathbb{B}$ to univariate multiplications in $\A[v]/(v^{q_1\cdots q_d} - 1)$. As is later shown, this comes at the addition cost of requiring $L < 1 + 2^{-1162}$ on $L$.
+
+% \subsection{Multi-dimensional Variant of Rader's trick}%
+% \label{sub:multi_dimensional_variant_of_rader_s_trick}
+
+% First, we will show how to calculate multidimensional DFTs using a multivariate analogue to Rader's algorithm in the ring
 % \[
-%     \tx{DFT}_{\mathbf{\omega}}(a)_i = A(\omega_1^{i_1}, \ldots, \omega_d^{i_d}) = A_1(\omega_1^{i_1}) \cdots A_d(\omega_d^{i_d})
+%     \frac{R[x_1, \ldots, x_{d-1}]}{(x_1^{t_1} - 1, \ldots, x_{d-1}^{t_{d-1}} - 1)}
 % \]
-% where $A_k = (a_k)_0 + \cdots + (a_k)_{n_k - 1}x_k^{n_k - 1}$ for each $k$ i.e. we view polynomials as tensors.
-% Use the trick above to reduce it to a multidimensional complex DFT of size $s_1 \times \cdots \times s_d$ and then apply Rader's algorithm to convert it into a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$. If $s_i - 1 = q_i r$ for a common factor $r$ and $q_i$ suitably small, we can reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d]/(x_1^r - 1, \ldots, x_d^r - 1)$.
+% for $s_1, \ldots, s_{d-1}$ prime.
+
+% % TODO Brief introduction of tensors takes almost word for word from the source (ffnlogn)
+
+% % Let $R$ be a commutative ring and let $A$ and $B$ be two $R$-modules. Then the \emph{tensor product} $A \otimes B$ of $A$ and $B$ is an $R$-module together with a bilinear mapping $\otimes A \times B \to A \otimes B$ which satisfies the universal property where if there is a bilinear mapping $\phi: A \times B \to C$ for some $R$-module $C$, then there exists a unique linear map $\psi: A \otimes B \to C$ with $\phi = \psi \circ \otimes$.
+
+% First we must show the complexity of evaluating the tensor product of two linear maps.\\
+% Let $R$ be a commutative ring and suppose $A$ and $B$ are free $R$-modules of finite rank, say $A = R^a$ and $B = R^b$, and hence so is $A \otimes B$. Then let $M = R^m$ and $N = R^n$ and take linear maps $\phi: A \to M$ and $\psi : B \to N$.
+
+% We compute the tensor product of two the linear maps $\phi \otimes \psi$ defined as the map $(a, b) \in A\times B \mapsto \phi(a) \otimes \psi(b)$, as follows. Given $x = (x_{i,j}) \in R^{a \times b} = A \otimes B$ we first apply $\psi$ to each of the rows $x_i \in B$. This yields a new array $y = (y_{i, j}) \in R^{a \times n} = A \otimes N$ with $y_i = \psi(x_i)$ for all $i$. We next apply $\phi$ to each of the columns $y_{i, j} \in A$. This yields an array $z = (z_{i, j} \in R^{m \times n} = M \otimes N$ with $z_{\cdot , j} = \phi(y_{\cdot, j})$ for all $j$. We claim that $z = (\phi \circ \psi)(x)$. Indeed, if $x = u \otimes v$, then $y = u \otimes \psi(v)$ and $z = \phi(u) \otimes \psi(v)$ where the claim follows by linearity.
+
+% Given $x \in A \otimes B$ the above algorithm allows us to compute $(\phi \otimes \psi) (x)$ in time
+% \begin{align*}
+%     C(\phi \,\otimes\, \psi) \leq a&C(\psi) + nC(\phi)\\
+%                                    &+ O(a n \log \min(a, n) \tx{bit}(R) + m n \log( \min (m, n)\tx{bit}(R))),
+% \end{align*}
+% where $\tx{bit}(R)$ is the number of bits required to represent an element of $R$ in memory and the final term comes from the memory rearranging we must do in the Turing model (TODO explain a bit more)
+
+% The following lemma in obtained by recursively applying the previous result.
+
+% \begin{lemma}\label{lem:multi-dim-dft}
+%     Given $d$ linear maps $\phi_1: R^{a_1} \to R^{b_1}, \ldots, \phi_d: R^{a_d} \to R^{b_d}$ a similar analysis gives us
+%     \[
+%         C(\phi_1 \otimes \cdots \otimes \phi_d) \leq n_1\cdots n_d \sum^d_{i = 1} \frac{C(\phi_i)}{n_i} + O(n_1\cdots n_d \log (n_1 \cdots n_d) \tx{bit}(R)),
+%     \]
+%     where $n_i = \max(a_i, b_i)$ for $i = 1, \ldots, d$.
+% \end{lemma}
+
+% % \subsection{Multivariate Fourier Transforms}%
+% % \label{sub:multivariate_fourier_transforms}
+
+% % Continuing with $R$ a commutative ring, let $\mathbf{\omega} = (\omega_1, \ldots, \omega_d) \in R^d$ be such that each $\omega_i$ is a principal $n_i$-th root of unity. As in the univariate case, cyclic polynomials $A \in R[x_1, \ldots, x_d]^\circ/(x_1^{n_1} - 1, \ldots, x_d^{n_d} - 1)$ can be evaluated at point of the form ($\omega_1^{i_1}, \ldots, \omega_d^{i_d}$). The DFT of $A$ can then be formulated as
+% % \[
+% %     \tx{DFT}_{\mathbf{\omega}}(A)_i := A(\omega_1^{i_1}, \ldots, \omega_d^{i_d}),
+% % \]
+% % By the same reasoning in the univariate can we can show that there is an isomorphism between $A \in R[x_1, \ldots, x_d]^\circ/(x_1^{n_1} - 1, \ldots, x_d^{n_d} - 1)$ and $\otimes_i R^{n_i}$.
+
+% % In fact, it follows quite naturally from the properties of tensor products that
+% % \[
+% %     \tx{DFT}_{\mathbf{\omega}} = \tx{DFT}_{\omega_1} \otimes \cdots \otimes \tx{DFT}_{\omega_d}
+% % \]
+% % Furthermore it is clear that upon evaluation of a vector $a = a_1 \otimes \cdots \otimes a_d \in R^n$ with $a_i \in R^{n_i}$ we have
+% % \[
+% %     \tx{DFT}_{\mathbf{\omega}}(a)_i = A(\omega_1^{i_1}, \ldots, \omega_d^{i_d}) = A_1(\omega_1^{i_1}) \cdots A_d(\omega_d^{i_d})
+% % \]
+% % where $A_k = (a_k)_0 + \cdots + (a_k)_{n_k - 1}x_k^{n_k - 1}$ for each $k$ i.e. we view polynomials as tensors.
+% % Use the trick above to reduce it to a multidimensional complex DFT of size $s_1 \times \cdots \times s_d$ and then apply Rader's algorithm to convert it into a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$. If $s_i - 1 = q_i r$ for a common factor $r$ and $q_i$ suitably small, we can reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d]/(x_1^r - 1, \ldots, x_d^r - 1)$.
 

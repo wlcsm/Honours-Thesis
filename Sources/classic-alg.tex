@@ -1,4 +1,4 @@
-/chapter{Classical Algorithms}\label{chp:classical}
+\chapter{Classical Algorithms}\label{chp:classical}
 
 Here we review the classical algorithms that were the leading methods of their time up until the FFT algorithm's introduction in the late 1960s. Despite having poorer theoretical complexities compared to their modern counterparts, they often have a far superior practical complexity for smaller input sizes, whilst also having the advantage of being independent of the coefficient algebra. For these reasons, they are still the most widely implemented algorithms in modern computer algebra systems.
 
@@ -156,7 +156,7 @@ This map can be used to multiply multivariate polynomials using univariate multi
 
 
 \subsection{Implementation Remarks}
-\label{sub:implementation-kroncker}
+\label{sub:implementation-kronecker}
 
 If the polynomial is not too sparse and we wish to have the smallest possible value for the $d(i)$, then instead of performing the conversion directly on each monomial, it would be beneficial to subtract adjacent monomials and use this value to calculate the conversion more efficiently. We would then iterate through the list and add the difference to an accumulator variable, then output the accumulator variable at that step as the transformed value. This would reduce the number of operations need to compute the transform.
 

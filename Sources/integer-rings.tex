@@ -1,14 +1,14 @@
 \chapter{Integer Rings}\label{chp:integer-rings}
 
-In this section, present technique for multiplying polynomials over integer rings. We will formalise the notion of a discrete convolution and establish important theoretical results for the existence of roots of unity in integer rings of certain order. Ad we will see, not all integer rings admit roots of unity, and even if they do, they may have small order e.g. $\Z/2^{2k + 1}\Z$ only admits roots of unity of size $2$. A large portion of this chapter will be devoted to understanding when such a ring admits roots of unity of high order to enable such transformations. As such, the algorithms in this chapter will not present any new theoretical bound on multiplication; the aim to create algorithms that a practically efficient for moderate input sizes.
+In this section, present technique for multiplying polynomials over integer rings. We will formalise the notion of a discrete convolution and establish important theoretical results for the existence of roots of unity in integer rings of certain order. Ad we will see, not all integer rings admit roots of unity, and even if they do, they may have small order e.g. $\Z/2^{2k + 1}\Z$ only admits roots of unity of size $2$. A large portion of this chapter will be devoted to understanding when such a ring admits roots of unity of high order to enable such transformations. As such, the algorithms in this chapter will not present any new theoretical bound on multiplication; the aim is to create algorithms that are practically efficient for moderate input sizes.
 
 % There are several common use cases for the use of polynomial multiplication in integer rings; each puts different constraints of the types of rings we use to it is important to understand the difference. Branching off the work in previous chapters we can use integer rings to avoiding the loss of precision that comes from considering $\Z[x]$ as a subring of $\C[x]$ and performing a complex FFT. Here we use the Chinese Remainder theorem to map the polynomials in $\Z[x]$ into several polynomials with coefficients in integer rings to which we can then apply the FFT algorithm.
 
-Integer rings are commonly used to control the size of the coefficients throughout the multiplication process for polynomials in $\Z[x]$. We can first transform the polynomials in $\Z[x]$ in several polynomials in integer rings that admit fast FFTs, and then reconstruct the result in $\Z[x]$ via the Chinese Remainder Theorem. This is a very popular choice for large parallel computing as it is easily implemented on a Graphics Processes Unit (GPU) \cite{gpu-mult} \cite{crt-parallel-mul} \cite{gpu-kepler-architecture}.
+Integer rings are commonly used to control the size of the coefficients throughout the multiplication process for polynomials in $\Z[x]$. We can first transform the polynomials in $\Z[x]$ into several polynomials in integer rings that admit fast FFTs, and then reconstruct the result in $\Z[x]$ via the Chinese Remainder Theorem. This is a very popular choice for large parallel computing as it is easily implemented on a Graphics Processes Unit (GPU) \cite{gpu-mult} \cite{crt-parallel-mul} \cite{gpu-kepler-architecture}.
 
 The techniques in this chapter are commonly used throughout cryptography and signal processing. These applications offer a large amount of flexibility over the choice of the integer ring, and so Section \ref{sec:practically-efficient-ntt} discusses criteria for choosing rings which admit efficient arithmetic.
 
-It is important to differentiate the use cases as each imposes a different set of restrictions on the ring, and subsequently, the optimisations we can apply. The most favourable to choose are those that offer efficient arithmetic in common computer architecture. Though we also that the methods in this chapter may be supplemented with a fast division scheme such as Barret Reduction \cite{barret} which improves the efficiency of divisions in the integers rings by replacing them with multiplications. This is often much more efficient since the regular division operation in most modern CPUs is not as efficient as multiplications \cite{instruction-times}.
+It is important to differentiate the use cases as each imposes a different set of restrictions on the ring, and subsequently, the optimisations we can apply. The most favourable to choose are those that offer efficient arithmetic in common computer architectures. Though we also that the methods in this chapter may be supplemented with a fast division scheme such as Barret Reduction \cite{barret} which improves the efficiency of divisions in the integers rings by replacing them with multiplications. This is often much more efficient since the regular division operation in most modern CPUs is not as efficient as multiplications \cite{instruction-times}.
 
 Bear in mind, that one can still use the algorithms from Chapter \ref{chp:classical} and Chapter \ref{chp:eval-interp} if we first use Kronecker substitution to transform the inputs from $\Z/N\Z[x]$ to a problem in $\Z[x]$. However, it is often more efficient to perform calculations directly in $\Z/N\Z$ since the elements are always bounded and so arithmetic operations as executed in a time proportional to $N$.
 
@@ -47,7 +47,7 @@ Convolutions are fundamental in the field Fourier analysis as the DFT is the uni
     \begin{align*}
         f(x)g(x) = \sum^{2n-1}_{k=0} \bb{\sum_{i + j = k}f_ig_j} x^k
         &= \sum^{n-1}_{k=0} \bb{\sum_{i + j = k \mod n}f_jg_i} x^k\\
-        &= \sum^{n-1}_{k=0} \bb{\sum_j f_jg_{k-j}} x^k \mod (x^n - 1)
+        &= \sum^{n-1}_{k=0} \bb{\sum_j f_jg_{k-j}} x^k \mod (x^n - 1).
     \end{align*}
     Hence the coefficients of the polynomial are exactly the those given by the convolution of $f$ and $g$, thus the map \ref{eq:poly-to-vec} induces the isomorphism in the proposition.
 \end{proof}
@@ -78,7 +78,10 @@ We mentioned previously that padding the DFT with zeros changes the underlying s
 
 % TODO this needs to be clearer in terms of the complexity.
 \begin{proposition}[Bluestein's Algorithm]
-    The number of ring operations required to compute a DFT is linearly proportional to the number of operations required to compute a convolution.
+    Let $\M{C}_F(n)$ denote the number of ring operations required to compute a DFT, and $\M{M}_K(n)$ denote the number of ring operations to compute an $n$-dimensional convolution in $K^n$. Then
+    \[
+        \M{C}_F(n) \le \M{M}_K(n) + \M{O}(n).
+    \]
 \end{proposition}
 
 \begin{proof}
@@ -90,13 +93,16 @@ We mentioned previously that padding the DFT with zeros changes the underlying s
 
     Using the identity $jk = \frac{1}{2}(j^2 + k^2 - (j - k)^2))$ we can rewrite the formula as
     \[
-        (\M{F}_n u)_k = \omega_N^{k^2/2} \sum^{N-1}_{j=0} (a_j \omega_N^{j^2/2}) \omega_n^{(j - k)^2/2}
+        (\M{F}_n u)_k = \omega_N^{k^2/2} \sum^{N-1}_{j=0} (a_j \omega_N^{j^2/2}) \omega_n^{(j - k)^2/2}.
     \]
     If we then take $f = (u_n \omega_N^{j^2/2})_{j=0}^{N-1}$ and $g = (\omega_N^{j^2/2})_{j=0}^{N-1}$ we have the formula
+    \begin{equation}\label{eq:yeet}
+        (\M{F}_n u)_k = g_k \cdot \bb{\sum^{N-1}_{j=0} f_j g_{k-j}} = g_k \cdot (f \ast g)_k.
+    \end{equation}
+    Thus we can use the convolution to evaluate the DFT. Calculating $f$ and $g$ requires $\M{O}(n)$ ring operations, and after calculating the convolution we must multiply the result elements-wise, which can also be done in $\M{O}(n)$ ring operations. Therefore, calculating \eqref{eq:yeet} gives
     \[
-        (\M{F}_n u)_k = g_k \cdot \bb{\sum^{N-1}_{j=0} f_j g_{k-j}} = g_k \cdot (f \ast g)_k
+        \M{C}_F(n) \le \M{M}_K(n) + \M{O}(n).
     \]
-    Thus we can use the convolution to evaluate the DFT.
 \end{proof}
 
 Therefore since element-wise multiplications is $O(n)$, we can see that the problem of calculating convolutions has the same complexity as computing the DFT.
@@ -119,18 +125,17 @@ The Number Theoretic Transform (NTT) is a generalisation of the Fast Fourier Tra
 \subsection{Rader's Algorithm}
 \label{subsec:rt}
 
-% TODO polish this
+% TODO Martin recommends rephrasing the last line
 Rader's algorithm is a method to evaluate the DFT of prime size $N$ by expressing it as a cyclic convolution of size $N - 1$. This is similar to Bluestein's algorithm but is much more efficient in practice since we don't need to calculate any additional sequences or vector products. This is not as efficient for arbitrary finite fields, but in many applications such as cryptography, we may choose to perform our calculations over fields where $N - 1$ is highly composite to facilitate an efficient NTT. This is a common trick used in industry software such as the FFTW library which uses Rader's algorithm to gain a $2$x speedup in certain situations \cite{fftw}.
 
 \begin{definition}[Rader's Algorthm]\label{thm:rader-transform}
-    Let $p$ be prime, then there exists a primitive element of $\F_p$, that is, a $g \in \F_p$ such that $(g^i)_{i=1}^{N-1}$ is a permutation of $1, \ldots, N-1$. Then the DFT $\M{F}u$ of $u \in \F_p^n$ can be realised as a convolution of the two vectors $(u_{g^i})_{i=0}^{n-1}$ and $\omega_N^{g^i}$.
+    Let $p$ be prime, then there exists a primitive element of $\F_p$, that is, a $g \in \F_p$ such that $(g^i)_{i=1}^{N-1}$ is a permutation of $1, \ldots, N-1$. Then by applying the map $i \mapsto g^i, k \mapsto g^k$ the DFT $\M{F}u$ of $u \in \F_p^n$ can be realised as a convolution of the two vectors $(u_{g^i})_{i=0}^{n-1}$ and $\omega_N^{g^i}$,
     \begin{align*}
-        A_k - a_0 = \sum^{n-1}_{i=1} a_i \omega_N^{ik} \qquad &\mapsto \qquad A_{g^k} - a_0 = \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}}\\
-        \tx{ via } i \mapsto g^i&, k \mapsto g^k
+        A_k - a_0 = \sum^{n-1}_{i=1} a_i \omega_N^{ik} \qquad &\mapsto \qquad A_{g^k} - a_0 = \sum^{n-1}_{i=1} a_{g^i}\omega_n^{g^{i+k}}
     \end{align*}
 \end{definition}
 
-If $N - 1$ is highly composite, we can apply the standard FFT algorithms to evaluate the sum efficiently. Therefore the ideal case is when $N = 2^k + 1$ for some $k$ and where $N$ is prime. In the special case that $n$ is also a power of two, $N$ is a \emph{Fermat number}. We will revisit these in Section \ref{sec:hardware-efficient-ntt} as they are especially convenient when performing arithmetic operations.
+If $N - 1$ is highly composite, we can apply the standard FFT algorithms to evaluate the sum efficiently. Therefore the ideal case is when $N = 2^k + 1$ for some $k$ and where $N$ is prime. In the special case that $n$ is also a power of two, $N$ is a \emph{Fermat number}. We will revisit these in Section \ref{sec:practically-efficient-ntt} as they are especially convenient when performing arithmetic operations.
 
 \subsection{Existence of NTT}%
 \label{sub:Existence of NTT}
@@ -145,7 +150,7 @@ In this section we will primarily follow the treatment in \cite{intro-to-fmt}.
 
 % TODO check the first bit of this.
 \begin{proof}
-    Suppose $\alpha$ is a root of unity of order $n$, that is $\alpha^n \equiv 1 \mod N$. Then we must also have that $\alpha^n \equiv 1 \mod p_i^{r_i}$ for all $i$. Since $n$ and $N$ are coprime, we have that $n$ and $p_i^{r_i}$ are coprime, and so by Euler's Theorem, $n$ must divide the Euler totient function $\varphi(p_i^{r_i}(p_i - 1)$.
+    Suppose $\alpha$ is a root of unity of order $n$, that is $\alpha^n \equiv 1 \mod N$. Then via the Chinese Remainder Theorem we must also have $\alpha^n \equiv 1 \mod p_i^{r_i}$ for all $i$ and hence $\alpha^n \equiv 1 \mod p_i$. Since $n$ and $N$ are coprime, we have that $n$ and $p_i^{r_i}$ are coprime, and so by Euler's Theorem, $n$ must divide the Euler totient function $\varphi(p_i^{r_i}(p_i - 1)$.
 
     Since $n$ and $N$ are relatively prime, $n \nmid p_i^{\alpha_i}$ therefore $n \mid p_i - 1$ for all $1 \le i \le k$. Thus $n | \gcd\{p_1 - 1, \ldots, p_k - 1\}$.
 
@@ -166,7 +171,7 @@ Note that the transforms in the subfields can recursively apply Rader's Algorith
 \section{Practically Efficient NTTs}%
 \label{sec:practically-efficient-ntt}
 
-We now look at finding a suitable integer $N$ such that the NTT in $\Z / N\Z$ admits an efficient implementation. In this doctoral thesis on the NTT implementations for microprocessors \cite{ntt-thesis}, Martin outlined several requirement for efficient implementations of the NTT. The first three concerning the existence of a transform are summarised by Theorem \ref{thm:fmt-transform-lengthj}, followed by
+We now look at finding a suitable integer $N$ such that the NTT in $\Z / N\Z$ admits an efficient implementation. In this doctoral thesis on the NTT implementations for microprocessors \cite{ntt-thesis}, Martin outlined several requirement for efficient implementations of the NTT. The first three concerning the existence of a transform are summarised by Theorem \ref{thm:fmt-transform-length}, followed by
 \begin{itemize}
     \item The transform length $N$ should be highly composite to facilitate fast transform algorithms.
     \item Multiplication by the roots of unity must have a simple binary representation to facilitate fast multiplications.
@@ -187,6 +192,6 @@ The Fermat Numbers up to $\ell = 4$ are all primes, and therefore can be calcula
 
 \medskip
 
-When these field was first pioneered in the 1970s, a significant drawback of Fermat Number Transforms is that they are not as memory efficient as other candidates, as they require $k + 1$ bits of memory to hold only a little more than $2^k$ values. However this is not a real concern for modern computers. Agarwal and Burrus (Section VI \cite{intro-to-fmt}) suggested allowing the last number to overflow and rounding it to $\minus 1$, $0$ or $-2$ since there is a low probability ($2^{-k}$ chance) that the forgotten number will arise. This technique was originally suggested in the context of Fourier Transforms for fast signal processing, and so such an error is likely to be insignificant in those contexts. However, it is unsuitable for our purposes where we are trying to obtain the true solutions.
+When this field was first pioneered in the 1970s, a significant drawback of Fermat Number Transforms is that they are not as memory efficient as other candidates, as they require $k + 1$ bits of memory to hold only a little more than $2^k$ values. However this is not a real concern for modern computers. Agarwal and Burrus (Section VI \cite{intro-to-fmt}) suggested allowing the last number to overflow and rounding it to $\minus 1$, $0$ or $-2$ since there is a low probability ($2^{-k}$ chance) that the forgotten number will arise. This technique was originally suggested in the context of Fourier Transforms for fast signal processing, and so such an error is likely to be insignificant in those contexts. However, it is unsuitable for our purposes where we are trying to obtain the true solutions.
 
 % TODO mention the other things here

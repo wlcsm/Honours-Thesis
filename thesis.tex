@@ -18,6 +18,7 @@
 
 % needed for ANU logo on titlepage (optional)
 \usepackage{graphics}
+\usepackage{float}
 
 % Colour hyperlinks
 \usepackage[ pdfborderstyle={/S/U/W 1},bookmarks]{hyperref}
@@ -89,6 +90,10 @@ sorting=ynt
 \include{Sources/asymptotic-bounds}
 \include{Sources/implementation}
 
+\appendix
+
+  % assuming there are files appendix1.tex etc...
+  \include{appendix1}
 % BIBLIOGRAPHY
 
 \printbibliography

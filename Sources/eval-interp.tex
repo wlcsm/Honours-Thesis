@@ -122,6 +122,7 @@ It is clear that the complex roots of the equation $x^N - 1$ satisfy the above d
     \end{enumerate}
 \end{lemma}
 \begin{proof}
+    Note that
     \[
         0 = \omega^{kN} - 1 = (\omega^k - 1)\sum^{N-1}_{i=0} \omega^{ik}
     \]
@@ -132,7 +133,7 @@ It is clear that the complex roots of the equation $x^N - 1$ satisfy the above d
 
 
 \begin{definition}[Discrete Fourier Transform]
-    Let $K$ be a commutative ring with a principal $N^{\tx{th}}$ root of unity $\omega \in K$\footnote{The $\omega_N^k$ in the equation is commonly referred to as a \textit{twiddle factors}}, and let $u \in K^n$.
+    Let $K$ be a commutative ring with a principal $N^{\tx{th}}$ root of unity $\omega \in K$\footnote{The $\omega_N^k$ in the equation are commonly referred to as the \textit{twiddle factors}}, and let $u \in K^n$.
 
     The Discrete Fourier Transform is the map $\M{F}_N : K^N \to K^N$ defined by
     \begin{equation}\label{eq:forward-dft}
@@ -145,9 +146,9 @@ It is clear that the complex roots of the equation $x^N - 1$ satisfy the above d
     \end{equation}
 \end{definition}
 
-Alternatively, we can interpret this as, given the samples $x_0, \ldots, x_{n-1}$, we can construct the polynomial $f(x) = \sum_{i=0}^{n-1} f_i x^i$. Then the DFT induces the isomorphism
+Alternatively, we can interpret this as, given samples $x_0, \ldots, x_{n-1}$, we can construct the polynomial $f(x) = \sum_{i=0}^{n-1} f_i x^i$. Then the DFT induces the isomorphism
 \begin{equation}\label{eq:fft-iso}
-    \frac{K[x]}{x^n - 1} \; \cong \; \frac{K[x]}{x - 1} \times \frac{K[x]}{x - \omega} \cdots \times \frac{K[x]}{x - \omega^{n-1}}.
+    \frac{K[x]}{x^n - 1} \; \cong \; \frac{K[x]}{x - 1} \times \frac{K[x]}{x - \omega} \cdots \times \frac{K[x]}{x - \omega^{n-1}},
 \end{equation}
 which we know are isomorphic from the Chinese Remainder Theorem.
 Hence we can consider this forward DFT as the evaluation of the polynomial $f$ at the roots of unity, and the inverse as an interpolation.
@@ -169,7 +170,7 @@ The Fast Fourier Transform (FFT) is an algorithm for calculating the DFT with $N
 There are many variations of the Fast Fourier Transform, such as the Dutt-Rokhlin method for non-uniform FFTs\cite{dutt}\footnote{The algorithm in Chapter \ref{chp:asymptotic} is similar to a non-uniform FFT, though we will not go into the details there and instead refer the reader to Section 4.4.3 of \cite{nlogn} for a comparison of the two methods.}; but here we will analyse the original algorithm described in the landmark Cooley-Tukey paper \cite{fft}.
 
 \begin{theorem}[Fast Fourier Transform]\label{thm:fft}
-    Let $K$ be a commutative ring that admits primitive roots of unity of order $N$ a power of two and $N$ is invertible. Let $\M{C}_F(N)$ be the number of ring operations requires to perform the DFT of $N$ samples in $K$. Then $\M{C}_F \in \M{O}(N\log N)$.
+    Let $K$ be a commutative ring that admits primitive roots of unity of order $N$, where $N$ is an invertible power of two. Let $\M{C}_F(N)$ be the number of ring operations requires to perform the DFT of $N$ samples in $K$. Then $\M{C}_F \in \M{O}(N\log N)$.
 \end{theorem}
 
 \begin{corollary}
@@ -181,9 +182,9 @@ The FFT uses a divide-and-conquer approach whereby the DFT is split into two sma
 The following lemma which formalises this intuition and the general algorithm for computing the DFT efficiently. 
 
 \begin{lemma}\label{lem:fft-recursion}
-    Let $K$ as in Theorem \ref{thm:fft}, then 
+    Let $K$ be as in Theorem \ref{thm:fft}, then 
     \begin{equation}\label{eq:fftlem}
-        \M{C}_F(N) \le 2 \M{C}_F(N/2) + \M{O}(N)
+        \M{C}_F(N) \le 2 \M{C}_F(N/2) + \M{O}(N).
     \end{equation}
 \end{lemma}
 
@@ -221,7 +222,7 @@ The following lemma which formalises this intuition and the general algorithm fo
 
     Altogether this gives
     \[
-        \M{C}_F(N) \le 2 \M{C}_F(N/2) + \M{O}(N)
+        \M{C}_F(N) \le 2 \M{C}_F(N/2) + \M{O}(N).
     \]
 \end{proof}
 % TODO need to mention that we need to precompute the twiddle factors
@@ -256,7 +257,7 @@ Though there are certain situations where we may choose to use a mixed-radix FFT
 \begin{theorem}[Mixed Radix FFT]\label{thm:mixed-radix-fft}
     Let $K$ be a commutative ring with roots of unity of order $N$ where $N$ is invertible. Then if $m \in \N$ divides $N$, we have
     \[
-        \M{C}_F(N) \le m\M{C}_F(\frac{N}{m}) + \frac{N}{m}\M{C}_F(m) + \M{O}(n)
+        \M{C}_F(N) \le m\M{C}_F(\frac{N}{m}) + \frac{N}{m}\M{C}_F(m) + \M{O}(n).
     \]
 \end{theorem}
 
@@ -282,7 +283,7 @@ Though there are certain situations where we may choose to use a mixed-radix FFT
     ring operations.
 \end{proof}
 
-Note that in the Turing machine, the $m$ inner sub-DFTs also require us to reorganise $u$ into $m$ consecutive vectors of size $\frac{N}{m}$. This can be achieved in $\M{O}(N \log( \min \{m, \frac{N}{m}\}\tx{bit}(K))$ time where $\tx{bit}(K)$ is the number of bits required to store an elements of $K$ \cite{ffnlogn}. We will revisit this fact in Section \ref{chp:asymptotic} when formalising our computations in the Turing model.
+Note that in the Turing machine, the $m$ inner sub-DFTs also require us to reorganise $u$ into $m$ consecutive vectors of size $\frac{N}{m}$. This can be achieved in $\M{O}(N \log( \min \{m, \frac{N}{m}\}\tx{bit}(K)))$ time where $\tx{bit}(K)$ is the number of bits required to store an elements of $K$ \cite{ffnlogn}. We will revisit this fact in Section \ref{chp:asymptotic} when formalising our computations in the Turing model.
 
 % TODO show why we get the same formula
 From Theorem \ref{thm:mixed-radix-fft}, we can see that changing $m$ does not change the asymptotic complexity. Since we consider $m$ to be fixed $\M{C}_F(m)$ is a constant, and so asymptotically this is equivalent to the recursive formula $m\M{C}_F(\frac{N}{m}) + \M{O}(N)$ whose solution is $\M{O}(N \log N)$ as before; there is only a constant factor of different between different choices of $m$.
@@ -315,13 +316,17 @@ Sch\"{o}nage and Strassen's originally formulated their algorithm for integers, 
 % (TODO Modern Comp Alg presents it were 2 needs to be a unit, but we could make a generalisation where 2 isn't a unit using the rpevious techniques right?)
 % (TODO mention the Cantor Kaltofen one)
 
-\begin{theorem}
-    Let $K$ be a commutative rings where $2$ is a unit. Then we may multiply polynomials $f, g \in K[x]$ with degree at most $n$, in $\M{O}(n \log n \log \log n)$ ring operations.
-\end{theorem}
+
+\begin{proposition}\label{prop:ss-formula}
+    Let $K$ be a commutative rings where $2$ is a unit. Then write $M_K(n)$ to denote the time to multiply polynomials $f, g \in K[x]$ with degree at most $n$, then
+    \[
+        \M{C}(n) \le t\M{C}(t + 1) + \M{O}(n\log t)
+    \]
+\end{proposition}
 
 Note that $K$ may not admit roots of unity, or perhaps it only has roots of unity for small transform sizes in which case this algorithm will be more efficient for large $n$ than classical ones such as Karatsuba's. This algorithm was generalised further by Cantor and Kaltofen to arbitrary non-associative, non-commutative algebras\cite{cantor-kaltofen}.
 
-The Sch\"{o}nage and Strassen integer multiplication algorithm applies Kronecker substitution to transform polynomials in $\Z[x]$ into polynomials with coefficients in $\Z[x]/(x^n + 1)$, which admits a particularly efficient roots of unity, called \emph{synthetic roots}.
+The Sch\"{o}nage and Strassen integer multiplication algorithm applies Kronecker substitution to transform polynomials in $\Z[x]$ into polynomials with coefficients in $\Z[x]/(x^n + 1)$, which admit particularly efficient roots of unity, called \emph{synthetic roots}.
 
 % Observe that $X$ is a $2n^{\tx{th}}$ root of unity in the ring $\Z[X] / (X^n + 1)$. To convert our original polynomial into one with coefficients in a ring of the above form, we can use Kronecker substitution to partition the polynomial into $m = 2^{\ceil{k/2}}$ pieces with the substitution $y = x^m$. We can then apply the FFT algorithm: The FFT step takes $\M{O}(m\log m \times 2^{\floor{\frac{k}{2}}}) = \M{O}(n \log n)$ where the arithmetic on the $m$ blocks is $\M{O}(n^{\frac{1}{2}})$ time and the main algorithm is $\M{O}(n^{\frac{1}{2}}\log n^{\frac{1}{2}})$. To perform the elementwise multiplications we recursively call the algorithm again. This gives us the recursive form
 % \[
@@ -343,12 +348,12 @@ Let $K$ be a ring such that $2$ is a unit in $K$, and let $n = 2^k$ for some $k 
 % TODO (which uniquely determines it?)
     We now take the primitive $4m^{\tx{th}}$ root of unity $\omega = x \in K[x] / (x^{2m} + 1)$. We wish to compute $h^\prime \in K[x, y]$ with $deg_y h^\prime < t$ satisfying the previous equations . Comparing coefficients of $y^j$ for $j \ge t$ we see that $\deg_x q^\prime \le \deg_x (f^\prime g^\prime) < 2m$ and conclude that 
     \[
-        \deg_x h^\prime \le \max \{ \deg_x(f^\prime g^\prime), \deg_x q^\prime \} < 2m
+        \deg_x h^\prime \le \max \{ \deg_x(f^\prime g^\prime), \deg_x q^\prime \} < 2m.
     \]
     Thus we may perform the calculation of $h^\prime$ in the field $K[x]/(x^n + 1)$.
     With $f^\ast = f^\prime \mod (x^{2m} + 1)$, and similarly for $g$ and $h$. We have
     \[
-        f^\ast g^\ast \equiv h^\ast \mod (y^t + 1) 
+        f^\ast g^\ast \equiv h^\ast \mod (y^t + 1).
     \]
     Since the three polynomials have degrees in $x$ less than $2m$ by the previous equation, reducing them modulo $x^{2m} + 1$ is just taking a different algebraic meaning of the same coefficient array, in particular, the coefficients of $h^\prime \in K[x][y]$ can be read off the coefficients of $h^\ast \in D[y]$.
 
@@ -363,27 +368,26 @@ Let $K$ be a ring such that $2$ is a unit in $K$, and let $n = 2^k$ for some $k 
     \[
         \M{C}(n) \le t\M{C}(m + 1) + \M{O}(n\log t)
     \]
-    (I still need to give a ``nice'' explanation about why we get this and derive the complexity bound).
-    
-    This uses $\M{O}(n \log n \log \log n)$ operations in $R$.
 \end{proof}
 
-proof
+\begin{theorem}
+    Let $K$ be a commutative rings where $2$ is a unit. Then we may multiply polynomials $f, g \in K[x]$ with degree at most $n$, in $\M{O}(n \log n \log \log n)$ ring operations.
+\end{theorem}
 
-\begin{align*}
-    \M{C}(n) \le t\M{C}(t) + \M{O}(n \log n)\\
-    &\le \sum^{\log \log n}_{i=0} n^{\frac{1}{2^i}} \log n^{\frac{1}{2^i}}\\
-    &\le \sum^{\log \log n}_{i=0} (n \log n)\\
-    &= n \log n \log \log n
-\end{align*}
+\begin{proof}
+    Then first we ascertain the recursion depth of the function. We may assume the base case occurs when the degree of the polynomials is less than or equal to two. Then the maximum recursive depth $i \in \N$ satisfies
+    \begin{align*}
+        n^{\frac{1}{2^i}} \le 2\\
+        n \le 2^{2^i}\\
+        \log \log n \le i
+    \end{align*}
+    Thus by expanding the recursive formula in \ref{prop:ss-formula} fully we obtain
+    \begin{align*}
+        \M{C}(n) \le t\M{C}(t) + \M{O}(n \log n)\\
+        &\le \sum^{\log \log n}_{i=0} n^{\frac{1}{2^i}} \log n^{\frac{1}{2^i}}\\
+        &\le \sum^{\log \log n}_{i=0} (n \log n)\\
+        &= n \log n \log \log n
+    \end{align*}
+\end{proof}
 
-To see why it goes up to $\log \log n$, we have
-\begin{align*}
-    n^{\frac{1}{2^i}} \le 2\\
-    n \le 2^{2^i}\\
-    \log \log n \le i
-\end{align*}
-
-
-% TODO get someone to check this
-Integer multiplication for integers of length $n$ can be performed with $\M{O}(n \log n \log \log n)$ word operations, since we could just set $R = \Z / 31\Z$, and use Kronecker substitution to convert the integer into a polynomial in $K[x]$.
+Therefore we may multiply integers of length $n$ can be performed with $\M{O}(n \log n \log \log n)$ machine operations. For a $32$ bit compute we could simply set $K = \Z / 31\Z$, so all operations in $K$ take constant time, and use Kronecker substitution to convert the integer into a polynomial in $K[x]$.

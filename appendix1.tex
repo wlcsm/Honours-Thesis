@@ -1,11 +1,103 @@
-
-\chapter{Appendix title goes here}
+\chapter{nPoly Benchmarking}
 \label{appendix1}
 
+\begin{table}[h]
+\centering
+    \begin{tabular}{|c| c |}
+        \hline
+        Degree & time($\mu$s)\\
+        \hline
+        5 & 6 \\
+        10 & 16 \\
+        20 & 69\\
+        30 & 68\\
+        50 & 131 \\
+        100 & 353 \\
+        100 & 358\\
+        500 & 7412 \\
+        1000 & 12516\\
+        10000 & 772279\\
+        100000 & 20829654\\
+        200000 & 64446486\\
+        \hline
+    \end{tabular}
+    \caption{Karatsuba's Algorithm}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \begin{tabular}{|c| c |}
+        \hline
+        FFT & time($\mu$s)\\
+        \hline
+        5 & 20\\
+        10 & 59\\
+        20 & 65\\
+        50 & 78\\
+        100 & 92\\
+        1000 & 544\\
+        10000 & 7824\\
+        100000 & 82067\\
+        1000000 & 172875\\
+        \hline
+    \end{tabular}
+    \caption{The FFT algorithm}
+\end{table}
+
+\begin{table}[h]
+\centering
+    \begin{tabular}{|c| c c c c|}
+        \hline
+        Schoolbook & 1 & 2 & 5 & 10\\
+        \hline
+        5 & 14 & 17 & 27 & 72\\
+        10 & 34 & 32 & 77 & 170\\
+        50 & 652 & 931 & 1154 & 2106\\
+        100 & 2744 & 3280 & 4804 & 9731\\
+        250 & 16879 & 32055 & 53999 & 75831\\
+        500 & 74315 & 126403 & 168269 & 295479\\
+        750 & 117782 & 268272 & 431288 & 730663\\
+        1000 & 184860 & 428177 & 780056 & 1437264\\
+        2500 & 1064871 & 2650782 & 5490774 & 10380380\\
+        5000 & 4551621 & 8260184 & 22343481 & 66544669\\
+        \hline
+    \end{tabular}
+    \caption{Schoolbook method with a hashmap, with different number of indeterminates}
+\end{table}
+\begin{table}[h]
+\centering
+    \begin{tabular}{|c| c c c|}
+        \hline
+        Kronecker & 2 & 5 & 10\\
+        \hline
+        100 & 4153 & 5552 & 8891 \\
+        250 & 28008 & 44412 & 68947 \\
+        500 & 108576 & 177699 & 276068\\
+        750 & 257015 & 414361 & 668346\\ 
+        1000 & 419838 & 709191 & 1117284\\
+        2500 & 2284089 & 5064354 & 9442733\\
+        5000 & 6444083 & 19040990 & 65630087\\
+        \hline
+    \end{tabular}
+    \caption{Na\"{i}ve Kronecker substitution, with different number of indeterminates}
+\end{table}
 
 
-Blah blah blah...
+% \begin{table}[h]
+% \centering
+%     \begin{tabular}{|c| c |}
+%         \hline
+%         Schoolbook(optimised) & time($\mu$s)\\
+%         \hline
+%         100 & 1566 \\
+%         250 & 4906 \\
+%         500 & 14518 \\
+%         750 & 33088 \\
+%         1000 & 44487 \\
+%         2500 & 224304 \\
+%         5000 & 704417 \\
+%         \hline
+%     \end{tabular}
+%     \caption{Schoolbook method for univariate polynomials with an optimised monomial representation}
+% \end{table}
 
-\newpage
-
-Blah blah blah...
