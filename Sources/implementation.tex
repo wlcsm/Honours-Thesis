@@ -12,7 +12,7 @@ Note that this doesn't change the current complexity analysis from previous chap
 
 In Chapter \ref{chp:classical} we showed that the schoolbook multiplication method has complexity $\M{O}(nm)$ for input polynomials of degree $n$ and $m$. However if our polynomials are reasonably sparse, it is natural to ask if we can design and algorithm with a complexity that is only dependent on the number of non-zero terms in the polynomial, rather than the maximum degree.
 
-It would seem reasonable to try to use a variation of the schoolbook method to achieve this, however a problem arises when coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far. Since we typically want the terms in our sparse polynomial vectors to be in sorted order\footnote{Otherwise this make other operations such as addition and finding the lead term more difficult to compute}, we will assume that whatever method we use, we must obtain a sorted list of monomials in the end.
+It would seem reasonable to try to use a variation of the schoolbook method to achieve this, however a problem arises when coordinating the access of elements in memory. Once we have multiplied two terms together, we need to include this result into the collection of terms we have calculated so far. Since we typically want the terms in our sparse polynomial vectors to be in sorted order\footnote{Otherwise this would make other operations such as addition and finding the lead term more difficult to compute}, we will assume that whatever method we use, we must obtain a sorted list of monomials in the end.
 
 There are several methods we might look at using to achieve this:
 \begin{itemize}
@@ -54,7 +54,7 @@ A \textit{min-heap} is a data structure which has two operations: insert an elem
 
 \begin{theorem}
     Let $f, g \in K[x_1, \ldots, x_n]$, with $f$ and $g$ stored in a sparse vector representation and sorted lexicographically.
-    Then we may calculate the product $fg$ using $\M{O}(\# f \# g)$ ring operations, and $\M{O}(\# f \# g \log ( \min \{\# f, \# g\}))$ monomial additions or comparisons. Thus $K = \Z$, then the total complexity is $\M{O}(\# f \# g \log ( \min \{\# f, \# g\})\M{C}(mon)$ for $\M{C}(mon)$ the complexity of monomial additions and comparisons.
+    Then we may calculate the product $fg$ using $\M{O}(\# f \# g)$ ring operations, and $\M{O}(\# f \# g \log ( \min \{\# f, \# g\}))$ monomial additions or comparisons. Thus when $K = \Z$, then the total complexity is $\M{O}(\# f \# g \log ( \min \{\# f, \# g\})\M{C}(mon)$ where $\M{C}(mon)$ denotes the complexity of monomial additions and comparisons.
 \end{theorem}
 
 Later research showed that this technique is similar to Johnson's sparse multiplication algorithm \cite{johnson-sparse-polynomial}.
@@ -76,7 +76,7 @@ As mentioned previously the algorithms in previous chapter are solely dependent 
 
 \section{nPoly Multiplication Benchmarks}
 
-We have implemented several of the algorithms presented in this thesis as part of the nPoly polynomial arithmetic library. Rust is a modern systems programming language that has become increasingly popular in recent years for its ability to make highly-performant, highly generic code.
+In the Rust programming language, we have implemented several of the algorithms presented in this thesis as part of the nPoly polynomial arithmetic library. Rust is a modern systems programming language that has become increasingly popular in recent years for its ability to make highly-performant, highly generic code.
 
 One of the advantages of Rust is its support for generic programming which has enabled nPoly to implement its algorithms over all algebras the algorithms support. Currently, nPoly supports: polynomial addition/subtraction/evaluation, Schoolbook multiplication, Karatsuba multiplication, FFT multiplication, Kronecker substitution and limited support for Gr\"{o}bner bases.
 

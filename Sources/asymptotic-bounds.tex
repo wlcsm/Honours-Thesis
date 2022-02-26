@@ -1,40 +1,27 @@
-\chapter{Asymptotic Bounds}\label{chp:asymptotic}
+jj\chapter{Asymptotic Bounds}\label{chp:asymptotic}
 
-% TODO Apply this to polynomial multiplciation
+In this chapter, we will look at one of the most significant recent developments in the field of integer multiplication, namely the algorithms presented by Harvey and van der Hoevern (2019, \cite{nlogn}) for multiplication of $n$-bit integers in $\M{O}(n \log n)$ time in the Turing model. This has solved a long-standing problem in complexity theory and is conjectured by Sch\"{o}nage and Strassen to be asymptotically optimal \cite{sch-str-optimality-int-mult}. 
 
-In this chapter, we will look at one of the most significant recent developments in the field of polynomial multiplication, namely the algorithms presented by Harvey and van der Hoevern (2019, \cite{nlogn}) for multiplication of $n$-bit integers in $\M{O}(n \log n)$ time in the Turing model. This has solved a long-standing problem in complexity theory and is conjectured by Sch\"{o}nage and Strassen to be asymptotically optimal \cite{sch-str-optimality-int-mult}.
+Though this doesn't provide an immediate analogue for polynomial multiplication, it does given us a greater technique for evaluating complex convolution, which could lead to a generalisation for polynomials some time and so it is still worthy to discuss. Indeed, we could try to apply Kronecker substitution to convert polynomials in $\Z[x]$ into integers and apply this algorithm, however if $B$ is a bound for the coefficients of the polynomial, this would give a complexity of 
+\[
+    \M{O}(n \log (n B^2) \log (n \log (n B^2)))
+\]
+which is no better than the Sch\"{o}nage and Strassen algorithm from Chapter \ref{chp:eval-interp}. This is due to the fact that when we use Kronecker substitution, we must pad sections of the integer with many zeros to account for the largest potential integer size to avoid a ``carry'' from occurring. It turns out that the amount of padding causes the complexity to be greater that the current best algorithms for multiplication in $\Z[x]$.
 
 \medskip
 
-Along with their main paper, Harvey and van der Hoeven released a second paper \cite{ffnlogn} which presents another algorithm that achieves the same asymptotic bound and is easier to understand, but is conditional on an unproven hypothesis on the distribution of primes. This conditional algorithm also has the advantage of being easily adapted for polynomial multiplication over more generail coefficient algebras \cite{ffnlogn}. The authors also claimed that the algorithm may be generalised to polynomial multiplication in a similar way as we generalised the Sch\"{o}nage and Strassen algorithm for commutative rings.
+Along with their main paper, Harvey and van der Hoeven released a second paper \cite{ffnlogn} which presents another algorithm that achieves the same asymptotic bound and is easier to understand, but is conditional on an unproven hypothesis on the distribution of primes. This conditional algorithm has the advantage of being easily adapted for polynomial multiplication over more general coefficient algebras \cite{ffnlogn}. In this thesis we have chosen to focus on the unconditional algorithm but we will point out similarities and differences between the two algorithms throughout our presentation.
 
 \medskip
 
-% TODO reword these
-Both techniques take advantage of the fact that there exist multidimensional-DFTs in higher dimensions that are particularly efficient to compute. We first convert the integer multiplication problem into polynomial multiplication in the ring $\Z[x]$, and then into a convolution in $\otimes_{i=1}^d \C^{s_i}$ for suitably picked primes $s_1, \ldots, s_n$. Since the transform lengths in each dimension are prime, the conditional algorithm applies Rader's trick to evaluate the convolution using a multidimensional FFT. However the FFT is only efficient when $s_1 - 1, \ldots, s_d - 1$ have many small prime divisors; a guarantee that has not yet been proven. The unconditional algorithm avoids this situation by using a technique the authors call \emph{Gaussian Resampling}, to reduce the convolution of prime lengths, into a convolution in $\otimes_{i=1}^{t_i} \C^{t_i}$ where $t_i > s_i$ is the smallest power of two greater than $s_i$.
+Both methods take advantage of the fact that there exist higher dimensional DFTs in higher that are particularly efficient to compute. The algorithms proceed as follows: First convert the integer multiplication problem into polynomial multiplication in the ring $\Z[x]$, and then into a convolution in $\otimes_{i=1}^d \C^{s_i}$ for suitably picked primes $s_1, \ldots, s_n$. Since the transform lengths in each dimension are prime, the conditional algorithm applies Rader's trick to evaluate the convolution using a multidimensional FFT. However the FFT is only efficient when $s_1 - 1, \ldots, s_d - 1$ have many small prime divisors; a guarantee that has not yet been proven. The unconditional algorithm avoids this situation by using a technique the authors call \emph{Gaussian Resampling}, to reduce the convolution of prime lengths, into a convolution in $\otimes_{i=1}^{t_i} \C^{t_i}$ where $t_i > s_i$ is the smallest power of two greater than $s_i$.
 
-This technique relies heavily on the Archimedean property of the complex numbers, and so there is not an obvious generalisation of this result of finite fields. The conditional algorithm, however, does not have this requirement, so it may be easily generalised to commutative algebras. This contrasts the majority of previous attempts to improve the theoretical bound which kept the polynomials in $\Z[x]$ and used only discrete algebraic transformations to evaluate the multiplication to obtain an exact result at every step.
+This technique relies heavily on the Archimedean property of the complex numbers, and so there is not an obvious generalisation of the algorithm for more general algebras e.g. integer rings. This contrasts the majority of previous attempts to improve the theoretical bound which kept the polynomials in $\Z[x]$ and used only discrete algebraic transformations to evaluate the multiplication to obtain an exact result at every step.
 
-Since most of the calculations will be performed in the coefficient ring $\C$, we must carefully track the loss of precision in our intermediate results. As discussed in Chapter \ref{chp:eval-interp}, using the standard FFT algorithm with enough precision to guarantee correctness, increases the complexity of the overall algorithm past the $\M{O}(n \log n)$ bound. In the Turing model, the complexity of fundamental operations such as addition and multiplication is directly proportional to the number of bits used to store the number. This means that as we increase the size of the size of our integers, simple arithmetic operations take longer, but in the end, we must keep the total error of the coefficients strictly less than $1/2$ so that rounding to nearest integer returns the correct result. 
+Since most of the calculations will be performed in the coefficient ring $\C$, we must carefully track the loss of precision in our intermediate results. As discussed in Chapter \ref{chp:eval-interp}, using the standard FFT algorithm with enough precision to guarantee correctness increases the complexity of the overall algorithm past the $\M{O}(n \log n)$ bound. In the Turing model, the complexity of fundamental operations such as addition and multiplication is directly proportional to the number of bits used to store the number. This means that as we increase the size of the size of our integers, simple arithmetic operations take longer. In the end, we must ensure the total error of the coefficients is strictly less than $1/2$ so that rounding to nearest integer returns the correct result. 
 
-
-
-% Taken directly from the paper page 5
-Under the assumption of a suitable prime distribution, we chose primes $s_1, \ldots, s_d$ such that $s_i = 1 \;(\tx{mod } r)$, where $r$ is a power of two, and where the $s_i$ are not much larger than $r$. We then use a multi-dimensional generalisation of Rader's Algorithm to reduce the DFT of size $s_1 \times \cdots \times s_d$ to one of size $s_1-1 \times \cdots \times s_d-1$ and hence to a multiplication problem in the ring $\C[x_1, \ldots, x_d] / (x_1^{s_1 - 1} - 1, \ldots, x_d^{s_d - 1} - 1)$, where $s_i - 1 = q_i r$ where the $q_i$ are suitably small, we may then reduce this to a collection of complex DFTs of size $q_1 \times \cdots \times q_d$, plus a collection of multiplication problems in $\C[x_1, \ldots, x_d] / (x_1^r - 1, \ldots, x_d^r - 1)$. \\
-
-% Replacing $x_d$ with $e^{\pi i / r}y$ see that the latter products are of the form of \ref{eq:here}.  We can then reduce the product to a collection of pointwise products in $R = \C[y] / (y^r + 1)$. These, in turn, are converted to integer multiplication problems via Kronecker substitution and then handled recursively (obviously you do not need that if you are just doing polynomial multiplication).
-% \medskip
-
-% (TODO come back because I think I might have figured out a way to generalise some result to polynomial multiplication)
-% Try using the generalisation that they used in the Schonage and strassen one
-
-% \medskip
-
-% It is non-obvious how one might translate this result into the problem of polynomial multiplication. The first guess might be to perform Kronecker substitution to convert the polynomial to an integer multiplication problem. However, for certain polynomials, this would not yield a very efficient algorithm as the integer would be much larger than the polynomial, e.g. $f(x) = 1 + x^{100}$.\\
-% This polynomial will lead to a very large integer, but it requires very few bits to express in the sparse vector representation. We might then ask that we can make a statement comparing the number of bits required to express the polynomial.
-
-\section{$\M{O}(n\log(n))$ Multiplication: Unconditional}
-\label{subsec:nlogn}
+% \section{$\M{O}(n\log(n))$ Multiplication: Unconditional}
+% \label{subsec:nlogn}
 % Of course this is taken from the nlogn paper
 % They suggest that their unconditional algorithm is similar to Schonage and Strassen's first integer multiplication algorithm in that it achieves the same recursive relation, except that with the new one they are free to choose their own
 
@@ -79,10 +66,10 @@ Now we may introduce a high-level overview of the main algorithm. Let $a, b \in 
     \item Convert the result back into $\Z[x]$, and finally recover the solution in $\Z$.
 \end{enumerate}
 
-Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapters. In this section, we will cover all aspects of the proof presented by Harvey and van der Hoeven, excluding the details of the Gaussian Resampling technique used in Step 3, and certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding of Fourier analysis and number theory that is beyond the material presented in this thesis. Section \ref{sub:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sub:transfoms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sub:proof-of-main-theorem} will prove Theorem \ref{thm:main-theorem}.
+Steps 3 and 4 are the only difficult steps that cannot be accomplished from the theory in previous chapters. In this section, we will cover all aspects of the proof presented by Harvey and van der Hoeven, excluding the details of the Gaussian Resampling technique used in Step 3, and certain number theoretic results that show the existence of a certain distribution of primes, as they assume a level of understanding of Fourier analysis and number theory that is beyond the material presented in this thesis. Section \ref{sec:notation} will introduce the notation and formulate the error model used throughout the rest of the chapter. Section \ref{sec:transforms-for-powers-of-two} will develop the tools necessary to perform step 4, and Section \ref{sec:proof-of-main-theorem} will prove Theorem \ref{thm:main-theorem}.
 
-\subsection{Notation}%
-\label{sub:notation}
+\section{Notation}%
+\label{sec:notation}
 
 Fix a precision of $p$ bits.
 
@@ -190,8 +177,8 @@ and define the associated error of a linear map as
 \end{lemma}
 
 
-\subsection{Transforms for Powers of Two}
-\label{sub:transfoms-for-powers-of-two}
+\section{Transforms for Powers of Two}
+\label{sec:transforms-for-powers-of-two}
 
 In this section we show how to efficiently evaluate the convolution of $\C^{t_1} \otimes \cdots \otimes \C^{t_d}$ for $t_1, \ldots, t_d$ powers of two, such that the error is sufficiently minimised.
 
@@ -287,8 +274,7 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
     \end{equation}
     We use Proposition \ref{prop:multi-synth} to compute approximations $u^\prime = \tilde{\M{G}}_{t_1, \ldots, t_{d-1}} u \in \otimes_i \tilde{\mathscr{R}}^{t_i}$ and $v^\prime = \tilde{\mathscr{G}}_{t_1, \ldots, t_{d-1}} v \in \otimes_i \mathscr{R}^{t_i}$. The cost of this step is $\M{O}(Tp \log T)$.
 
-    Next we must handle the pointwise multiplications between the two transforms. The multiplication map $\M{A}: \mathscr{R} \times \mathscr{R} \to \mathscr{R}$ given by $\M{A}(a, b) = ab/r$ is a bilinear map with $\|\M{A}\| \le 1$ and so we may compute an approximation $\tilde{\M{A}}$ by Lemma \ref{lem:err-bilinear-map} such that $\varepsilon(\tilde{\M{A}}) < 2$ and $\tilde{v} = \tilde{\M{A}}(\tilde{u}, \tilde{v})$ has $\varepsilon(\tilde{v}) = \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{u}) + \varepsilon(\tilde{v}) = 2\log_2 T + 2$. The combined complexity of these steps is then
-    % TODO state where this is actually derived from. Martin had a comment about it
+    Next we must handle the pointwise multiplications between the two transforms. The multiplication map $\M{A}: \mathscr{R} \times \mathscr{R} \to \mathscr{R}$ given by $\M{A}(a, b) = ab/r$ is a bilinear map with $\|\M{A}\| \le 1$ and so we may compute an approximation $\tilde{\M{A}}$ by Lemma \ref{lem:err-bilinear-map} such that $\varepsilon(\tilde{\M{A}}) < 2$ and $\tilde{v} = \tilde{\M{A}}(\tilde{u}, \tilde{v})$ has $\varepsilon(\tilde{v}) = \varepsilon(\tilde{\M{A}}) + \varepsilon(\tilde{u}) + \varepsilon(\tilde{v}) = 2\log_2 T + 2$. The combined complexity of these steps (the combined complexity of the approximation lemmas) is then
     \[
         \frac{T}{r}(4M(3rp) + \M{O}(rp)) = \frac{4T}{r} M(3rp) + O(Tp).
     \]
@@ -296,9 +282,6 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 
     Finally, we must scale by $T/r$, since we know that $\|w\| \le 1$ we can apply the approximation Lemma (E.2 Scaling) to obtain $w = (T/r)w^\prime$ such that $\varepsilon(\tilde{w}) < 2(T/r)\varepsilon(\tilde{w}^\prime) + 3 \le T(3 \log_2 T + 2) + 3 = 3T\log_2 T + 5$ in time $\M{O}(Tp^{1 + \delta})$.
 \end{proof}
-
-% TODO say why
-% (Note: Here is the main place we use the assumption that $t_d \ge 2$.)
 
 \begin{proposition}[Proposition 3.5 \cite{nlogn}]\label{prop:final}
     Let $t_1, \ldots, t_d$ be as in Theorem 3.1. We may construct a numerical approximation $\tilde{\M{M}}_\C: \otimes_i \tilde{\C}^{t_i}_\circ \times \tilde{\C}^{t_i}_\circ \to \tilde{\C}^{t_i}_\circ$ for $\M{M}_\C$ such that $\varepsilon(\tilde{\M{M}}_\C) < 3 T \log_2 T + 2 T + 15$ and
@@ -308,8 +291,6 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 \end{proposition}
 
 \begin{proof}
-
-    % TODO the reason for the isomorphism is that they are going from x_d - 1 to y^r + 1, the sign changes
     Note that since $\mathscr{R} = \C[y]/(y^{r} - 1)$ and $r = t_d$, we have the isomorphism
     \[
         \M{T}: \frac{\C[x_1, \ldots, x_d]}{x_1^{t_1} - 1, \ldots, x_d^{t_d} - 1} \to \frac{\mathscr{R}[x_1, \ldots, x_{d-1}]}{x_1^{t_1} - 1, \ldots, x_d^{t_{d-1}} - 1}
@@ -338,17 +319,16 @@ At first, it may seem counter intuitive to first calculate a DFT, use it to calc
 \begin{proof}
     First $j_1 = j_2 = \ldots = j_d = 0$. Then we follow this procedure. We compute the $\ceil{\log_2 d}$ partial sums. 
     \[
-      \frac{r}{2}(j_1^2/t_1 + \cdots + j^2_{t_{\floor{d/2}}}), \frac{r}{4}(j_{t_{\floor{d/2}+1}}^2 + \cdots + j^2_{t_{\floor{d/4}+1}}) + 
+        \frac{r}{2}(j_1^2/t_1 + \cdots + j^2_{\floor{d/2}}/{t_{\floor{d/2}}}), \frac{r}{4}(j_{\floor{d/2}+1}/t_{\floor{d/2}+1}^2 + \cdots + j^2_{\floor{d/4}+1}/{t_{\floor{d/4}+1}}) + \cdot \bb{\frac{j_{d-1}^2}{t_{d-1}}}
     \]
-    Then we compute $j_d^2/t_d$ for all $1 \le j_d \le t_d$ and add that to the sum. This will take $\M{O}(\log r)$ time if we store the results of . Once we have computed all of the $j_d$ values, we must recompute the prefix of the sum with the next value of $j_1, \ldots, j_{d-1}$. These partial sums will take $O(r)$ each and there are $\M{O}(T/r)$ of them. Hence they will take $\M{O}(T)$ time in total to compute. Thus computing all the sums in the table will take $\M{O}(T \log r)$ time. 
+    Then we compute $j_d^2/t_d$ for all $1 \le j_d \le t_d$ and use the partial sums to evaluate the entire sum. We must operate on the partial sums since our approximation lemma (E.1 Addition) is only formulated to work of two values at a time. This will take $\M{O}(\log r)$.  Once we have computed all of the $j_d$ values, we must recompute the partial sum with the next value of $j_1, \ldots, j_{d-1}$. Recomputing the partial sums will take $O(r)$ each and there are $\M{O}(T/r)$ of them. Hence they will take $\M{O}(T)$ time in total to compute. Thus computing all the sums in the table will take $\M{O}(T \log r)$ time. 
 \end{proof}
 
 
 Finally, we may prove the main theorem of this section
 
 \begin{proof}[Proof of Theorem \ref{thm:main-3}]
-    Let $u \in \otimes_i \tilde{\C}_\circ^t$.
-    % TODO i'm pretty sure this isn't the correct formula for Bluestein's algorithm
+    Let $u \in \otimes_i \tilde{\C}_\circ^{t_i}$.
     Here we will apply Bluestein's trick for converting DFTs into convolutions. Adapting Bluestein's algorithm for normalised DFTs gives
     \[
         v = \bar{a} \cdot (\tfrac{1}{T}a \ast (\bar{a} \cdot u))
@@ -382,19 +362,19 @@ Finally, we may prove the main theorem of this section
 
 We note that the contents of this section do not make any major changes from the techniques outlined in Chapter \ref{chp:eval-interp} for using the FFT to evaluate convolutions. The only changes are those made to normalise the result, and use synthetic DFTs to control the error. 
 
-\subsection{Proof of Main Theorem}%
-\label{sub:proof-of-main-theorem}
+\section{Proof of Main Theorem}%
+\label{sec:proof-of-main-theorem}
 
 In order to prove Theorem \ref{thm:main-theorem}, we first need to present the main result of Harvey and van der Hoeven's \emph{Gaussian Resampling} technique to convert a DFT of order $s_1 \times \cdots \times s_d$ where $s_i$ are prime, to one of order $t_1 \times \cdots \times t_d$, where $t_i > s_i$ is the next power of two greater than $s_i$, to allow us to apply Theorem \ref{thm:main-3}. This is the main point of divergence between the conditional and unconditional algorithms. Where the unconditional algorithm using Gaussian Resampling to make this conversion, the conditional algorithm uses Rader's transform. Since we are not proving the theorem here, we will simplify it for the sake of clarity.
 
 \begin{theorem}[Theorem 4.1 in nlogn]\label{thm:gaussian}
-    Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Suppose $s_i/t_i - 1 > p^{-1}$ for all $i$. Then there exists a $\gamma < 2dp$ and linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
+    Let $d \geq 1$, let $s_1, \ldots, s_d$ and $t_1, \ldots, t_d$ be integers such that $2 \leq s_i < t_i < 2^p$ and $\gcd(s_i, t_i) = 1$ and let $T = t_1\ldots t_d$. Suppose $s_i/t_i - 1 > p^{-1/6}$ for all $i$. Then there exists a $\gamma < 2dp^{7/24}$ and linear maps $\M{A}: \otimes_i \C^{s_i} \to \otimes_i \C^{t_i}$ and $\M{B}: \otimes_i \C^{t_i} \to \otimes_i \C^{s_i}$ with $\|\M{A}\|$, $\|\M{B}\| \leq 1$ such that
     \[
         \M{F}_{s_1, \ldots, s_d} = 2^\gamma \M{B} \M{F}_{t_1, \ldots, t_d} \M{A}
     \]
     Moreover we can construct numerical numerical approximations $\tilde{\M{A}}: \otimes_i \tilde{\C}^{s_i}_0 \to \otimes_i \tilde{\C}^{t_i}_0$ and $\tilde{\M{B}}: \otimes_i \tilde{\C}^{t_i}_0 \to \otimes_i \tilde{\C}^{s_i}_0$  such that $\epsilon(\tilde{\M{A}}), \epsilon(\tilde{\M{B}}) < dp^2$ and
     \[
-        C(\tilde{\M{A}}), C(\tilde{\M{B}}) = \M{O}(dTp^{{\frac{3}{2}} + \delta}p^{1/2} + Tp\log T).
+        C(\tilde{\M{A}}), C(\tilde{\M{B}}) = \M{O}(dTp^{\frac{43}{24} + \delta} + Tp\log T).
     \]
 \end{theorem}
 
@@ -403,9 +383,7 @@ In order to prove Theorem \ref{thm:main-theorem}, we first need to present the m
 % TODO this is the important part to fix up
 Now we will set up the parameters to prove the theorem.
 
-Let $b = \lceil \log_2 n\rceil \geq d^{12} \geq 4096$ be the size of the coefficients after applying Kronecker substitution to convert the integers into polynomials in $\Z[x]$. Fix the working precision to be $p = 6b$, and define $\alpha = \lceil (12d^2 b)^{1/4}\rceil$.
-
-Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also have
+Let $b = \lceil \log_2 n\rceil \geq d^{12} \geq 4096$ be the size of the coefficients after applying Kronecker substitution to convert the integers into polynomials in $\Z[x]$. Fix the working precision to be $p = 6b$.
 
 % \begin{equation}
 %     \alpha \leq \lceil 12^{1/4} b^{7/24}\rceil \leq 1.87 \cdot b^{7/24} + 1 < 2b^{7/24} < p^{1/2}
@@ -413,7 +391,7 @@ Clearly $\alpha \geq 2$ and since $d \leq b^{1/12}$ and $b \geq 4096$ we also ha
 
 % TODO Why is this line necessary?
 
-In order to satisfy the conditions of Theorem \ref{thm:gaussian}, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
+% In order to satisfy the conditions of Theorem \ref{thm:gaussian}, set $\gamma = 2d\alpha^2 < 2b^{1/12} \cdot 4b^{7/12} = 8b^{2/3}$.
 
 Let $T$ be the unique power of two in the interval
 \begin{equation}
@@ -425,23 +403,11 @@ Let $r$ be the unique power of two in the interval,
 \[
     T^{1/d} \leq r < 2T^{1/d}.
 \]
-% TODO why is this necessary?
-% We certainly have $b \leq 4n^{1/2}$, so
-% \[
-%     r \geq (4n/b)^{1/d} \geq n^{1/2d} \geq 2^{d^{10}}
-% \]
-
-% (TODO This seems to be unclear to Martin in Chapter-6-Comments.pdf)
-
 Now we construct a factorisation $T = t_1 \cdots t_d$ that satisfies the hypotheses of Theorem 3.1. Let $d^\prime := \log_2(r^d / T)$. As $T \leq r^d < 2^d T$ we have $1 \leq r^d / T < 2^d$ and hence $0 \leq d^\prime < d$. Define
 \[
     t_1, \ldots, t_{d^\prime} := \frac{r}{2}, \qquad t_{d^\prime + 1} , \ldots, t_d := r
 \]
 Then $t_d \geq \cdots \geq t_1 \geq 2$ and $t_1\cdots t_d = T$.
-
-\medskip
-
-% (TODO I know I don't need to prove the Lemma but I need to simplify their description of $s_1, \ldots, s_d$ which is not simple)
 
 \medskip
 
@@ -464,9 +430,7 @@ Thus $r/2 \ge 2^{d^{10} - 1} \ge e^{8d}$, and so Lemma \ref{lem:primes} tells us
 \]
 Therefore we may find the first $d^\prime$ primes $s_1, \ldots, s_{d^\prime}$ in this interval.
 
-Similarly, we may apply the lemma again but with $x = r$ to find $d \ge d - d^\prime$ primes in the interval $(1 - \frac{2}{d})r < q \le (1 - \frac{1}{4d})r$.
-
-We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
+Similarly, we may apply the lemma again but with $x = r$ to find $d \ge d - d^\prime$ primes in the interval $(1 - \frac{2}{d})r < q \le (1 - \frac{1}{4d})r$. We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
 
 %TODO ask martin if we can just do the r^{5/2} +\delta} method
 
@@ -508,12 +472,12 @@ We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
     The complexity is straightforward to compute
     \begin{align*}
         \M{C}(\tilde{\M{F}}_{s_1, \ldots, s_d}) &= \M{C}(\tilde{\M{A}}) + \M{C}(\tilde{\M{F}}_{t_1, \ldots, t_d}) + \M{C}(\tilde{\M{B}}) + O(Tp^{1 + \delta})\\
-                                                &= \frac{4T}{r}M(3rp) + O(dTp^{3/2 + \delta}\alpha + Tp\log T + Tp^{1 + \delta}).
+                                                &= \frac{4T}{r}M(3rp) + O(dTp^{3/2 + \delta}p^{7/24} + Tp\log T + Tp^{1 + \delta}).
     \end{align*}
 
-    By our assumptions on $d$, $\alpha$, and $\delta$, (TODO expand here), we have
+    Since we have $d  \le \ceil{\log_2 n}^{\frac{1}{d}} = (\frac{1}{6} p)^{\frac{1}{d}}$, and $\delta < 1/8$ (this could be guaranteed with the Sch\"{o}nage Strassen integer multiplication algorithm) we have
     \[
-        dp^{3/2 + \delta}\alpha = O(p^2).
+        dp^{3/2 + \delta}p^{7/23} = O(p^2).
     \]
     Since $p = \M{O}(\log n)$ by its definition, we can further simplify the complexity to
     \[
@@ -529,12 +493,11 @@ We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
 \end{proposition}
 
 \begin{proof}
-    We will use the convolution formula to evaluate the convolution here. First use the previous proposition to handle the forward $\tilde{\M{F}}_{s_1, \ldots, s_d}$ and inverse transforms $\tilde{\M{F}}_{s_1, \ldots, s_d}^{-1}$, and one of the approximation lemmas (TODO reference) to handle the pointwise multiplications. Applying the approximate function composition lemma we obtain
+    Now we will apply the convolution formula to evaluate the convolution here. First use the previous proposition to handle the forward $\tilde{\M{F}}_{s_1, \ldots, s_d}$ and inverse transforms $\tilde{\M{F}}_{s_1, \ldots, s_d}^{-1}$, and one of the approximation lemmas (E.3 Multiplication) to handle the pointwise multiplications. Applying the approximate function composition lemma we obtain
     \begin{align*}
         \varepsilon(\tilde{w}^\prime) &\leq \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}) + \varepsilon(\tilde{\M{F}}_{s_1, \ldots, s_d}) + \varepsilon(\tilde{\M{F}}^{-1}_{s_1, \ldots, s_d}) + 2\\
                                       &< 3 \cdot 2^{\gamma + 5}T\log_2 T + 2 < \frac{7}{2} \cdot 2^{\gamma + 5}T \log_2 T.
     \end{align*}
-
     Then we need to scale the result by $S$. Which can be accomplished in time $\M{O}(Sp^{1 + \delta}) = \M{O}(n \log n)$ such that
     \[
         \varepsilon(\tilde{w}) < 2S\varepsilon(\tilde{w}^\prime) + 3 < 7S \cdot 2^{\gamma + 5} T \log_2 T + 3 < 2^{\gamma + 8}T^2 \log_2 T.
@@ -543,49 +506,41 @@ We may find these primes in $\M{O}(n)$ time \cite{nlogn}.
 \end{proof}
 
 
-% (TODO Redo this bit here and polish)
-
-All that remains now is to convert the integer multiplication problem into a convolution problem in $\otimes_{i=1}^d \C^{s_i}$ which we showed could be done (TODO though I didn't step through the complexity at each step so I might need to do that). Apply the previous proposition to evaluate the convolution and coerce the result back into $\Z[x]$ by rounding to the nearest integer.
+All that remains now is to convert the integer multiplication problem into a convolution problem in $\otimes_{i=1}^d \C^{s_i}$ which we showed could be done. We now apply the previous proposition to evaluate the convolution and coerce the result back into $\Z[x]$ by rounding to the nearest integer.
 
 Now we will show that we can recover the coefficients of the result correctly.
-Let $F, G \in \Z[x]$ and $H = FG \in \Z[x]$ be the polynomials in $\Z[x]$, and let $F^\prime, G^\prime, H^\prime \in \otimes_i \C^{s_i}$ be the corresponding elements in $\otimes_i \C^{s_i}$ given by the coefficient vectors, so $H^\prime = F^\prime \ast G^\prime$. Let $u = 2^{-b}F^\prime$, $v = 2^{-b} G^\prime$ and $w = \M{M}(u, v) = \frac{1}{S} u \ast v$. Then $H^\prime = 2^{2b}Sw$. Since we set our working precision $p$ to be $p = 6b$, we may use the previous proposition to compute an approximation $\tilde{w} = \tilde{\M{M}}(u, v)$ such that $\varepsilon(\tilde{w}) < 2^{\gamma + 8} T^2 \log_2 T$ in time $(12T/r)M(3rp) + O(n \log n)$.
+Let $f, g \in \Z[x]$ and $h = fg \in \Z[x]$ be the polynomials in $\Z[x]$, and let $f^\prime, g^\prime, h^\prime \in \otimes_i \C^{s_i}$ be the corresponding elements in $\otimes_i \C^{s_i}$ given by the coefficient vectors, so $h^\prime = f^\prime \ast g^\prime$. Let $u = 2^{-b}f^\prime$, $v = 2^{-b} g^\prime$ and $w = \M{M}(u, v) = \frac{1}{S} u \ast v$. Then $h^\prime = 2^{2b}Sw$. Since we set our working precision $p$ to be $p = 6b$, we may use the previous proposition to compute an approximation $\tilde{w} = \tilde{\M{M}}(u, v)$ such that $\varepsilon(\tilde{w}) < 2^{\gamma + 8} T^2 \log_2 T$ in time $(12T/r)M(3rp) + O(n \log n)$.
 
 Now notice that
 \[
-    \|H^\prime - 2^{2b}S\tilde{w}\| = 2^{2b}S\|w - \tilde{w}\| < 2^{2b + \gamma + 8 - p} T^3 \log_2 T.
+    \|h^\prime - 2^{2b}S\tilde{w}\| = 2^{2b}S\|w - \tilde{w}\| < 2^{2b + \gamma + 8 - p} T^3 \log_2 T.
 \]
 Since $T < n \le 2^b$ and $T \log _2 T \le T \log_2 n \le Tb < 8n \le 2^{b+3}$ this yields
 \[
-    \|H^\prime - 2^{2b}S\tilde{w}\| < 2^{5b + \gamma + 11 - p} = 2^{-b + \gamma + 11}.
+    \|h^\prime - 2^{2b}S\tilde{w}\| < 2^{5b + \gamma + 11 - p} = 2^{-b + \gamma + 11}.
 \]
-However since $\gamma < 8b^{2/3} < b - 13$, because $b \ge 4096$ we have (TODO I think there is a potential for implication here, especially if we chose b to be bigger)
+However since $\gamma < 8b^{2/3} < b - 13$, because $b \ge 4096$ we have 
 \[
-    \| H^\prime - 2^{2b}S \tilde{w} \| < \frac{1}{4}
+    \| h^\prime - 2^{2b}S \tilde{w} \| < \frac{1}{4}
 \]
-Hence we may also recover $H^\prime$ in time $\M{O}(Sp^{1 + \delta}) = \M{O}(n \log n)$ by multiply each coefficient of $\tilde{w}$ by $2^{2b}S$ and then rounding to the nearest integer.
+thus by rounding the coefficients in $h^\prime$ to the nearest integer, we are guanteed to recover the correct result. Additionally we may perform this operation in $\M{O}(Sp^{1 + \delta}) = \M{O}(n \log n)$ by multiply each coefficient of $\tilde{w}$ by $2^{2b}S$ and then truncating the result to $p$ bits.
 
-So we now get
-    \[
-        \M{C}(\tilde{M}) < \frac{12T}{r} \M{C}(3rp) + \M{O}(n \log n),
-    \]
-
-    To show this we expand the first recursive step
-
-    \begin{align*}
-        \frac{12T}{r} \M{C}(3rp) < c\frac{12T}{r} \times (3rp) \log(3rp)\\
-        = c36Tp\log (3rp)\\
+Thus we obtain the recursive formula
+\[
+    \M{C}(n) < \frac{12T}{r} \M{C}(3rp) + \M{O}(n \log n),
+\]
+To find a closed expression for this formula, we expand the first recursive step to show that the cost of the algorithm is geometrically decreasing at each step
+\begin{align*}
+    \frac{12T}{r} \M{C}(3rp) < c\frac{12T}{r} \times (3rp) \log(3rp)\\
+        &= c36Tp\log (3rp)\\
         &< 1728cn \log (3rp)\\
-        &< 1728cn\log(36b) + 1728cn \frac{1}{d}\log(n)\\
-    \end{align*}
-    The fist term is negligible for large $n$, and the second term experiences a geometric size reduction for $d > 1728$.
+        &< 1728cn\log(36b) + 1728cn \frac{1}{d}\log(n).
+\end{align*}
+The first term is negligible for large $n$, and the second term experiences a geometric size reduction for $d > 1728$.
 
-    Thus all the $\M{O}(n \log n)$ terms experience a geometric size reduction at each level, and therefore it must be $\M{O}(n \log n)$ in total
+Thus when fully expanded, $\M{C}(n)$ is bounded above by a decreasing geometric sequence multiplied by $\M{O}(n \log n)$. Since a decreasing geometric sequence is always bounded above by a constant, we have $\C \in \M{O}(n \log n)$.
 
-% This is taken pretty closely from nlogn
-
-(TODO Add a small summary of everything once I finish since there are a lot of technical bits I am putting together.)
-
-\newpage
+% \newpage
 
 % \section{Conditional Algorithm}
 

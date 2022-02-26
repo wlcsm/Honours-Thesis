@@ -1,4 +1,4 @@
-\chapter{Evaluation and interpolation}\label{chp:eval-interp}
+\chapter{Evaluation and Interpolation}\label{chp:eval-interp}
 
 The algorithms we have seen so far have been direct calculations of the multiplication formula \eqref{eq:poly-mult} introduced in Chapter \ref{chp:preliminaries}. Soon after the rediscovery of the Fast Fourier Transform in 1965, the \textit{evaluation-interpolation strategy} became a more popular choice for evaluating convolutions. Rather than evaluating the multiplication formula directly, in this strategy we sample the input polynomials at several points and interpolate the result from the product of the samples. Although initially this would appear to take more time that than the direct approach, it is remarkably efficient in practice and allows us to use techniques from Fourier analysis to multiply polynomials in $\M{O}(n \log n)$ ring operations. In fact, we will revisit Karatsuba's algorithm from the previous chapter and show how it too can be interpreted as using this framework.
 
